@@ -1,0 +1,529 @@
+{
+  "message": "success",
+  "data": {
+    "node": [
+      {
+        "name": "1",
+        "opType": "x",
+        "scope": "Default",
+        "input": [
+          {
+            "name": "cst1",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "11",
+        "opType": "x",
+        "scope": "Default",
+        "input": [
+          {
+            "name": "cst1",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "2",
+        "opType": "Conv2D",
+        "scope": "Default",
+        "attribute": [
+          {
+            "name": "output_names",
+            "value": {
+              "dtype": "DT_FLOAT64",
+              "strVal": "output"
+            }
+          }
+        ],
+        "input": [
+          {
+            "name": "1",
+            "type": "DATA_EDGE"
+          },
+          {
+            "name": "11",
+            "type": "DATA_EDGE"
+          },
+          {
+            "name": "7",
+            "type": "DATA_EDGE"
+          },
+          {
+            "name": "x1",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "3",
+        "opType": "Conv2D",
+        "scope": "Gradients",
+        "input": [
+          {
+            "name": "2",
+            "type": "DATA_EDGE"
+          },
+          {
+            "name": "conv1.weight",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "4",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          },
+          {
+            "name": "6",
+            "type": "DATA_EDGE"
+          },
+          {
+            "name": "cst2",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "5",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d",
+        "input": [
+          {
+            "name": "4",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {}
+      },
+      {
+        "name": "6",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d",
+        "input": [
+          {
+            "name": "5",
+            "type": "DATA_EDGE"
+          },
+          {
+            "name": "7",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {}
+      },
+      {
+        "name": "7",
+        "opType": "x",
+        "scope": "Default",
+        "input": [],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "8",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          },
+          {
+            "name": "7",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "20",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "21",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "22",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "23",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "24",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "25",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "26",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "27",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "28",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "29",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "30",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "31",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "32",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "33",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "34",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      },
+      {
+        "name": "35",
+        "opType": "Conv2D",
+        "scope": "Gradients/BatchNorm2d/Conv2D6",
+        "input": [
+          {
+            "name": "3",
+            "type": "DATA_EDGE"
+          }
+        ],
+        "outputType": {
+          "dataType": "DT_STRING",
+          "tensotType": {}
+        }
+      }
+    ],
+    "name": "construct_238_487_001",
+    "parameters": [
+      {
+        "name": "x1",
+        "type": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                },
+                {
+                  "size": "3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "conv1.weight",
+        "type": {
+          "dataType": "DT_STRING",
+          "tensotType": {
+            "elemType": "DT_FLOAT16",
+            "shape": {
+              "dim": [
+                {
+                  "size": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "constVals": [
+      {
+        "key": "cst1",
+        "value": {
+          "dtype": "DT_FLOAT32",
+          "intVal": "0"
+        }
+      },
+      {
+        "key": "cst2",
+        "value": {
+          "dtype": "DT_FLOAT32",
+          "intVal": "1"
+        }
+      }
+    ]
+  }
+}

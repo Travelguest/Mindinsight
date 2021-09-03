@@ -79,6 +79,10 @@ export default new Router({
       component: () => import('./views/train-manage/compare-plate.vue'),
     },
     {
+      path: '/elk',
+      component: () => import('./views/elk/elk.vue'),
+    },
+    {
       path: '/profiling-gpu',
       component: () => import('./views/profiling-gpu/profiling.vue'),
       redirect: '/profiling-gpu/profiling-dashboard',
