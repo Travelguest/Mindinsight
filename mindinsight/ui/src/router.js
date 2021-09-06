@@ -83,6 +83,10 @@ export default new Router({
       component: () => import('./views/elk/elk.vue'),
     },
     {
+      path: '/parallel',
+      component: () => import('./views/parallel-graph/graph-container.vue'),
+    },
+    {
       path: '/profiling-gpu',
       component: () => import('./views/profiling-gpu/profiling.vue'),
       redirect: '/profiling-gpu/profiling-dashboard',

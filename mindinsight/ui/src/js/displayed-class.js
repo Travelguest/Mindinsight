@@ -34,11 +34,13 @@ export class DisplayedEdge {
    * The constructor of DisplayedEdge
    * @param {String} id
    * @param {String} points
+   * @param {Boolean} outline
    */
-  constructor(id, points) {
+  constructor(id, points, outline) {
     this.id = id;
     this.points = points;
     this.selected = false;
+    this.outline = outline;
   }
 }
 
@@ -65,4 +67,3 @@ export class DisplayedNode {
     this.fill = fill ? fill : '#ffffff';
   }
 }
-
