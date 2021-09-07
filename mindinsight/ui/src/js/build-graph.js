@@ -27,7 +27,6 @@ let processedGraph = {
 let nameScopeIds = [];
 let conceptualGraphMode = false;
 let bipartiteGraphMode = false;
-let cutEdges = new Set();
 let insertedAttr = [];
 
 const COMM_LIST = new Set([
@@ -66,9 +65,7 @@ function _resetData() {
  */
 function _createBasicNode(node) {
   const attribute = {};
-  for (const key in node.attr) {
-    attribute[key] = node.attr[key];
-  }
+  Object.keys(node.attr).forEach((key) => attribute[key] = node.attr[key]);
 
   return {
     id: node.node_id,
@@ -202,9 +199,9 @@ function _insertTrieNode(insertNode, scopeString, root) {
 
   if (hasSuffixChild) {
     _insertTrieNode(
-      insertNode,
-      scopes.splice(1).join(SCOPE_SEPARATOR),
-      hasSuffixChild
+        insertNode,
+        scopes.splice(1).join(SCOPE_SEPARATOR),
+        hasSuffixChild,
     );
   } else {
     if (children.length === 0) {
@@ -212,9 +209,9 @@ function _insertTrieNode(insertNode, scopeString, root) {
       newNode.refNodes.push(insertNode);
       children.push(newNode);
       _insertTrieNode(
-        insertNode,
-        scopes.splice(1).join(SCOPE_SEPARATOR),
-        newNode
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
       );
     } else {
       let validPosition = 0;
@@ -227,9 +224,9 @@ function _insertTrieNode(insertNode, scopeString, root) {
       newNode.refNodes.push(insertNode);
       children.splice(validPosition, 0, newNode);
       _insertTrieNode(
-        insertNode,
-        scopes.splice(1).join(SCOPE_SEPARATOR),
-        newNode
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
       );
     }
   }
@@ -252,12 +249,12 @@ function _compressTrie(node) {
       // only one child, compress
       top.refNodes.forEach((refNode) => {
         refNode.scope = refNode.scope.replace(
-          `${top.key}/${top.children[0].key}`,
-          `${top.key}+${top.children[0].key}`
+            `${top.key}/${top.children[0].key}`,
+            `${top.key}+${top.children[0].key}`,
         );
         refNode.parent = refNode.parent.replace(
-          `${top.key}/${top.children[0].key}`,
-          `${top.key}+${top.children[0].key}`
+            `${top.key}/${top.children[0].key}`,
+            `${top.key}+${top.children[0].key}`,
         );
         // TODO: replace last one?
       });
@@ -296,6 +293,11 @@ function _findExistNameScope(id) {
   return target;
 }
 
+/**
+ * Processing nodes data, statistics const and parameter nodes.
+ * Construct bipartite graph, do namescope aggregation.
+ * @param {Object} data Graph data.
+ */
 function _processNodesParallel(data) {
   const nodes = data.op_nodes || [];
   const {parameter_nodes: parameterNodes, const_nodes: constNodes} = data;
@@ -352,7 +354,6 @@ function _processNodesParallel(data) {
   });
   const bipartiteRes = processBipartite(nodeMap);
   const components = bipartiteRes['components'];
-  cutEdges = bipartiteRes['cutEdges'];
   const bits = components.length.toString().length;
 
   Object.keys(components).forEach((nid) => {
@@ -362,8 +363,8 @@ function _processNodesParallel(data) {
       // console.log(id);
       let scopes = nodes[id].scope;
       const names = scopes
-        .split(SCOPE_SEPARATOR)
-        .map((nameId) => nameId + '_' + nid);
+          .split(SCOPE_SEPARATOR)
+          .map((nameId) => nameId + '_' + nid);
       scopes = names.join(SCOPE_SEPARATOR);
       scopes = 'C_' + nid.padStart(bits, '0') + SCOPE_SEPARATOR + scopes;
       nodes[id].scope = scopes;
@@ -374,13 +375,13 @@ function _processNodesParallel(data) {
   const trie = new TrieNode(null);
   for (const sNode of nodes) {
     _insertTrieNode(
-      sNode,
-      `${sNode.scope}/${
-        sNode.name.split(SCOPE_SEPARATOR)[
-          sNode.name.split(SCOPE_SEPARATOR).length - 1
-        ]
-      }`,
-      trie
+        sNode,
+        `${sNode.scope}/${
+          sNode.name.split(SCOPE_SEPARATOR)[
+              sNode.name.split(SCOPE_SEPARATOR).length - 1
+          ]
+        }`,
+        trie,
     );
     // _insertTrieNode(sNode, sNode.scope, trie);
   }
@@ -549,10 +550,10 @@ function _processHierarchy() {
     if (!nameScope.parent) continue;
     const parent = nodeMap[nameScope.parent];
     parent.input = parent.input.concat(
-      Object.values(_filterIOData(nameScope.input, parent.id))
+        Object.values(_filterIOData(nameScope.input, parent.id)),
     );
     parent.output = parent.output.concat(
-      Object.values(_filterIOData(nameScope.output, parent.id))
+        Object.values(_filterIOData(nameScope.output, parent.id)),
     );
   }
 }
@@ -604,7 +605,7 @@ function _getNodeHash(node, nodeMap, parameterMap, constMap) {
     const ids = attrs[attr];
     for (const id of ids) {
       genHashValues.push(
-        attr + '-' + (nodeMap[id] || parameterMap[id] || constMap[id]).type
+          attr + '-' + (nodeMap[id] || parameterMap[id] || constMap[id]).type,
       );
     }
     genHashValues.push(attr + '-' + ids.length);
@@ -704,7 +705,7 @@ const checkWhetherInNewRoot = (parent) => {
 
 /**
  * Process the nodes data to be displayed.
- * @param {Boolean} Whether insert extra module edges
+ * @param {Boolean} insertModuleEdge Whether insert extra module edges
  * @return {Object}
  */
 function _produceVisGraph(insertModuleEdge) {
@@ -750,10 +751,10 @@ function _produceVisGraph(insertModuleEdge) {
           nodeMap[node.id].id.indexOf(SCOPE_SEPARATOR) === -1 &&
           nodeMap[source].id.indexOf(SCOPE_SEPARATOR) === -1 &&
           nodeMap[node.id].id.split('_')[
-            nodeMap[node.id].id.split('_').length - 1
+              nodeMap[node.id].id.split('_').length - 1
           ] !==
             nodeMap[source].id.split('_')[
-              nodeMap[source].id.split('_').length - 1
+                nodeMap[source].id.split('_').length - 1
             ] &&
           bipartiteGraphMode
         ) {
@@ -901,18 +902,29 @@ function querySingleNode(id) {
  */
 function getSingleNode(id) {
   const {nodeMap, constMap, parameterMap} = processedGraph;
-  // console.log(JSON.parse(JSON.stringify(nodeMap)), id);
   return nodeMap[id] || constMap[id] || parameterMap[id];
 }
 
+/**
+ * Change top comm nodes.
+ * @param {String} newType top comm nodes type.
+ */
 function changeShowNodeType(newType) {
   showNodeType = newType;
 }
 
+/**
+ * Change top comm nodes.
+ * @param {String} newId new rankId.
+ */
 function changeShowRankId(newId) {
   showRankId = newId;
 }
 
+/**
+ * get top scope for comm selector.
+ * @return {Set}
+ */
 function getTopScopeSet() {
   return topScopeSet;
 }
@@ -963,6 +975,10 @@ function expandStackedNode(id) {
   return visGraph;
 }
 
+/**
+ * Prune Trivial Nodes like Load, MakeTuple, TupleGetItem.
+ * @param {Object} data All graph data
+ */
 function pruneTrivialNodes(data) {
   const nodes = data.op_nodes;
   const reserveNodeMap = {};
@@ -997,7 +1013,7 @@ function buildPipelinedStageInfo(data) {
         }
         if (opNode.type === 'Send') {
           pipelinedStageInfo[thisStr][opNode.attr.sr_tag].unshift(
-            opNode.node_id
+              opNode.node_id,
           );
         } else {
           pipelinedStageInfo[thisStr][opNode.attr.sr_tag].push(opNode.node_id);

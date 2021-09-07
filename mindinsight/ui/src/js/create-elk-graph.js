@@ -123,26 +123,26 @@ function createElkNode(root, node) {
   ].includes(node.type);
 
   root.children.push(
-    new ElkNode({
-      id: node.id,
-      label: node.label,
-      type: node.type,
-      width: isScope ? 120 : 40,
-      height: isScope ? 80 : 16 + _getStrategyHeight(_nodeAttrMap[node.id]),
-      layerType: node.layerType,
-      ports: [
-        new ElkPort(
-          node.id,
-          true,
-          checkShow ? !node.input.length : !node.hiddenEdges.input.size
-        ),
-        new ElkPort(
-          node.id,
-          false,
-          checkShow ? !node.output.length : !node.hiddenEdges.output.size
-        ),
-      ],
-    })
+      new ElkNode({
+        id: node.id,
+        label: node.label,
+        type: node.type,
+        width: isScope ? 120 : 40,
+        height: isScope ? 80 : 16 + _getStrategyHeight(_nodeAttrMap[node.id]),
+        layerType: node.layerType,
+        ports: [
+          new ElkPort(
+              node.id,
+              true,
+          checkShow ? !node.input.length : !node.hiddenEdges.input.size,
+          ),
+          new ElkPort(
+              node.id,
+              false,
+          checkShow ? !node.output.length : !node.hiddenEdges.output.size,
+          ),
+        ],
+      }),
   );
   if (node.edges.size) {
     node.edges.forEach((value, id) => {
@@ -156,8 +156,8 @@ function createElkNode(root, node) {
   if (node.expanded) {
     node.children.forEach((child) => {
       createElkNode(
-        root.children[root.children.length - 1],
-        dataNodeMap.get(child)
+          root.children[root.children.length - 1],
+          dataNodeMap.get(child),
       );
     });
   }
@@ -210,16 +210,16 @@ export function getEdge(source, target, isConcept) {
         if (dataNodeMap.get(source).root === dataNodeMap.get(target).root) {
           // Have Same root scope
           const sourceParentList = dataNodeMap
-            .get(source)
-            .parent.split(SCOPE_SEPARATOR);
+              .get(source)
+              .parent.split(SCOPE_SEPARATOR);
           const targetParentList = dataNodeMap
-            .get(target)
-            .parent.split(SCOPE_SEPARATOR);
+              .get(target)
+              .parent.split(SCOPE_SEPARATOR);
           return createThroughScopeEdges(
-            source,
-            target,
-            sourceParentList,
-            targetParentList
+              source,
+              target,
+              sourceParentList,
+              targetParentList,
           );
         } else {
           // Have different root scope
@@ -233,10 +233,10 @@ export function getEdge(source, target, isConcept) {
       if (sourceParentList[0] === targetParentList[0]) {
         // Same basic scope
         return createThroughScopeEdges(
-          source,
-          target,
-          sourceParentList,
-          targetParentList
+            source,
+            target,
+            sourceParentList,
+            targetParentList,
         );
       } else {
         // Different basic scope
@@ -279,27 +279,27 @@ function createNodeEdges(source, target, isConcept) {
         if (dataNodeMap.get(source).root === dataNodeMap.get(target).root) {
           // Have Same root scope
           const sourceParentList = dataNodeMap
-            .get(source)
-            .parent.split(SCOPE_SEPARATOR);
+              .get(source)
+              .parent.split(SCOPE_SEPARATOR);
           const targetParentList = dataNodeMap
-            .get(target)
-            .parent.split(SCOPE_SEPARATOR);
+              .get(target)
+              .parent.split(SCOPE_SEPARATOR);
           addEdges(
-            source,
-            target,
-            createThroughScopeEdges(
               source,
               target,
-              sourceParentList,
-              targetParentList
-            )
+              createThroughScopeEdges(
+                  source,
+                  target,
+                  sourceParentList,
+                  targetParentList,
+              ),
           );
         } else {
           // Have different root scope
           addEdges(
-            source,
-            target,
-            createConceptEdges(source, target, null, true)
+              source,
+              target,
+              createConceptEdges(source, target, null, true),
           );
         }
       }
@@ -310,14 +310,14 @@ function createNodeEdges(source, target, isConcept) {
       if (sourceParentList[0] === targetParentList[0]) {
         // Same basic scope
         addEdges(
-          source,
-          target,
-          createThroughScopeEdges(
             source,
             target,
-            sourceParentList,
-            targetParentList
-          )
+            createThroughScopeEdges(
+                source,
+                target,
+                sourceParentList,
+                targetParentList,
+            ),
         );
       } else {
         // Different basic scope
@@ -346,9 +346,9 @@ function createConceptEdges(source, target, isInput, isDouble = false) {
   const sourceTemp = getConceptRoot(source);
   if (isDouble) {
     edges.push(
-      `${source}${EDGE_SEPARATOR}${targetTemp}`,
-      `${sourceTemp}${EDGE_SEPARATOR}${targetTemp}`,
-      `${sourceTemp}${EDGE_SEPARATOR}${target}`
+        `${source}${EDGE_SEPARATOR}${targetTemp}`,
+        `${sourceTemp}${EDGE_SEPARATOR}${targetTemp}`,
+        `${sourceTemp}${EDGE_SEPARATOR}${target}`,
     );
     edges.push(...createInputEdges(targetTemp, target));
     edges.push(...createOutputEdges(source, sourceTemp));
@@ -388,14 +388,14 @@ function getConceptRoot(node) {
  * @return {Array<String>} ID of edges of two node
  */
 function createThroughScopeEdges(
-  source,
-  target,
-  sourceParentList,
-  targetParentList
+    source,
+    target,
+    sourceParentList,
+    targetParentList,
 ) {
   const publicScopeList = getPublicScopeList(
-    sourceParentList,
-    targetParentList
+      sourceParentList,
+      targetParentList,
   );
   const level = publicScopeList.length + 1;
   const edges = [];
@@ -492,9 +492,9 @@ function addEdge(source, target, ID) {
     dataNodeMap.get(source).next.set(target, new Set());
   }
   dataNodeMap
-    .get(source)
-    .next.get(target)
-    .add(ID);
+      .get(source)
+      .next.get(target)
+      .add(ID);
 }
 
 /**

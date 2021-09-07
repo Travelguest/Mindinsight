@@ -20,14 +20,13 @@ const nodeConsistentNodesMap = {};
 
 /**
  * Construct communication and computation bipartite.
+ * @param {Object} nodeMap nodeMap
+ * @return {Object}
  */
 function processBipartite(nodeMap) {
   const cutEdges = new Set(); // 记录要切断的边
-  for (const nodeid in nodeMap) {
+  Object.keys(nodeMap).forEach((nodeid) => {
     const node = nodeMap[nodeid];
-    if (COMM_LIST.has(node.type) && node.scope.indexOf(showNodeType) === -1) {
-      continue;
-    }
     if (COMM_LIST.has(node.type) && node.scope.indexOf(showNodeType) !== -1) {
       // 以通信结点为源点进行染色
       let v = [];
@@ -75,7 +74,7 @@ function processBipartite(nodeMap) {
         // 超级源
         if (
           COMM_LIST.has(nodeMap[id].type) &&
-          nodeMap[id].scope.indexOf(showNodeType) !== -1
+            nodeMap[id].scope.indexOf(showNodeType) !== -1
         ) {
           continue;
         } // 跳过
@@ -91,7 +90,7 @@ function processBipartite(nodeMap) {
           if (cutEdges.has(cur + '->' + nxtId)) continue; // 如果该边已被切掉，跳过。
           if (
             COMM_LIST.has(nodeMap[nxtId].type) &&
-            nodeMap[nxtId].scope.indexOf(showNodeType) !== -1
+              nodeMap[nxtId].scope.indexOf(showNodeType) !== -1
           ) {
             continue;
           } // 如果是通信结点，跳过。
@@ -109,8 +108,8 @@ function processBipartite(nodeMap) {
           if (cutEdges.has(nxtId + '->' + cur)) continue; // 如果该边已被切掉，跳过。
           if (
             !nodeMap[nxtId] ||
-            (COMM_LIST.has(nodeMap[nxtId].type) &&
-              nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
+              (COMM_LIST.has(nodeMap[nxtId].type) &&
+                nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
           ) {
             continue;
           } // 如果是通信结点，跳过。
@@ -127,7 +126,8 @@ function processBipartite(nodeMap) {
       }
       // debug && console.log(cutEdges.size);
     }
-  }
+  });
+
   // console.log([...cutEdges])
 
   // dfs(13);
@@ -183,50 +183,7 @@ function processBipartite(nodeMap) {
       }
     }
   }
-  // console.log([...cutEdges]);
   return {components: components, cutEdges: cutEdges};
-}
-
-const vDict = new Set();
-const path = [];
-let flag = false;
-
-function dfs(id) {
-  if (id === 16) {
-    flag = true;
-    // debug && console.log(path);
-    return;
-  }
-  const node = processedGraph.nodeMap[id];
-  if (flag === true) return;
-  for (const nxtId in node.output) {
-    if (
-      vDict.has(nxtId) ||
-      (COMM_LIST.has(processedGraph.nodeMap[nxtId].type) &&
-        processedGraph.nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
-    ) {
-      continue;
-    }
-    path.push(nxtId);
-    vDict.add(nxtId);
-    dfs(nxtId);
-    if (flag === true) break;
-    path.pop();
-  }
-  for (const nxtId in node.input) {
-    if (
-      vDict.has(nxtId) ||
-      (COMM_LIST.has(processedGraph.nodeMap[nxtId].type) &&
-        processedGraph.nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
-    ) {
-      continue;
-    }
-    path.push(nxtId);
-    vDict.add(nxtId);
-    dfs(nxtId);
-    if (flag === true) break;
-    path.pop();
-  }
 }
 
 /**
@@ -297,7 +254,12 @@ const _genCompoundNodesHash = (node) =>
       0,
   );
 
-// Return elements of array a that are also in b in linear time:
+/**
+ * Return elements of array a that are also in b in linear time
+ * @param {Array} a nodes' id
+ * @param {Array} b nodes' id
+ * @return {Array} intersection of a and b
+ */
 function _intersect(a, b) {
   return a.filter(Set.prototype.has, new Set(b));
 }
@@ -393,6 +355,12 @@ const seriesOrParallel = (nodes) => {
   };
 };
 
+/**
+ * Return grouped nodes by dfs search.
+ * @param {Object} nodes nodes
+ * @param {Object} adjList adjacency list
+ * @return {Array} groupedNodes
+ */
 function _dfsGraph(nodes, adjList) {
   const visited = new Set();
   const groupedNodes = [];
