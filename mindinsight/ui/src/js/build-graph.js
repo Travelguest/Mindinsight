@@ -704,9 +704,10 @@ const checkWhetherInNewRoot = (parent) => {
 
 /**
  * Process the nodes data to be displayed.
+ * @param {Boolean} Whether insert extra module edges
  * @return {Object}
  */
-function _produceVisGraph() {
+function _produceVisGraph(insertModuleEdge) {
   const {nodeMap, root} = processedGraph;
   const visNodes = [];
   const edges = []; // parameter和const可能会重复，用Map去重
@@ -765,12 +766,13 @@ function _produceVisGraph() {
         edgesMap.set(key, value);
         edgeIdMap[id + '->' + node.id] = key;
 
-        const newTarget = checkWhetherInNewRoot(node.parent);
-        if (newTarget) {
-          const key = `${source}->${newTarget}`;
-          const value = (edgesMap.get(key) || 0) + 1;
-          // debug && console.log(key, value);
-          edgesMap.set(key, value);
+        if (insertModuleEdge) {
+          const newTarget = checkWhetherInNewRoot(node.parent);
+          if (newTarget) {
+            const key = `${source}->${newTarget}`;
+            const value = (edgesMap.get(key) || 0) + 1;
+            edgesMap.set(key, value);
+          }
         }
       }
     }
@@ -801,6 +803,7 @@ function _produceVisGraph() {
     edgesWithOutline,
     nodeAttrMap: bipartiteGraphOptimzer.attrNodeMap,
     removedNodesWithChildren,
+    newRoot,
   };
 }
 
@@ -873,6 +876,8 @@ function querySingleNode(id) {
   let node = nodeMap[id];
   if (!node) return null;
 
+  let insertModuleEdge = false;
+
   while (node.parent) {
     const parent = nodeMap[node.parent];
     if (!parent.expanded) parent.expanded = true;
@@ -880,11 +885,12 @@ function querySingleNode(id) {
     if (parent.type === NODE_TYPE.aggregate_structure_scope) {
       expandStackedNode(parent.id);
       if (!parent.parent) expandStackedNode(parent.id);
+      insertModuleEdge = true;
     }
     node = parent;
   }
 
-  const visGraph = _produceVisGraph();
+  const visGraph = _produceVisGraph(insertModuleEdge);
   return visGraph;
 }
 

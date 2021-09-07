@@ -15,10 +15,6 @@ const rootSet = new Set();
 
 let curEdgesWithOutline = new Set();
 
-// store top stacked nodes' children
-const nodesMayDisappear = new Set();
-const disappearedNodesChildren = {};
-
 let _nodeAttrMap = {};
 
 /**
@@ -36,11 +32,16 @@ export function createElkGraph(data, isFirst, isConcept) {
     edgesWithOutline,
     nodeAttrMap,
     removedNodesWithChildren,
+    newRoot,
   } = data;
   curEdgesWithOutline = new Set(edgesWithOutline);
   _nodeAttrMap = nodeAttrMap;
   dataNodeMap.clear();
   if (isFirst) rootSet.clear();
+
+  newRoot.forEach((id) => {
+    rootSet.add(id);
+  });
 
   Object.keys(removedNodesWithChildren).forEach((id) => {
     moduleEdge = moduleEdge.filter((edge) => {
@@ -59,7 +60,7 @@ export function createElkGraph(data, isFirst, isConcept) {
     });
 
     removedNodesWithChildren[id].forEach((nid) => {
-      rootSet.add(nid);
+      newRoot.delete(nid);
     });
   });
   // Prepare dataNodeMap and rootSet
