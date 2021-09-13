@@ -466,7 +466,9 @@ function stackSimilarStructure(id) {
   // generate stacked structure node
   _generateStackStructureNode(compoundNode, valueMap, nodeMap);
 }
-
+/**
+ * calculate all nodes' hash
+ */
 function getAllHashOfNodes() {
   const {nodeMap, parameterMap, constMap} = processedGraph;
 
@@ -576,14 +578,24 @@ function getParallelInfo(strategy) {
     modelParallel.length ? getProduct(modelParallel.map((arr) => getProduct(arr))): 0,
   ];
 }
-
+/**
+ *
+ * @param {Array|undefined} value
+ * @return {boolean}
+ */
 function _checkShardMethod(value) {
   return value !== undefined && value.length > 0;
 }
 
 const _nodesExtraAttributesMap = {};
 
+/**
+ * Class representing extra attributes
+ */
 class ExtraAttr {
+  /**
+   * @param {Object} node
+   */
   constructor(node) {
     const {nodeMap} = processedGraph;
     let shard = node[INSERTED_ATTR.parallel_shard];
@@ -603,12 +615,17 @@ class ExtraAttr {
       };
     }).filter((d) => d!==null);
   }
-
+  /**
+   * @return {string}
+   */
   getStrategy() {
     return this.strategy.map(({strategy}) => strategy.join(','));
   }
 }
 
+/**
+ * @param {string} nodeId
+ */
 function handleSharedMethod(nodeId) {
   const {nodeMap, root} = processedGraph;
   const node = nodeMap[nodeId] || root;
@@ -637,114 +654,9 @@ function handleSharedMethod(nodeId) {
     }
   }
 
-  // console.log(nodeSet);
-
   nodeSet.forEach((childId) => {
     _nodesExtraAttributesMap[childId] = new ExtraAttr(nodeMap[childId]);
   });
-}
-
-function findConsistentSharedMethod(nodeId) {
-  const {nodeMap, root} = processedGraph;
-  const node = nodeMap[nodeId] || root;
-
-  const nodeSet = new Set();
-  const edgeArr = [];
-  const edgeSet = new Set();
-
-  const nodeStack = [node];
-  while (nodeStack.length > 0) {
-    const curNode = nodeStack.pop();
-
-    // ignore basic nodes
-    if (curNode.type in NODE_TYPE) {
-      // console.log(node.children);
-      for (const childId of curNode.children) {
-        const childNode = nodeMap[childId];
-
-        // 边的统计是不是可以往后放，感觉会重复统计很多次
-        childNode.input.forEach((input) => {
-          if (!edgeSet.has(input + '->' + childId)) {
-            edgeArr.push([input, childId]);
-          }
-        });
-        childNode.output.forEach((output) => {
-          if (!edgeSet.has(childId + '->' + output)) {
-            edgeArr.push([childId, output]);
-          }
-        });
-
-        if (childNode.expanded === true) {
-          nodeStack.push(childNode);
-        } else if (NODE_TYPE[childNode.type] === undefined
-          && _checkShardMethod(childNode[INSERTED_ATTR.parallel_shard])
-        ) {
-          // ignore compound nodes not been expanded
-          nodeSet.add(childId);
-        }
-      }
-    }
-  }
-
-  debug && console.log(nodeSet);
-
-  // const nodeParentMap = {};
-  // const nodeMethodMap = {};
-  nodeSet.forEach((childId) => {
-    // nodeParentMap[childId] = childId;
-
-    // const [dataParallel, modelParallel] = getParallelInfo(nodeMap[childId][INSERTED_ATTR.parallel_shard]);
-    // nodeMethodMap[childId] = nodeMap[childId][INSERTED_ATTR.parallel_shard].join(',');
-    // NOTE add data parallel info on the node
-    // nodeMap[childId].rects = modelParallel;
-
-    _nodesExtraAttributesMap[childId] = new ExtraAttr(nodeMap[childId]);
-  });
-
-  // edgeArr.forEach(([source, target]) => {
-  //   const m1 = nodeMethodMap[source];
-  //   const m2 = nodeMethodMap[target];
-
-  //   if (m1 === m2 && m1 !== undefined ) {
-  //     // merge two nodes
-  //     const p1 = _findParent(source);
-  //     const p2 = _findParent(target);
-
-  //     nodeParentMap[p2] = p1;
-  //   }
-  // });
-
-  // // debug && console.log(nodeParentMap);
-
-  // // nodeParentMap => parent nodesId map
-  // const parentsOfNode = {};
-  // Object.keys(nodeParentMap).forEach((nodeId) => {
-  //   const parentNodeId = _findParent(nodeId);
-
-  //   if (parentsOfNode[parentNodeId] === undefined) {
-  //     parentsOfNode[parentNodeId] = [];
-  //   }
-  //   parentsOfNode[parentNodeId].push(nodeId);
-  // });
-
-  // const consistentMethod = Object.keys(parentsOfNode);
-
-  // nodeConsistentNodesMap[nodeId] = consistentMethod.map((key) => parentsOfNode[key])
-  //     .forEach((ids) => {
-  //       ids.forEach((id) => {
-  //         // NOTE add data parallel info on the node
-  //         nodeMap[id].outline = nodeMethodMap[id];
-  //       });
-  //     });
-
-  // function _findParent(nodeId) {
-  //   if (nodeParentMap[nodeId] === nodeId) {
-  //     return nodeId;
-  //   } else {
-  //     nodeParentMap[nodeId] = _findParent(nodeParentMap[nodeId]);
-  //     return nodeParentMap[nodeId];
-  //   }
-  // }
 }
 
 const optimizer = {
@@ -759,7 +671,6 @@ const optimizer = {
   optimizeNode: (id) => {
     stackSimilarStructure(id);
     handleSharedMethod(id);
-    // findConsistentSharedMethod(id);
   },
 
   attrNodeMap: _nodesExtraAttributesMap,

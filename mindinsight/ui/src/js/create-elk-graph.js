@@ -99,7 +99,10 @@ export function createElkGraph(data, isFirst, isConcept) {
   }
   return elkGraph;
 }
-
+/**
+ * @param {ExtraAttr} extraAttr
+ * @return {Number}
+ */
 function _getStrategyHeight(extraAttr) {
   if (!extraAttr) return 0;
 
@@ -188,7 +191,13 @@ function createNodesEdges(edges, isConcept) {
     createNodeEdges(edge.source, edge.target, isConcept);
   });
 }
-
+/**
+ * get edge id when hovering strategy matrix
+ * @param {String} source
+ * @param {String} target
+ * @param {Boolean} isConcept
+ * @return {undefined | string} edgeId
+ */
 export function getEdge(source, target, isConcept) {
   if (
     dataNodeMap.get(source) === undefined ||
