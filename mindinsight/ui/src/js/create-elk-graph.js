@@ -196,7 +196,7 @@ function createNodesEdges(edges, isConcept) {
  * @param {String} source
  * @param {String} target
  * @param {Boolean} isConcept
- * @return {undefined | string} edgeId
+ * @return {null | String | Array<String>} edgeId
  */
 export function getEdge(source, target, isConcept) {
   if (
@@ -204,7 +204,7 @@ export function getEdge(source, target, isConcept) {
     dataNodeMap.get(target) === undefined
   ) {
     // console.log(source, target);
-    return;
+    return null;
   }
   const sourceParent = dataNodeMap.get(source).parent;
   const targetParent = dataNodeMap.get(target).parent;
@@ -252,7 +252,7 @@ export function getEdge(source, target, isConcept) {
         // Add hidden edges
         // dataNodeMap.get(source).hiddenEdges.output.add(target);
         // dataNodeMap.get(target).hiddenEdges.input.add(source);
-        // return hidden
+        return 'HIDDEN';
       }
     }
   } else {
@@ -268,76 +268,16 @@ export function getEdge(source, target, isConcept) {
  * @param {Boolean} isConcept
  */
 function createNodeEdges(source, target, isConcept) {
-  if (
-    dataNodeMap.get(source) === undefined ||
-    dataNodeMap.get(target) === undefined
-  ) {
-    // console.log(source, target);
-    return;
-  }
-  const sourceParent = dataNodeMap.get(source).parent;
-  const targetParent = dataNodeMap.get(target).parent;
-  if (sourceParent !== targetParent) {
-    if (isConcept) {
-      if (sourceParent === '') {
-        addEdges(source, target, createConceptEdges(source, target, true));
-      } else if (targetParent === '') {
-        addEdges(source, target, createConceptEdges(source, target, false));
-      } else {
-        // Both no root scope
-        if (dataNodeMap.get(source).root === dataNodeMap.get(target).root) {
-          // Have Same root scope
-          const sourceParentList = dataNodeMap
-              .get(source)
-              .parent.split(SCOPE_SEPARATOR);
-          const targetParentList = dataNodeMap
-              .get(target)
-              .parent.split(SCOPE_SEPARATOR);
-          addEdges(
-              source,
-              target,
-              createThroughScopeEdges(
-                  source,
-                  target,
-                  sourceParentList,
-                  targetParentList,
-              ),
-          );
-        } else {
-          // Have different root scope
-          addEdges(
-              source,
-              target,
-              createConceptEdges(source, target, null, true),
-          );
-        }
-      }
+  const edgeId = getEdge(source, target, isConcept);
+  if (edgeId === 'HIDDEN') {
+    dataNodeMap.get(source).hiddenEdges.output.add(target);
+    dataNodeMap.get(target).hiddenEdges.input.add(source);
+  } else if (edgeId) {
+    if (typeof edgeId === 'string') {
+      addEdge(source, target, edgeId);
     } else {
-      // Different name scope
-      const sourceParentList = sourceParent.split(SCOPE_SEPARATOR);
-      const targetParentList = targetParent.split(SCOPE_SEPARATOR);
-      if (sourceParentList[0] === targetParentList[0]) {
-        // Same basic scope
-        addEdges(
-            source,
-            target,
-            createThroughScopeEdges(
-                source,
-                target,
-                sourceParentList,
-                targetParentList,
-            ),
-        );
-      } else {
-        // Different basic scope
-        // Add hidden edges
-        dataNodeMap.get(source).hiddenEdges.output.add(target);
-        dataNodeMap.get(target).hiddenEdges.input.add(source);
-      }
+      addEdges(source, target, edgeId);
     }
-  } else {
-    // Same name scope
-    addEdge(source, target, createNormalEdges(source, target));
   }
 }
 
@@ -526,7 +466,7 @@ function getPublicScopeList(sourceParentList, targetParentList) {
  * The function to create normal targets
  * @param {String} start
  * @param {String} end
- * @return {String} ID
+ * @return {Array<String>} ID
  */
 function createNormalEdges(start, end) {
   const source = `${start}${OUT_PORT_SUFFIX}`;

@@ -24,13 +24,14 @@
         fill="transparent"
         class="tip"
         @mouseover="handleMouseOver(strategy[i].name)"
+        @mouseout="handleMouseOut"
       />
     </g>
   </g>
 </template>
 
 <script>
-import {scaleLog} from 'd3';
+import { scaleLog } from 'd3';
 const CELL = 10;
 
 export default {
@@ -48,10 +49,7 @@ export default {
     return {
       CELL,
       RADIUS_PADDING: 1,
-      color: scaleLog()
-          .base(2)
-          .domain([1, 1024])
-          .range(['#fdf4ed', '#f16427']),
+      color: scaleLog().base(2).domain([1, 1024]).range(['#fdf4ed', '#f16427']),
     };
   },
   computed: {
@@ -63,6 +61,9 @@ export default {
   methods: {
     handleMouseOver(name) {
       this.$emit('hover', name);
+    },
+    handleMouseOut() {
+      this.$emit('hoverOut');
     },
   },
 };

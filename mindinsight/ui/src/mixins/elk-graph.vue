@@ -229,20 +229,23 @@ export default {
     /**
      * The logic of show hidden edges that displayed when mouse hover on any port except ports of root scope
      * @param {ElkPort} port
+     * @param {String} strategyTarget only show the edge between port and strategyTarget
      */
-    showHiddenEdges(port) {
+    showHiddenEdges(port, strategyTarget) {
       let root = dataNodeMap.get(port.owner).root;
       if (root && dataNodeMap.get(root).root.length !== 0) {
         // 处理堆叠结点找父节点
         root = dataNodeMap.get(root).root;
       }
       if (!root) return;
-      this.nodes.forEach((node) => {
-        node.opacity = UNCONNECTED_OPACITY;
-      });
-      this.ports.forEach((port) => {
-        port.opacity = UNCONNECTED_OPACITY;
-      });
+      if (!strategyTarget) {
+        this.nodes.forEach((node) => {
+          node.opacity = UNCONNECTED_OPACITY;
+        });
+        this.ports.forEach((port) => {
+          port.opacity = UNCONNECTED_OPACITY;
+        });
+      }
       this.edgeOpacity = UNCONNECTED_OPACITY;
       const hiddenEdges = [];
       const hiddenPolylineEdges = [];
@@ -286,6 +289,7 @@ export default {
       // Add 'source root -> target root' polyline
       console.log(targetRootSet);
       targetRootSet.forEach((target) => {
+        if (strategyTarget !== undefined && target !== strategyTarget) return;
         // dataNodeMap.get(target).parent === ""
         const edgeTemp = port.isInput ? `${target}${EDGE_SEPARATOR}${root}` : `${root}${EDGE_SEPARATOR}${target}`;
         if (this.visEdgeMap.has(edgeTemp)) {

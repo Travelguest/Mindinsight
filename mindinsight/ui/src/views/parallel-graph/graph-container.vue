@@ -1,677 +1,582 @@
 <template>
   <div class="graph-container">
-    <svg-el-container ref="graphContainer"
-                      class="elk-graph"
-                      id="p-graph">
-      <filter id="outline_selected"
-              filterUnits="userSpaceOnUse"
-              x="-50%"
-              y="-50%"
-              width="200%"
-              height="200%"
-              slot="marker">
-        <feMorphology result="offset"
-                      in="SourceGraphic"
-                      operator="dilate"
-                      radius="2" />
-        <feColorMatrix color-interpolation-filters="sRGB"
-                       result="drop"
-                       in="offset"
-                       type="matrix"
-                       values="0 0 0 0 0.3215686274509804
+    <svg-el-container ref="graphContainer" class="elk-graph" id="p-graph">
+      <filter
+        id="outline_selected"
+        filterUnits="userSpaceOnUse"
+        x="-50%"
+        y="-50%"
+        width="200%"
+        height="200%"
+        slot="marker"
+      >
+        <feMorphology result="offset" in="SourceGraphic" operator="dilate" radius="2" />
+        <feColorMatrix
+          color-interpolation-filters="sRGB"
+          result="drop"
+          in="offset"
+          type="matrix"
+          values="0 0 0 0 0.3215686274509804
             0 0 0 0 0.5803921568627451
             0 0 0 0 0.7607843137254902
-            0 0 0 1 0" />
-        <feBlend in="SourceGraphic"
-                 in2="drop"
-                 mode="normal" />
+            0 0 0 1 0"
+        />
+        <feBlend in="SourceGraphic" in2="drop" mode="normal" />
       </filter>
 
-      <marker slot="marker"
-              id="arrowhead"
-              viewBox="0 0 10 10"
-              refX="5"
-              refY="5"
-              markerUnits="userSpaceOnUse"
-              markerWidth="8"
-              markerHeight="6"
-              orient="auto">
+      <marker
+        slot="marker"
+        id="arrowhead"
+        viewBox="0 0 10 10"
+        refX="5"
+        refY="5"
+        markerUnits="userSpaceOnUse"
+        markerWidth="8"
+        markerHeight="6"
+        orient="auto"
+      >
         <path d="M -4 0 L 6.5 5 L -4 10 z"></path>
       </marker>
-      <marker slot="marker"
-              id="hoverArrowhead"
-              viewBox="0 0 10 10"
-              refX="5"
-              refY="5"
-              markerUnits="userSpaceOnUse"
-              markerWidth="8"
-              markerHeight="6"
-              orient="auto">
-        <path d="M -4 0 L 6.5 5 L -4 10 z"
-              class="graph-marker-hover"></path>
+      <marker
+        slot="marker"
+        id="hoverArrowhead"
+        viewBox="0 0 10 10"
+        refX="5"
+        refY="5"
+        markerUnits="userSpaceOnUse"
+        markerWidth="8"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M -4 0 L 6.5 5 L -4 10 z" class="graph-marker-hover"></path>
       </marker>
-      <marker slot="marker"
-              id="searchArrowhead"
-              viewBox="0 0 10 10"
-              refX="5"
-              refY="5"
-              markerUnits="userSpaceOnUse"
-              markerWidth="8"
-              markerHeight="6"
-              orient="auto">
-        <path d="M -4 0 L 6.5 5 L -4 10 z"
-              class="graph-marker-search"></path>
+      <marker
+        slot="marker"
+        id="searchArrowhead"
+        viewBox="0 0 10 10"
+        refX="5"
+        refY="5"
+        markerUnits="userSpaceOnUse"
+        markerWidth="8"
+        markerHeight="6"
+        orient="auto"
+      >
+        <path d="M -4 0 L 6.5 5 L -4 10 z" class="graph-marker-search"></path>
       </marker>
 
-      <g slot="marker"
-         class="patterns">
-        <pattern id="data-texture"
-                 patternUnits="userSpaceOnUse"
-                 width="3"
-                 height="3">
+      <g slot="marker" class="patterns">
+        <pattern id="data-texture" patternUnits="userSpaceOnUse" width="3" height="3">
           <path d="M 0,1.5 l 3,0" />
         </pattern>
 
-        <pattern id="model-texture"
-                 patternUnits="userSpaceOnUse"
-                 width="4"
-                 height="4">
+        <pattern id="model-texture" patternUnits="userSpaceOnUse" width="4" height="4">
           <path d="M 0,4 l 4,-4 M -1,1 l 2,-2 M 3,5 l 2,-2" />
         </pattern>
 
-        <pattern id="pipeline-texture"
-                 patternUnits="userSpaceOnUse"
-                 width="3"
-                 height="3">
+        <pattern id="pipeline-texture" patternUnits="userSpaceOnUse" width="3" height="3">
           <path d="M 1.5, 0 l 0, 3" />
         </pattern>
 
-        <pattern id="data-pipeline-texture"
-                 patternUnits="userSpaceOnUse"
-                 width="4"
-                 height="4">
+        <pattern id="data-pipeline-texture" patternUnits="userSpaceOnUse" width="4" height="4">
           <path d="M 0,2 l 4,0" />
           <path d="M 2, 0 l 0, 4" />
         </pattern>
-        <pattern id="model-pipeline-texture"
-                 patternUnits="userSpaceOnUse"
-                 width="4"
-                 height="4">
+        <pattern id="model-pipeline-texture" patternUnits="userSpaceOnUse" width="4" height="4">
           <path d="M 0,4 l 4,-4 M -1,1 l 2,-2 M 3,5 l 2,-2" />
           <path d="M 2, 0 l 0, 4" />
         </pattern>
-        <pattern id="data-model-texture"
-                 patternUnits="userSpaceOnUse"
-                 width="4"
-                 height="4">
+        <pattern id="data-model-texture" patternUnits="userSpaceOnUse" width="4" height="4">
           <path d="M 0,4 l 4,-4 M -1,1 l 2,-2 M 3,5 l 2,-2" />
           <path d="M 0,2 l 4,0" />
         </pattern>
       </g>
 
       <g slot="g">
-        <component v-for="node in nodes"
-                   :key="node.id"
-                   :is="type2NodeComponent[node.type] || operatorNodeVue"
-                   :class="node.outline ? 'outline' : ''"
-                   v-bind="getBindPropertyOfNode(node)"
-                   :mouseenterListener="() => enterScopeWrapper(node)"
-                   :mouseleaveListener="() => leaveScopeWrapper(node)"
-                   @click.native="clickNode(node)"
-                   @dblscopenode="dbClickScope"
-                   @dblclickoperatornode="dblClickOperatorNode"
-                   @mouseenteroperatornode="mouseEnterOperatorNode"
-                   @mouseleaveoperatornode="mouseLeaveOperatorNode" />
+        <component
+          v-for="node in nodes"
+          :key="node.id"
+          :is="type2NodeComponent[node.type] || operatorNodeVue"
+          :class="node.outline ? 'outline' : ''"
+          v-bind="getBindPropertyOfNode(node)"
+          :mouseenterListener="() => enterScopeWrapper(node)"
+          :mouseleaveListener="() => leaveScopeWrapper(node)"
+          @click.native="clickNode(node)"
+          @dblscopenode="dbClickScope"
+          @dblclickoperatornode="dblClickOperatorNode"
+          @mouseenteroperatornode="mouseEnterOperatorNode"
+          @mouseleaveoperatornode="mouseLeaveOperatorNode"
+        />
       </g>
 
       <g slot="g">
         <!-- Edges -->
-        <graph-edge :edges="edges"
-                    parentClass="graph-common"
-                    markerEndId="arrowhead"
-                    :opacity="edgeOpacity" />
+        <graph-edge :edges="edges" parentClass="graph-common" markerEndId="arrowhead" :opacity="edgeOpacity" />
         <!-- Edges(search) -->
-        <graph-edge :edges="searchEdges"
-                    parentClass="graph-stroke-search"
-                    markerEndId="searchArrowhead" />
+        <graph-edge :edges="searchEdges" parentClass="graph-stroke-search" markerEndId="searchArrowhead" />
         <!-- Edges(hidden) -->
         <g slot="g">
-          <g v-for="edge in hiddenEdges"
-             :key="`${edge.id}-hidden`"
-             transform="translate(7,7)">
-            <path :d="edge.draw"
-                  class="graph-stroke-hover no-fill"> </path>
+          <g v-for="edge in hiddenEdges" :key="`${edge.id}-hidden`" transform="translate(7,7)">
+            <path :d="edge.draw" class="graph-stroke-hover no-fill"> </path>
           </g>
         </g>
         <g slot="g">
-          <g v-for="edge in hiddenPolylineEdges"
-             :key="`${edge.id}-hidden`">
-            <polyline :points="edge.points"
-                      class="graph-stroke-hover no-fill"
-                      marker-end="url(#hoverArrowhead)">
+          <g v-for="edge in hiddenPolylineEdges" :key="`${edge.id}-hidden`">
+            <polyline :points="edge.points" class="graph-stroke-hover no-fill" marker-end="url(#hoverArrowhead)">
             </polyline>
           </g>
         </g>
         <!-- Edges(hover) -->
-        <graph-edge :edges="hoverEdges"
-                    parentClass="graph-stroke-hover"
-                    markerEndId="hoverArrowhead" />
+        <graph-edge :edges="hoverEdges" parentClass="graph-stroke-hover" markerEndId="hoverArrowhead" />
       </g>
 
       <!-- Ports -->
       <g slot="g">
-        <g v-for="port in ports"
-           :key="port.id"
-           :transform="`translate(${port.x}, ${port.y})`"
-           :opacity="port.opacity"
-           @mouseenter="showHiddenEdges(port)"
-           @mouseleave="hideHiddenEdges">
-          <circle cx="7.5"
-                  cy="7.5"
-                  r="5"
-                  class="graph-port-outside"> </circle>
-          <circle cx="7.5"
-                  cy="7.5"
-                  r="1"
-                  class="graph-port-inside"> </circle>
+        <g
+          v-for="port in ports"
+          :key="port.id"
+          :transform="`translate(${port.x}, ${port.y})`"
+          :opacity="port.opacity"
+          @mouseenter="showHiddenEdges(port)"
+          @mouseleave="hideHiddenEdges"
+        >
+          <circle cx="7.5" cy="7.5" r="5" class="graph-port-outside"> </circle>
+          <circle cx="7.5" cy="7.5" r="1" class="graph-port-inside"> </circle>
         </g>
       </g>
 
       <template slot="g">
         <template v-for="(value, nodeId) in nodeAttrMap">
-          <strategy-matrix v-if="visNodeMap.get(nodeId)"
-                           :key="nodeId"
-                           v-bind="value"
-                           :x="visNodeMap.get(nodeId).x"
-                           :y="visNodeMap.get(nodeId).y"
-                           :height="visNodeMap.get(nodeId).height"
-                           @hover="hoverStrategyNode($event, nodeId)" />
+          <strategy-matrix
+            v-if="visNodeMap.get(nodeId)"
+            :key="nodeId"
+            v-bind="value"
+            :x="visNodeMap.get(nodeId).x"
+            :y="visNodeMap.get(nodeId).y"
+            :height="visNodeMap.get(nodeId).height"
+            @hover="hoverStrategyNode($event, nodeId)"
+            @hoverOut="hoverOutStrategyNode"
+          />
         </template>
       </template>
     </svg-el-container>
 
-    <div class="pipeline-button"
-         ref="pipeline-button"
-         @click="clickPipelineBtn"></div>
+    <div class="pipeline-button" ref="pipeline-button" @click="clickPipelineBtn"></div>
 
     <!-- Training Pipeline -->
-    <div class="training-pipeline-container"
-         ref="pipeline-container"
-         style="background: #EDF0F5;">
-      <div class="training-pipeline-title">
-        Training Pipeline
-      </div>
+    <div class="training-pipeline-container" ref="pipeline-container" style="background: #edf0f5">
+      <div class="training-pipeline-title">Training Pipeline</div>
       <div class="training-pipeline-legend">
-        <svg width="100%"
-             height="100%">
+        <svg width="100%" height="100%">
           <g>
-            <rect x="180"
-                  y="8"
-                  width="12"
-                  height="12"
-                  :fill="pipelineReceiveRectColor"></rect>
-            <text x="195"
-                  y="19"
-                  font-size="12">Receive</text>
-            <rect x="280"
-                  y="8"
-                  width="12"
-                  height="12"
-                  :fill="pipelineSendRectColor"></rect>
-            <text x="295"
-                  y="19"
-                  font-size="12">Send</text>
+            <rect x="180" y="8" width="12" height="12" :fill="pipelineReceiveRectColor"></rect>
+            <text x="195" y="19" font-size="12">Receive</text>
+            <rect x="280" y="8" width="12" height="12" :fill="pipelineSendRectColor"></rect>
+            <text x="295" y="19" font-size="12">Send</text>
           </g>
         </svg>
       </div>
       <div class="training-pipeline-graph">
-        <svg width="100%"
-             height="100%">
+        <svg width="100%" height="100%">
           <!-- first ltr arrow -->
-          <polygon :points="
-              `${pipelineFirstStagePaddingLeft +
-                (pipelineStageWidth - pipelineRectWidth) / 2 +
-                pipelineRectWidth +
-                pipelineArrowPadding},0 ${pipelineFirstStagePaddingLeft +
-                pipelineStageWidth +
-                pipelineArrowWidth -
-                pipelineRectWidth},0 ${pipelineFirstStagePaddingLeft +
-                pipelineStageWidth +
-                pipelineArrowWidth},${(rectNumInEachColumn * pipelineRectWidth +
-                (rectNumInEachColumn - 1) * pipelineRectMargin) /
-                2} ${pipelineFirstStagePaddingLeft +
-                pipelineStageWidth +
-                pipelineArrowWidth -
-                pipelineRectWidth},${rectNumInEachColumn * pipelineRectWidth +
-                (rectNumInEachColumn - 1) *
-                  pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageWidth - pipelineRectWidth) / 2 +
-                pipelineRectWidth +
-                pipelineArrowPadding},${rectNumInEachColumn *
-                pipelineRectWidth +
-                (rectNumInEachColumn - 1) * pipelineRectMargin}`
-            "
-                   :fill="pipelineArrowColor"></polygon>
+          <polygon
+            :points="`${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageWidth - pipelineRectWidth) / 2 +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },0 ${pipelineFirstStagePaddingLeft + pipelineStageWidth + pipelineArrowWidth - pipelineRectWidth},0 ${
+              pipelineFirstStagePaddingLeft + pipelineStageWidth + pipelineArrowWidth
+            },${(rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2} ${
+              pipelineFirstStagePaddingLeft + pipelineStageWidth + pipelineArrowWidth - pipelineRectWidth
+            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageWidth - pipelineRectWidth) / 2 +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin}`"
+            :fill="pipelineArrowColor"
+          ></polygon>
           <!-- last ltr arrow -->
-          <polygon :points="
-              `${pipelineFirstStagePaddingLeft +
-                (pipelineStageNum - 1) * pipelineStageWidth +
-                (pipelineStageNum - 2) * pipelineArrowWidth +
-                pipelineArrowPadding},0 ${pipelineFirstStagePaddingLeft +
-                (pipelineStageWidth + pipelineArrowWidth) *
-                  (pipelineStageReceiveInfo_ltr.length - 1) +
-                (pipelineStageWidth - pipelineRectWidth) / 2 -
-                pipelineRectWidth},0 ${pipelineFirstStagePaddingLeft +
-                (pipelineStageNum - 1) * pipelineStageWidth +
-                (pipelineStageNum - 2) * pipelineArrowWidth +
-                pipelineArrowWidth +
-                (pipelineStageWidth - pipelineRectWidth) /
-                  2},${(rectNumInEachColumn * pipelineRectWidth +
-                (rectNumInEachColumn - 1) * pipelineRectMargin) /
-                2} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageWidth + pipelineArrowWidth) *
-                  (pipelineStageReceiveInfo_ltr.length - 1) +
-                (pipelineStageWidth - pipelineRectWidth) / 2 -
-                pipelineRectWidth},${rectNumInEachColumn * pipelineRectWidth +
-                (rectNumInEachColumn - 1) *
-                  pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageNum - 1) * pipelineStageWidth +
-                (pipelineStageNum - 2) * pipelineArrowWidth +
-                pipelineArrowPadding},${rectNumInEachColumn *
-                pipelineRectWidth +
-                (rectNumInEachColumn - 1) * pipelineRectMargin}`
-            "
-                   :fill="pipelineArrowColor"></polygon>
+          <polygon
+            :points="`${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageNum - 1) * pipelineStageWidth +
+              (pipelineStageNum - 2) * pipelineArrowWidth +
+              pipelineArrowPadding
+            },0 ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageReceiveInfo_ltr.length - 1) +
+              (pipelineStageWidth - pipelineRectWidth) / 2 -
+              pipelineRectWidth
+            },0 ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageNum - 1) * pipelineStageWidth +
+              (pipelineStageNum - 2) * pipelineArrowWidth +
+              pipelineArrowWidth +
+              (pipelineStageWidth - pipelineRectWidth) / 2
+            },${(rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageReceiveInfo_ltr.length - 1) +
+              (pipelineStageWidth - pipelineRectWidth) / 2 -
+              pipelineRectWidth
+            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageNum - 1) * pipelineStageWidth +
+              (pipelineStageNum - 2) * pipelineArrowWidth +
+              pipelineArrowPadding
+            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin}`"
+            :fill="pipelineArrowColor"
+          ></polygon>
           <!-- first rtl arrow -->
-          <polygon :points="
-              `${pipelineFirstStagePaddingLeft +
-                (pipelineStageWidth - pipelineRectWidth) / 2 +
-                pipelineRectWidth +
-                pipelineRectWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin +
-                  pipelineRectWidth)} ${pipelineFirstStagePaddingLeft +
-                pipelineStageWidth +
-                +pipelineArrowWidth},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin +
-                  pipelineRectWidth)} ${pipelineFirstStagePaddingLeft +
-                pipelineStageWidth +
-                +pipelineArrowWidth},${(rectNumInEachColumn * 2 + 1) *
-                (pipelineRectMargin + pipelineRectWidth) -
-                pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageWidth - pipelineRectWidth) / 2 +
-                pipelineRectWidth +
-                pipelineRectWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn * 2 + 1) *
-                (pipelineRectMargin + pipelineRectWidth) -
-                pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageWidth - pipelineRectWidth) / 2 +
-                pipelineRectWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin + pipelineRectWidth) +
-                (rectNumInEachColumn * pipelineRectWidth +
-                  (rectNumInEachColumn - 1) * pipelineRectMargin) /
-                  2}`
-            "
-                   :fill="pipelineArrowColor"></polygon>
+          <polygon
+            :points="`${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageWidth - pipelineRectWidth) / 2 +
+              pipelineRectWidth +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },${(rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)} ${
+              pipelineFirstStagePaddingLeft + pipelineStageWidth + +pipelineArrowWidth
+            },${(rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)} ${
+              pipelineFirstStagePaddingLeft + pipelineStageWidth + +pipelineArrowWidth
+            },${(rectNumInEachColumn * 2 + 1) * (pipelineRectMargin + pipelineRectWidth) - pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageWidth - pipelineRectWidth) / 2 +
+              pipelineRectWidth +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },${(rectNumInEachColumn * 2 + 1) * (pipelineRectMargin + pipelineRectWidth) - pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageWidth - pipelineRectWidth) / 2 +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },${
+              (rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) +
+              (rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2
+            }`"
+            :fill="pipelineArrowColor"
+          ></polygon>
           <!-- last rtl arrow -->
-          <polygon :points="
-              `${pipelineFirstStagePaddingLeft +
-                (pipelineStageNum - 1) * pipelineStageWidth +
-                (pipelineStageNum - 2) * pipelineArrowWidth +
-                pipelineRectWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin +
-                  pipelineRectWidth)} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageNum - 1) * pipelineStageWidth +
-                (pipelineStageNum - 2) * pipelineArrowWidth +
-                pipelineArrowWidth +
-                (pipelineStageWidth - pipelineRectWidth) /
-                  2},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin +
-                  pipelineRectWidth)} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageNum - 1) * pipelineStageWidth +
-                (pipelineStageNum - 2) * pipelineArrowWidth +
-                pipelineArrowWidth +
-                (pipelineStageWidth - pipelineRectWidth) /
-                  2},${(rectNumInEachColumn * 2 + 1) *
-                (pipelineRectMargin + pipelineRectWidth) -
-                pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageNum - 1) * pipelineStageWidth +
-                (pipelineStageNum - 2) * pipelineArrowWidth +
-                pipelineRectWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn * 2 + 1) *
-                (pipelineRectMargin + pipelineRectWidth) -
-                pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (pipelineStageNum - 1) * pipelineStageWidth +
-                (pipelineStageNum - 2) * pipelineArrowWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin + pipelineRectWidth) +
-                (rectNumInEachColumn * pipelineRectWidth +
-                  (rectNumInEachColumn - 1) * pipelineRectMargin) /
-                  2}`
-            "
-                   :fill="pipelineArrowColor"></polygon>
+          <polygon
+            :points="`${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageNum - 1) * pipelineStageWidth +
+              (pipelineStageNum - 2) * pipelineArrowWidth +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },${(rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageNum - 1) * pipelineStageWidth +
+              (pipelineStageNum - 2) * pipelineArrowWidth +
+              pipelineArrowWidth +
+              (pipelineStageWidth - pipelineRectWidth) / 2
+            },${(rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageNum - 1) * pipelineStageWidth +
+              (pipelineStageNum - 2) * pipelineArrowWidth +
+              pipelineArrowWidth +
+              (pipelineStageWidth - pipelineRectWidth) / 2
+            },${(rectNumInEachColumn * 2 + 1) * (pipelineRectMargin + pipelineRectWidth) - pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageNum - 1) * pipelineStageWidth +
+              (pipelineStageNum - 2) * pipelineArrowWidth +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },${(rectNumInEachColumn * 2 + 1) * (pipelineRectMargin + pipelineRectWidth) - pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (pipelineStageNum - 1) * pipelineStageWidth +
+              (pipelineStageNum - 2) * pipelineArrowWidth +
+              pipelineArrowPadding
+            },${
+              (rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) +
+              (rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2
+            }`"
+            :fill="pipelineArrowColor"
+          ></polygon>
           <!-- other ltr arrows -->
-          <polygon v-for="(item, index) in pipelineInnerStageIterator.slice(
-              0,
-              pipelineStageNum - 2
-            )"
-                   :key="`${index}_other_ltr_arrow`"
-                   :points="
-              `${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineArrowPadding},0 ${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineArrowWidth -
-                pipelineRectWidth},0 ${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineArrowWidth},${(rectNumInEachColumn * pipelineRectWidth +
-                (rectNumInEachColumn - 1) * pipelineRectMargin) /
-                2} ${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineArrowWidth -
-                pipelineRectWidth},${rectNumInEachColumn * pipelineRectWidth +
-                (rectNumInEachColumn - 1) *
-                  pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineArrowPadding},${rectNumInEachColumn *
-                pipelineRectWidth +
-                (rectNumInEachColumn - 1) * pipelineRectMargin}`
-            "
-                   :fill="pipelineArrowColor"></polygon>
+          <polygon
+            v-for="(item, index) in pipelineInnerStageIterator.slice(0, pipelineStageNum - 2)"
+            :key="`${index}_other_ltr_arrow`"
+            :points="`${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineArrowPadding
+            },0 ${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineArrowWidth -
+              pipelineRectWidth
+            },0 ${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineArrowWidth
+            },${(rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2} ${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineArrowWidth -
+              pipelineRectWidth
+            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineArrowPadding
+            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin}`"
+            :fill="pipelineArrowColor"
+          ></polygon>
           <!-- other rtl arrows -->
-          <polygon v-for="(item, index) in pipelineInnerStageIterator.slice(
-              0,
-              pipelineStageNum - 2
-            )"
-                   :key="`${index}_other_rtl_arrow`"
-                   :points="
-              `${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineRectWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin +
-                  pipelineRectWidth)} ${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineArrowWidth},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin +
-                  pipelineRectWidth)} ${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineArrowWidth},${(rectNumInEachColumn * 2 + 1) *
-                (pipelineRectMargin + pipelineRectWidth) -
-                pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineRectWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn * 2 + 1) *
-                (pipelineRectMargin + pipelineRectWidth) -
-                pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
-                (index + 2) * pipelineStageWidth +
-                (index + 1) * pipelineArrowWidth +
-                pipelineArrowPadding},${(rectNumInEachColumn + 1) *
-                (pipelineRectMargin + pipelineRectWidth) +
-                (rectNumInEachColumn * pipelineRectWidth +
-                  (rectNumInEachColumn - 1) * pipelineRectMargin) /
-                  2}`
-            "
-                   :fill="pipelineArrowColor"></polygon>
+          <polygon
+            v-for="(item, index) in pipelineInnerStageIterator.slice(0, pipelineStageNum - 2)"
+            :key="`${index}_other_rtl_arrow`"
+            :points="`${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },${(rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)} ${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineArrowWidth
+            },${(rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)} ${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineArrowWidth
+            },${(rectNumInEachColumn * 2 + 1) * (pipelineRectMargin + pipelineRectWidth) - pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineRectWidth +
+              pipelineArrowPadding
+            },${(rectNumInEachColumn * 2 + 1) * (pipelineRectMargin + pipelineRectWidth) - pipelineRectMargin} ${
+              pipelineFirstStagePaddingLeft +
+              (index + 2) * pipelineStageWidth +
+              (index + 1) * pipelineArrowWidth +
+              pipelineArrowPadding
+            },${
+              (rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) +
+              (rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2
+            }`"
+            :fill="pipelineArrowColor"
+          ></polygon>
           <!-- first stage -->
           <g>
-            <g v-for="(item, index) in pipelineStageSendInfo_ltr[0]"
-               :key="`${index}_first_send`">
-              <rect :x="
-                  pipelineFirstStagePaddingLeft +
-                    (pipelineStageWidth - pipelineRectWidth) / 2
+            <g v-for="(item, index) in pipelineStageSendInfo_ltr[0]" :key="`${index}_first_send`">
+              <rect
+                :x="pipelineFirstStagePaddingLeft + (pipelineStageWidth - pipelineRectWidth) / 2"
+                :y="index * (pipelineRectMargin + pipelineRectWidth)"
+                :width="pipelineRectWidth"
+                :height="pipelineRectWidth"
+                :fill="pipelineSendRectColor"
+                :style="{ cursor: 'pointer' }"
+                @click="clickPipelineRect(item, 0)"
+              ></rect>
+              <text
+                :x="
+                  pipelineFirstStagePaddingLeft + (pipelineStageWidth - pipelineRectWidth) / 2 + pipelineRectWidth + 2
                 "
-                    :y="index * (pipelineRectMargin + pipelineRectWidth)"
-                    :width="pipelineRectWidth"
-                    :height="pipelineRectWidth"
-                    :fill="pipelineSendRectColor"
-                    :style="{ cursor: 'pointer' }"
-                    @click="clickPipelineRect(item, 0)"></rect>
-              <text :x="
-                  pipelineFirstStagePaddingLeft +
-                    (pipelineStageWidth - pipelineRectWidth) / 2 +
-                    pipelineRectWidth +
-                    2
-                "
-                    :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
-                    font-size="8px">
+                :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
+                font-size="8px"
+              >
                 {{ item }}
               </text>
             </g>
-            <g v-for="(item, index) in pipelineStageReceiveInfo_rtl[0]"
-               :key="`${index}_first_receive`">
-              <rect :x="
-                  pipelineFirstStagePaddingLeft +
-                    (pipelineStageWidth - pipelineRectWidth) / 2
+            <g v-for="(item, index) in pipelineStageReceiveInfo_rtl[0]" :key="`${index}_first_receive`">
+              <rect
+                :x="pipelineFirstStagePaddingLeft + (pipelineStageWidth - pipelineRectWidth) / 2"
+                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)"
+                :width="pipelineRectWidth"
+                :height="pipelineRectWidth"
+                :fill="pipelineReceiveRectColor"
+                :style="{ cursor: 'pointer' }"
+                @click="clickPipelineRect(item, 0)"
+              ></rect>
+              <text
+                :x="
+                  pipelineFirstStagePaddingLeft + (pipelineStageWidth - pipelineRectWidth) / 2 + pipelineRectWidth + 2
                 "
-                    :y="
-                  (index + rectNumInEachColumn + 1) *
-                    (pipelineRectMargin + pipelineRectWidth)
-                "
-                    :width="pipelineRectWidth"
-                    :height="pipelineRectWidth"
-                    :fill="pipelineReceiveRectColor"
-                    :style="{ cursor: 'pointer' }"
-                    @click="clickPipelineRect(item, 0)"></rect>
-              <text :x="
-                  pipelineFirstStagePaddingLeft +
-                    (pipelineStageWidth - pipelineRectWidth) / 2 +
-                    pipelineRectWidth +
-                    2
-                "
-                    :y="
-                  (index + rectNumInEachColumn + 1) *
-                    (pipelineRectMargin + pipelineRectWidth) +
-                    10
-                "
-                    font-size="8px">
+                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) + 10"
+                font-size="8px"
+              >
                 {{ item }}
               </text>
             </g>
           </g>
           <!-- last stage -->
           <g>
-            <g v-for="(item, index) in pipelineStageReceiveInfo_ltr[
-                pipelineStageReceiveInfo_ltr.length - 1
-              ]"
-               :key="`${index}_last_receive`">
-              <rect :x="
+            <g
+              v-for="(item, index) in pipelineStageReceiveInfo_ltr[pipelineStageReceiveInfo_ltr.length - 1]"
+              :key="`${index}_last_receive`"
+            >
+              <rect
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    (pipelineStageWidth + pipelineArrowWidth) *
-                      (pipelineStageReceiveInfo_ltr.length - 1) +
-                    (pipelineStageWidth - pipelineRectWidth) / 2
+                  (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageReceiveInfo_ltr.length - 1) +
+                  (pipelineStageWidth - pipelineRectWidth) / 2
                 "
-                    :y="index * (pipelineRectMargin + pipelineRectWidth)"
-                    :width="pipelineRectWidth"
-                    :height="pipelineRectWidth"
-                    :fill="pipelineReceiveRectColor"
-                    :style="{ cursor: 'pointer' }"
-                    @click="
-                  clickPipelineRect(
-                    item,
-                    pipelineStageReceiveInfo_ltr.length - 1
-                  )
-                "></rect>
-              <text :x="
+                :y="index * (pipelineRectMargin + pipelineRectWidth)"
+                :width="pipelineRectWidth"
+                :height="pipelineRectWidth"
+                :fill="pipelineReceiveRectColor"
+                :style="{ cursor: 'pointer' }"
+                @click="clickPipelineRect(item, pipelineStageReceiveInfo_ltr.length - 1)"
+              ></rect>
+              <text
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    (pipelineStageWidth + pipelineArrowWidth) *
-                      (pipelineStageReceiveInfo_ltr.length - 1) +
-                    (pipelineStageWidth - pipelineRectWidth) / 2 +
-                    pipelineRectWidth +
-                    2
+                  (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageReceiveInfo_ltr.length - 1) +
+                  (pipelineStageWidth - pipelineRectWidth) / 2 +
+                  pipelineRectWidth +
+                  2
                 "
-                    :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
-                    font-size="8px">
+                :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
+                font-size="8px"
+              >
                 {{ item }}
               </text>
             </g>
-            <g v-for="(item, index) in pipelineStageSendInfo_rtl[
-                pipelineStageSendInfo_rtl.length - 1
-              ]"
-               :key="`${index}_last_send`">
-              <rect :x="
+            <g
+              v-for="(item, index) in pipelineStageSendInfo_rtl[pipelineStageSendInfo_rtl.length - 1]"
+              :key="`${index}_last_send`"
+            >
+              <rect
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    (pipelineStageWidth + pipelineArrowWidth) *
-                      (pipelineStageSendInfo_rtl.length - 1) +
-                    (pipelineStageWidth - pipelineRectWidth) / 2
+                  (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageSendInfo_rtl.length - 1) +
+                  (pipelineStageWidth - pipelineRectWidth) / 2
                 "
-                    :y="
-                  (index + rectNumInEachColumn + 1) *
-                    (pipelineRectMargin + pipelineRectWidth)
-                "
-                    :width="pipelineRectWidth"
-                    :height="pipelineRectWidth"
-                    :fill="pipelineSendRectColor"
-                    :style="{ cursor: 'pointer' }"
-                    @click="
-                  clickPipelineRect(
-                    item,
-                    pipelineStageReceiveInfo_ltr.length - 1
-                  )
-                "></rect>
-              <text :x="
+                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)"
+                :width="pipelineRectWidth"
+                :height="pipelineRectWidth"
+                :fill="pipelineSendRectColor"
+                :style="{ cursor: 'pointer' }"
+                @click="clickPipelineRect(item, pipelineStageReceiveInfo_ltr.length - 1)"
+              ></rect>
+              <text
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    (pipelineStageWidth + pipelineArrowWidth) *
-                      (pipelineStageSendInfo_rtl.length - 1) +
-                    (pipelineStageWidth - pipelineRectWidth) / 2 +
-                    pipelineRectWidth +
-                    2
+                  (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageSendInfo_rtl.length - 1) +
+                  (pipelineStageWidth - pipelineRectWidth) / 2 +
+                  pipelineRectWidth +
+                  2
                 "
-                    :y="
-                  (index + rectNumInEachColumn + 1) *
-                    (pipelineRectMargin + pipelineRectWidth) +
-                    10
-                "
-                    font-size="8px">
+                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) + 10"
+                font-size="8px"
+              >
                 {{ item }}
               </text>
             </g>
           </g>
           <!-- other stages -->
-          <g v-for="stageIndex in pipelineInnerStageIterator"
-             :key="`${stageIndex}_stage_index`">
+          <g v-for="stageIndex in pipelineInnerStageIterator" :key="`${stageIndex}_stage_index`">
             <!-- ltr receive -->
-            <g v-for="(item, index) in pipelineStageReceiveInfo_ltr[stageIndex]"
-               :key="`${index}_other_receive_ltr`">
-              <rect :x="
+            <g v-for="(item, index) in pipelineStageReceiveInfo_ltr[stageIndex]" :key="`${index}_other_receive_ltr`">
+              <rect
+                :x="pipelineFirstStagePaddingLeft + stageIndex * (pipelineStageWidth + pipelineArrowWidth)"
+                :y="index * (pipelineRectMargin + pipelineRectWidth)"
+                :width="pipelineRectWidth"
+                :height="pipelineRectWidth"
+                :fill="pipelineReceiveRectColor"
+                :style="{ cursor: 'pointer' }"
+                @click="clickPipelineRect(item, stageIndex)"
+              ></rect>
+              <text
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    stageIndex * (pipelineStageWidth + pipelineArrowWidth)
+                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                  pipelineRectWidth +
+                  2
                 "
-                    :y="index * (pipelineRectMargin + pipelineRectWidth)"
-                    :width="pipelineRectWidth"
-                    :height="pipelineRectWidth"
-                    :fill="pipelineReceiveRectColor"
-                    :style="{ cursor: 'pointer' }"
-                    @click="clickPipelineRect(item, stageIndex)"></rect>
-              <text :x="
-                  pipelineFirstStagePaddingLeft +
-                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                    pipelineRectWidth +
-                    2
-                "
-                    :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
-                    font-size="8px">
+                :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
+                font-size="8px"
+              >
                 {{ item }}
               </text>
             </g>
             <!-- rtl send -->
-            <g v-for="(item, index) in pipelineStageSendInfo_rtl[stageIndex]"
-               :key="`${index}_other_send_rtl`">
-              <rect :x="
+            <g v-for="(item, index) in pipelineStageSendInfo_rtl[stageIndex]" :key="`${index}_other_send_rtl`">
+              <rect
+                :x="pipelineFirstStagePaddingLeft + stageIndex * (pipelineStageWidth + pipelineArrowWidth)"
+                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)"
+                :width="pipelineRectWidth"
+                :height="pipelineRectWidth"
+                :fill="pipelineSendRectColor"
+                :style="{ cursor: 'pointer' }"
+                @click="clickPipelineRect(item, stageIndex)"
+              ></rect>
+              <text
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    stageIndex * (pipelineStageWidth + pipelineArrowWidth)
+                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                  pipelineRectWidth +
+                  2
                 "
-                    :y="
-                  (index + rectNumInEachColumn + 1) *
-                    (pipelineRectMargin + pipelineRectWidth)
-                "
-                    :width="pipelineRectWidth"
-                    :height="pipelineRectWidth"
-                    :fill="pipelineSendRectColor"
-                    :style="{ cursor: 'pointer' }"
-                    @click="clickPipelineRect(item, stageIndex)"></rect>
-              <text :x="
-                  pipelineFirstStagePaddingLeft +
-                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                    pipelineRectWidth +
-                    2
-                "
-                    :y="
-                  (index + rectNumInEachColumn + 1) *
-                    (pipelineRectMargin + pipelineRectWidth) +
-                    10
-                "
-                    font-size="8px">
+                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) + 10"
+                font-size="8px"
+              >
                 {{ item }}
               </text>
             </g>
             <!-- ltr send -->
-            <g v-for="(item, index) in pipelineStageSendInfo_ltr[stageIndex]"
-               :key="`${index}_other_send_ltr`">
-              <rect :x="
+            <g v-for="(item, index) in pipelineStageSendInfo_ltr[stageIndex]" :key="`${index}_other_send_ltr`">
+              <rect
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                    pipelineStageWidth -
-                    pipelineRectWidth
+                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                  pipelineStageWidth -
+                  pipelineRectWidth
                 "
-                    :y="index * (pipelineRectMargin + pipelineRectWidth)"
-                    :width="pipelineRectWidth"
-                    :height="pipelineRectWidth"
-                    :fill="pipelineSendRectColor"
-                    :style="{ cursor: 'pointer' }"
-                    @click="clickPipelineRect(item, stageIndex)"></rect>
-              <text :x="
+                :y="index * (pipelineRectMargin + pipelineRectWidth)"
+                :width="pipelineRectWidth"
+                :height="pipelineRectWidth"
+                :fill="pipelineSendRectColor"
+                :style="{ cursor: 'pointer' }"
+                @click="clickPipelineRect(item, stageIndex)"
+              ></rect>
+              <text
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                    pipelineStageWidth +
-                    2
+                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                  pipelineStageWidth +
+                  2
                 "
-                    :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
-                    font-size="8px">
+                :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
+                font-size="8px"
+              >
                 {{ item }}
               </text>
             </g>
             <!-- rtl receive -->
-            <g v-for="(item, index) in pipelineStageReceiveInfo_rtl[stageIndex]"
-               :key="`${index}_other_receive_rtl`">
-              <rect :x="
+            <g v-for="(item, index) in pipelineStageReceiveInfo_rtl[stageIndex]" :key="`${index}_other_receive_rtl`">
+              <rect
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                    pipelineStageWidth -
-                    pipelineRectWidth
+                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                  pipelineStageWidth -
+                  pipelineRectWidth
                 "
-                    :y="
-                  (index + rectNumInEachColumn + 1) *
-                    (pipelineRectMargin + pipelineRectWidth)
-                "
-                    :width="pipelineRectWidth"
-                    :height="pipelineRectWidth"
-                    :fill="pipelineReceiveRectColor"
-                    :style="{ cursor: 'pointer' }"
-                    @click="clickPipelineRect(item, stageIndex)"></rect>
-              <text :x="
+                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)"
+                :width="pipelineRectWidth"
+                :height="pipelineRectWidth"
+                :fill="pipelineReceiveRectColor"
+                :style="{ cursor: 'pointer' }"
+                @click="clickPipelineRect(item, stageIndex)"
+              ></rect>
+              <text
+                :x="
                   pipelineFirstStagePaddingLeft +
-                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                    pipelineStageWidth +
-                    2
+                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                  pipelineStageWidth +
+                  2
                 "
-                    :y="
-                  (index + rectNumInEachColumn + 1) *
-                    (pipelineRectMargin + pipelineRectWidth) +
-                    10
-                "
-                    font-size="8px">
+                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) + 10"
+                font-size="8px"
+              >
                 {{ item }}
               </text>
             </g>
@@ -679,18 +584,15 @@
         </svg>
       </div>
       <div class="training-pipeline-stage-titles">
-        <svg width="100%"
-             height="100%">
+        <svg width="100%" height="100%">
           <!-- stage titles -->
-          <text v-for="(item, index) in pipelineStageSendInfo_ltr"
-                :key="`${index}_stage_title`"
-                :x="
-              pipelineFirstStagePaddingLeft +
-                index * (pipelineStageWidth + pipelineArrowWidth) +
-                18
-            "
-                y="18"
-                font-size="14px">
+          <text
+            v-for="(item, index) in pipelineStageSendInfo_ltr"
+            :key="`${index}_stage_title`"
+            :x="pipelineFirstStagePaddingLeft + index * (pipelineStageWidth + pipelineArrowWidth) + 18"
+            y="18"
+            font-size="14px"
+          >
             Stage {{ index }}
           </text>
         </svg>
@@ -698,102 +600,95 @@
     </div>
 
     <!-- Right Menu -->
-    <div class="selector-container"
-         style="right: 460px">
-      <el-select v-model="showRankId"
-                 @change="showRankIdChange">
-        <el-option v-for="option in showRankIdOptions"
-                   :key="option.value"
-                   :label="option.label"
-                   :value="option.value"></el-option>
+    <div class="selector-container" style="right: 460px">
+      <el-select v-model="showRankId" @change="showRankIdChange">
+        <el-option
+          v-for="option in showRankIdOptions"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        ></el-option>
       </el-select>
     </div>
     <div class="selector-container">
-      <el-select v-model="showNodeType"
-                 @change="showNodeTypeChange">
-        <el-option v-for="option in showNodeTypeOptions"
-                   :key="option.value"
-                   :label="option.label"
-                   :value="option.value"></el-option>
+      <el-select v-model="showNodeType" @change="showNodeTypeChange">
+        <el-option
+          v-for="option in showNodeTypeOptions"
+          :key="option.value"
+          :label="option.label"
+          :value="option.value"
+        ></el-option>
       </el-select>
     </div>
-    <div class="graph-right-info menu-item"
-         :style="{
+    <div
+      class="graph-right-info menu-item"
+      :style="{
         height: infoHeight,
-      }">
+      }"
+    >
       <div class="title">节点属性</div>
       <template v-if="selectedNode">
-        <div class="node-name"
-             :title="selectedNode.name">
+        <div class="node-name" :title="selectedNode.name">
           {{ selectedNode.name }}
         </div>
         <div class="second-title">Inputs:</div>
-        <div class="list"
-             :style="{ 'max-height': inputInfoHeight }">
+        <div class="list" :style="{ 'max-height': inputInfoHeight }">
           <!-- <div v-for="(item, index) in selectedNode.input" :key="index">
             {{ item }}{{ selectedNode.input_shape ? ": " : ""
             }}{{
               selectedNode.input_shape ? selectedNode.input_shape[item] : ""
             }}
           </div> -->
-          <div v-for="(item, index) in selectedNode.input"
-               :key="index"
-               :style="{
+          <div
+            v-for="(item, index) in selectedNode.input"
+            :key="index"
+            :style="{
               'border-left': '8px solid #cccccc',
               'padding-left': '5px',
               'margin-top': '5px',
-            }">
-            <div style="word-break: break-all;">
-              <span style="font-weight: bold;">name: </span>
-              {{
-                getNodeFromID(item).name.slice(
-                  getNodeFromID(item).name.lastIndexOf("/") + 1
-                )
-              }}
+            }"
+          >
+            <div style="word-break: break-all">
+              <span style="font-weight: bold">name: </span>
+              {{ getNodeFromID(item).name.slice(getNodeFromID(item).name.lastIndexOf('/') + 1) }}
             </div>
-            <div v-if="
+            <div
+              v-if="!(notShowTypes.includes(getNodeFromID(item).type) || notShowTypes.includes(selectedNode.type))"
+            >
+              <span style="font-weight: bold">shape: </span>
+              {{ selectedNode.input_shape ? selectedNode.input_shape[item] : '' }}
+            </div>
+            <div
+              v-if="
                 !(
-                  notShowTypes.includes(getNodeFromID(item).type) ||
+                  notShowTypes.includes(getNodeFromID(item).type) || // 聚合结点不显示，没有strategy不显示
                   notShowTypes.includes(selectedNode.type)
                 )
-              ">
-              <span style="font-weight: bold;">shape: </span>
-              {{
-                selectedNode.input_shape ? selectedNode.input_shape[item] : ""
-              }}
-            </div>
-            <div v-if="
-                !(
-                  notShowTypes.includes(getNodeFromID(item).type) ||    // 聚合结点不显示，没有strategy不显示
-                  notShowTypes.includes(selectedNode.type)
-                )
-              ">
-              <span style="font-weight: bold;">strategy: </span>
+              "
+            >
+              <span style="font-weight: bold">strategy: </span>
               {{
                 selectedNode.attribute && selectedNode.attribute.gen_strategy
                   ? JSON.parse(selectedNode.attribute.gen_strategy)[index]
-                  : ""
+                  : ''
               }}
             </div>
           </div>
         </div>
         <div class="second-title">Outputs:</div>
-        <div class="list"
-             :style="{ 'max-height': outputInfoHeight }">
-          <div v-for="(item, index) in selectedNode.output"
-               :key="index"
-               :style="{
+        <div class="list" :style="{ 'max-height': outputInfoHeight }">
+          <div
+            v-for="(item, index) in selectedNode.output"
+            :key="index"
+            :style="{
               'border-left': '8px solid #cccccc',
               'padding-left': '5px',
               'margin-top': '5px',
-            }">
-            <div style="word-break: break-all;">
-              <span style="font-weight: bold;">name: </span>
-              {{
-                getNodeFromID(item).name.slice(
-                  getNodeFromID(item).name.lastIndexOf("/") + 1
-                )
-              }}
+            }"
+          >
+            <div style="word-break: break-all">
+              <span style="font-weight: bold">name: </span>
+              {{ getNodeFromID(item).name.slice(getNodeFromID(item).name.lastIndexOf('/') + 1) }}
             </div>
           </div>
           <!-- <div v-for="(item, index) in selectedNode.output" :key="index">
@@ -805,12 +700,8 @@
           {{ selectedNode.output_shape }}
         </div>
         <div class="second-title">Attributes:</div>
-        <div class="list"
-             :style="{ 'max-height': attributeInfoHeight }">
-          <div v-for="(val, key) in selectedNode.attribute"
-               :key="key">
-            {{ key }}: {{ val }}
-          </div>
+        <div class="list" :style="{ 'max-height': attributeInfoHeight }">
+          <div v-for="(val, key) in selectedNode.attribute" :key="key">{{ key }}: {{ val }}</div>
         </div>
       </template>
       <template v-else>
@@ -831,14 +722,14 @@ import {
   changeShowRankId,
   edgeIdMap,
 } from '../../js/build-graph';
-import { IN_PORT_SUFFIX, OUT_PORT_SUFFIX, EDGE_SEPARATOR, NODE_TYPE } from '../../js/const';
+import {IN_PORT_SUFFIX, OUT_PORT_SUFFIX, EDGE_SEPARATOR, NODE_TYPE} from '../../js/const';
 import SvgElContainer from '@/components/svg-el-container.vue';
 import scopeNode from './graph-nodes/scope-node.vue';
 import operatorNodeVue from './graph-nodes/operator-node.vue';
 import GraphEdge from './graph-edge.vue';
 import ParallelBar from './parallel-bar.vue';
 import stackedStructureNodeVue from './graph-nodes/stacked-structure-node.vue';
-import { dataNodeMap, getEdge } from '../../js/create-elk-graph';
+import {dataNodeMap, getEdge} from '../../js/create-elk-graph';
 import StrategyMatrix from './graph-nodes/strategy-matrix.vue';
 const CONNECTED_OPACITY = 1;
 const UNCONNECTED_OPACITY = 0.4;
@@ -926,7 +817,7 @@ export default {
     getBindPropertyOfNode(node) {
       switch (node.type) {
         case NODE_TYPE.aggregate_scope:
-          return { ...node, stackedCount: this.getStackedCount(node) };
+          return {...node, stackedCount: this.getStackedCount(node)};
         default:
           return node;
       }
@@ -972,7 +863,7 @@ export default {
 
     dbClickScope(event, opt) {
       clearTimeout(this.clickTimer);
-      const { stacked } = opt;
+      const {stacked} = opt;
       if (stacked) {
         this.doubleClickStackedNode(event, opt);
       } else {
@@ -980,7 +871,7 @@ export default {
       }
     },
 
-    doubleClickStackedNode(event, { id }) {
+    doubleClickStackedNode(event, {id}) {
       event.stopPropagation();
       this.hoverEdges = [];
       this.resetPathSearch();
@@ -989,7 +880,7 @@ export default {
       this.updateVisGraph(visGraph);
     },
 
-    dblClickOperatorNode(event, { id }) {
+    dblClickOperatorNode(event, {id}) {
       clearTimeout(this.clickTimer);
       event.stopPropagation();
       if (this.isClickOperatorNode.get(id)) return;
@@ -1020,7 +911,7 @@ export default {
       });
     },
 
-    mouseEnterOperatorNode(event, { id }) {
+    mouseEnterOperatorNode(event, {id}) {
       event.stopPropagation();
       if (!COMM_LIST.has(getSingleNode(id).type)) return;
       // console.log("mouse enter " + id);
@@ -1089,7 +980,7 @@ export default {
       });
     },
 
-    mouseLeaveOperatorNode(event, { id }) {
+    mouseLeaveOperatorNode(event, {id}) {
       event.stopPropagation();
       if (!COMM_LIST.has(getSingleNode(id).type)) return;
       // console.log("mouse leave " + id);
@@ -1108,25 +999,32 @@ export default {
       this.getDisplayedGraph(this.showNodeType, this.showRankId);
     },
     hoverStrategyNode(name, nodeId) {
-      // console.log(nodeId, name);
       const hoverEdges = [];
       const key = name + '->' + nodeId;
       const id = edgeIdMap[key];
-      // console.log(id);
       if (this.visEdgeMap.has(id)) {
         hoverEdges.push(this.visEdgeMap.get(id));
       } else {
         const [source, target] = id.split('->');
         const edges = getEdge(source, target, this.conceptual);
-        edges.forEach((edge) => {
-          if (this.visEdgeMap.has(edge)) {
-            hoverEdges.push(this.visEdgeMap.get(edge));
-          }
-        });
-        // console.log(edges);
+        if (edges === 'HIDDEN') {
+          this.showHiddenEdges(this.visPortMap.get(target + IN_PORT_SUFFIX), source);
+        } else {
+          edges.forEach((edge) => {
+            if (this.visEdgeMap.has(edge)) {
+              hoverEdges.push(this.visEdgeMap.get(edge));
+            }
+          });
+        }
       }
 
       this.hoverEdges = hoverEdges;
+    },
+
+    hoverOutStrategyNode() {
+      this.hoverEdges = [];
+      this.hiddenEdges = [];
+      this.hiddenPolylineEdges = [];
     },
 
     getNodeFromID(id) {
