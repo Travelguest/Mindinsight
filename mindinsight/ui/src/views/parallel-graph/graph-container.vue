@@ -10,7 +10,12 @@
         height="200%"
         slot="marker"
       >
-        <feMorphology result="offset" in="SourceGraphic" operator="dilate" radius="2" />
+        <feMorphology
+          result="offset"
+          in="SourceGraphic"
+          operator="dilate"
+          radius="2"
+        />
         <feColorMatrix
           color-interpolation-filters="sRGB"
           result="drop"
@@ -65,27 +70,57 @@
       </marker>
 
       <g slot="marker" class="patterns">
-        <pattern id="data-texture" patternUnits="userSpaceOnUse" width="3" height="3">
+        <pattern
+          id="data-texture"
+          patternUnits="userSpaceOnUse"
+          width="3"
+          height="3"
+        >
           <path d="M 0,1.5 l 3,0" />
         </pattern>
 
-        <pattern id="model-texture" patternUnits="userSpaceOnUse" width="4" height="4">
+        <pattern
+          id="model-texture"
+          patternUnits="userSpaceOnUse"
+          width="4"
+          height="4"
+        >
           <path d="M 0,4 l 4,-4 M -1,1 l 2,-2 M 3,5 l 2,-2" />
         </pattern>
 
-        <pattern id="pipeline-texture" patternUnits="userSpaceOnUse" width="3" height="3">
+        <pattern
+          id="pipeline-texture"
+          patternUnits="userSpaceOnUse"
+          width="3"
+          height="3"
+        >
           <path d="M 1.5, 0 l 0, 3" />
         </pattern>
 
-        <pattern id="data-pipeline-texture" patternUnits="userSpaceOnUse" width="4" height="4">
+        <pattern
+          id="data-pipeline-texture"
+          patternUnits="userSpaceOnUse"
+          width="4"
+          height="4"
+        >
           <path d="M 0,2 l 4,0" />
           <path d="M 2, 0 l 0, 4" />
         </pattern>
-        <pattern id="model-pipeline-texture" patternUnits="userSpaceOnUse" width="4" height="4">
+        <pattern
+          id="model-pipeline-texture"
+          patternUnits="userSpaceOnUse"
+          width="4"
+          height="4"
+        >
           <path d="M 0,4 l 4,-4 M -1,1 l 2,-2 M 3,5 l 2,-2" />
           <path d="M 2, 0 l 0, 4" />
         </pattern>
-        <pattern id="data-model-texture" patternUnits="userSpaceOnUse" width="4" height="4">
+        <pattern
+          id="data-model-texture"
+          patternUnits="userSpaceOnUse"
+          width="4"
+          height="4"
+        >
           <path d="M 0,4 l 4,-4 M -1,1 l 2,-2 M 3,5 l 2,-2" />
           <path d="M 0,2 l 4,0" />
         </pattern>
@@ -110,23 +145,44 @@
 
       <g slot="g">
         <!-- Edges -->
-        <graph-edge :edges="edges" parentClass="graph-common" markerEndId="arrowhead" :opacity="edgeOpacity" />
+        <graph-edge
+          :edges="edges"
+          parentClass="graph-common"
+          markerEndId="arrowhead"
+          :opacity="edgeOpacity"
+        />
         <!-- Edges(search) -->
-        <graph-edge :edges="searchEdges" parentClass="graph-stroke-search" markerEndId="searchArrowhead" />
+        <graph-edge
+          :edges="searchEdges"
+          parentClass="graph-stroke-search"
+          markerEndId="searchArrowhead"
+        />
         <!-- Edges(hidden) -->
         <g slot="g">
-          <g v-for="edge in hiddenEdges" :key="`${edge.id}-hidden`" transform="translate(7,7)">
+          <g
+            v-for="edge in hiddenEdges"
+            :key="`${edge.id}-hidden`"
+            transform="translate(7,7)"
+          >
             <path :d="edge.draw" class="graph-stroke-hover no-fill"> </path>
           </g>
         </g>
         <g slot="g">
           <g v-for="edge in hiddenPolylineEdges" :key="`${edge.id}-hidden`">
-            <polyline :points="edge.points" class="graph-stroke-hover no-fill" marker-end="url(#hoverArrowhead)">
+            <polyline
+              :points="edge.points"
+              class="graph-stroke-hover no-fill"
+              marker-end="url(#hoverArrowhead)"
+            >
             </polyline>
           </g>
         </g>
         <!-- Edges(hover) -->
-        <graph-edge :edges="hoverEdges" parentClass="graph-stroke-hover" markerEndId="hoverArrowhead" />
+        <graph-edge
+          :edges="hoverEdges"
+          parentClass="graph-stroke-hover"
+          markerEndId="hoverArrowhead"
+        />
       </g>
 
       <!-- Ports -->
@@ -759,6 +815,48 @@
             </text>
           </g>
         </svg>
+        <!-- links -->
+        <!-- vertical link -->
+        <div
+          :style="
+            `position: absolute; transform: rotate(90deg); top: 67px; left: ${pipelineFirstStagePaddingLeft +
+              (pipelineStageWidth + pipelineArrowWidth) *
+                (pipelineStageNum - 1) +
+              pipelineArrowPadding * (pipelineStageNum - 2) -
+              5}px; width: 20px; height: 20px;`
+          "
+        >
+          <PipelineLink></PipelineLink>
+        </div>
+        <!-- horizontal links -->
+        <div
+          v-for="stageIndex in pipelineInnerStageIterator"
+          :key="`${stageIndex}_link_up`"
+          :style="
+            `position: absolute; top: 25px; left: ${pipelineFirstStagePaddingLeft +
+              stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+              (stageIndex - 1) * pipelineArrowPadding +
+              pipelineRectWidth +
+              pipelineArrowPadding +
+              5}px; width: 20px; height: 20px;`
+          "
+        >
+          <PipelineLink></PipelineLink>
+        </div>
+        <div
+          v-for="stageIndex in pipelineInnerStageIterator"
+          :key="`${stageIndex}_link_down`"
+          :style="
+            `position: absolute; top: 117px; left: ${pipelineFirstStagePaddingLeft +
+              stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+              (stageIndex - 1) * pipelineArrowPadding +
+              pipelineRectWidth +
+              pipelineArrowPadding +
+              5}px; width: 20px; height: 20px;`
+          "
+        >
+          <PipelineLink></PipelineLink>
+        </div>
       </div>
     </div>
 
@@ -813,13 +911,24 @@
           >
             <div style="word-break: break-all">
               <span style="font-weight: bold">name: </span>
-              {{ getNodeFromID(item).name.slice(getNodeFromID(item).name.lastIndexOf('/') + 1) }}
+              {{
+                getNodeFromID(item).name.slice(
+                  getNodeFromID(item).name.lastIndexOf("/") + 1
+                )
+              }}
             </div>
             <div
-              v-if="!(notShowTypes.includes(getNodeFromID(item).type) || notShowTypes.includes(selectedNode.type))"
+              v-if="
+                !(
+                  notShowTypes.includes(getNodeFromID(item).type) ||
+                  notShowTypes.includes(selectedNode.type)
+                )
+              "
             >
               <span style="font-weight: bold">shape: </span>
-              {{ selectedNode.input_shape ? selectedNode.input_shape[item] : '' }}
+              {{
+                selectedNode.input_shape ? selectedNode.input_shape[item] : ""
+              }}
             </div>
             <div
               v-if="
@@ -833,7 +942,7 @@
               {{
                 selectedNode.attribute && selectedNode.attribute.gen_strategy
                   ? JSON.parse(selectedNode.attribute.gen_strategy)[index]
-                  : ''
+                  : ""
               }}
             </div>
           </div>
@@ -851,7 +960,11 @@
           >
             <div style="word-break: break-all">
               <span style="font-weight: bold">name: </span>
-              {{ getNodeFromID(item).name.slice(getNodeFromID(item).name.lastIndexOf('/') + 1) }}
+              {{
+                getNodeFromID(item).name.slice(
+                  getNodeFromID(item).name.lastIndexOf("/") + 1
+                )
+              }}
             </div>
           </div>
           <!-- <div v-for="(item, index) in selectedNode.output" :key="index">
@@ -864,7 +977,9 @@
         </div>
         <div class="second-title">Attributes:</div>
         <div class="list" :style="{ 'max-height': attributeInfoHeight }">
-          <div v-for="(val, key) in selectedNode.attribute" :key="key">{{ key }}: {{ val }}</div>
+          <div v-for="(val, key) in selectedNode.attribute" :key="key">
+            {{ key }}: {{ val }}
+          </div>
         </div>
       </template>
       <template v-else>
@@ -885,7 +1000,12 @@ import {
   changeShowRankId,
   edgeIdMap,
 } from '../../js/build-graph';
-import {IN_PORT_SUFFIX, OUT_PORT_SUFFIX, EDGE_SEPARATOR, NODE_TYPE} from '../../js/const';
+import {
+  IN_PORT_SUFFIX,
+  OUT_PORT_SUFFIX,
+  EDGE_SEPARATOR,
+  NODE_TYPE,
+} from '../../js/const';
 import SvgElContainer from '@/components/svg-el-container.vue';
 import scopeNode from './graph-nodes/scope-node.vue';
 import operatorNodeVue from './graph-nodes/operator-node.vue';
@@ -896,9 +1016,15 @@ import {dataNodeMap, getEdge} from '../../js/create-elk-graph';
 import StrategyMatrix from './graph-nodes/strategy-matrix.vue';
 import PipelineOpenBtn from '@/assets/images/svg/pipeline-open.svg';
 import PipelineCloseBtn from '@/assets/images/svg/pipeline-close.svg';
+import PipelineLink from '@/assets/images/svg/link.svg';
 const CONNECTED_OPACITY = 1;
 const UNCONNECTED_OPACITY = 0.4;
-const COMM_LIST = new Set(['AllReduce', 'AllGather', 'AllToAll', 'ReduceScatter']);
+const COMM_LIST = new Set([
+  'AllReduce',
+  'AllGather',
+  'AllToAll',
+  'ReduceScatter',
+]);
 
 export default {
   name: 'graph-conatiner',
@@ -910,6 +1036,7 @@ export default {
     StrategyMatrix,
     PipelineOpenBtn,
     PipelineCloseBtn,
+    PipelineLink,
   },
 
   mixins: [elkGraph],
@@ -1001,8 +1128,10 @@ export default {
 
     updateInfoHeight() {
       // console.log(this.selectedNode);
-      const inputInfoHeight = Math.min(this.selectedNode.input.length, 5) * (16 * 3 + 5);
-      const outputInfoHeight = Math.min(this.selectedNode.output.length, 15) * (16 + 5);
+      const inputInfoHeight =
+        Math.min(this.selectedNode.input.length, 5) * (16 * 3 + 5);
+      const outputInfoHeight =
+        Math.min(this.selectedNode.output.length, 15) * (16 + 5);
       const attributeInfoHeight = this.selectedNode.attribute
         ? Object.keys(this.selectedNode.attribute).length * 16
         : 0;
@@ -1061,7 +1190,10 @@ export default {
       thisOperatorNode.input.forEach((inputID) => {
         if (!getSingleNode(inputID)) return;
         const inputNodeParent = getSingleNode(getSingleNode(inputID).parent);
-        if (inputNodeParent && inputNodeParent.type === NODE_TYPE.aggregate_scope) {
+        if (
+          inputNodeParent &&
+          inputNodeParent.type === NODE_TYPE.aggregate_scope
+        ) {
           inputID = inputNodeParent.id;
         }
 
@@ -1071,7 +1203,10 @@ export default {
       thisOperatorNode.output.forEach((outputID) => {
         if (!getSingleNode(outputID)) return;
         const outputNodeParent = getSingleNode(getSingleNode(outputID).parent);
-        if (outputNodeParent && outputNodeParent.type === NODE_TYPE.aggregate_scope) {
+        if (
+          outputNodeParent &&
+          outputNodeParent.type === NODE_TYPE.aggregate_scope
+        ) {
           outputID = outputNodeParent.id;
         }
 
@@ -1106,7 +1241,10 @@ export default {
         if (!this.isClickOperatorNode.get(id)) return;
 
         const inputNodeParent = getSingleNode(getSingleNode(inputID).parent);
-        if (inputNodeParent && inputNodeParent.type === NODE_TYPE.aggregate_scope) {
+        if (
+          inputNodeParent &&
+          inputNodeParent.type === NODE_TYPE.aggregate_scope
+        ) {
           inputID = inputNodeParent.id;
         }
         if (!this.visNodeMap.has(inputID)) {
@@ -1115,12 +1253,16 @@ export default {
         }
 
         const start = this.visPortMap.get(`${inputID}${OUT_PORT_SUFFIX}`);
-        const end = this.visPortMap.get(`${dataNodeMap.get(inputID).root}${OUT_PORT_SUFFIX}`);
+        const end = this.visPortMap.get(
+            `${dataNodeMap.get(inputID).root}${OUT_PORT_SUFFIX}`,
+        );
         if (!start || !end) return;
         start.opacity = CONNECTED_OPACITY;
         end.opacity = CONNECTED_OPACITY;
         this.hiddenEdges.push({
-          id: `${inputID}${OUT_PORT_SUFFIX}${EDGE_SEPARATOR}${dataNodeMap.get(inputID).root}${OUT_PORT_SUFFIX}`,
+          id: `${inputID}${OUT_PORT_SUFFIX}${EDGE_SEPARATOR}${
+            dataNodeMap.get(inputID).root
+          }${OUT_PORT_SUFFIX}`,
           draw: this.calEdgeDraw([start.x, start.y], [end.x, end.y]),
         });
       });
@@ -1129,7 +1271,10 @@ export default {
         if (!this.isClickOperatorNode.get(id)) return;
 
         const outputNodeParent = getSingleNode(getSingleNode(outputID).parent);
-        if (outputNodeParent && outputNodeParent.type === NODE_TYPE.aggregate_scope) {
+        if (
+          outputNodeParent &&
+          outputNodeParent.type === NODE_TYPE.aggregate_scope
+        ) {
           outputID = outputNodeParent.id;
         }
         if (!this.visNodeMap.has(outputID)) {
@@ -1137,13 +1282,17 @@ export default {
           return;
         }
 
-        const start = this.visPortMap.get(`${dataNodeMap.get(outputID).root}${IN_PORT_SUFFIX}`);
+        const start = this.visPortMap.get(
+            `${dataNodeMap.get(outputID).root}${IN_PORT_SUFFIX}`,
+        );
         const end = this.visPortMap.get(`${outputID}${IN_PORT_SUFFIX}`);
         if (!start || !end) return;
         start.opacity = CONNECTED_OPACITY;
         end.opacity = CONNECTED_OPACITY;
         this.hiddenEdges.push({
-          id: `${dataNodeMap.get(outputID).root}${IN_PORT_SUFFIX}${EDGE_SEPARATOR}${outputID}${IN_PORT_SUFFIX}`,
+          id: `${
+            dataNodeMap.get(outputID).root
+          }${IN_PORT_SUFFIX}${EDGE_SEPARATOR}${outputID}${IN_PORT_SUFFIX}`,
           draw: this.calEdgeDraw([start.x, start.y], [end.x, end.y]),
         });
       });
@@ -1177,7 +1326,10 @@ export default {
         const [source, target] = id.split('->');
         const edges = getEdge(source, target, this.conceptual);
         if (edges === 'HIDDEN') {
-          this.showHiddenEdges(this.visPortMap.get(target + IN_PORT_SUFFIX), source);
+          this.showHiddenEdges(
+              this.visPortMap.get(target + IN_PORT_SUFFIX),
+              source,
+          );
         } else {
           edges.forEach((edge) => {
             if (this.visEdgeMap.has(edge)) {
@@ -1494,10 +1646,20 @@ export default {
 }
 
 .training-pipeline-graph {
+  position: relative;
   overflow-x: auto;
   overflow-y: hidden;
   height: calc(100% - 50px);
+  z-index: 1;
 }
+
+/* .training-pipeline-links {
+  background: transparent;
+  width: 630px;
+  height: 240px;
+  z-index: 2;
+  position: relative;
+} */
 
 .pipeline-button {
   position: absolute;
