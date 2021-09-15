@@ -65,7 +65,7 @@ function _resetData() {
  */
 function _createBasicNode(node) {
   const attribute = {};
-  Object.keys(node.attr).forEach((key) => attribute[key] = node.attr[key]);
+  Object.keys(node.attr).forEach((key) => (attribute[key] = node.attr[key]));
 
   return {
     id: node.node_id,
@@ -296,6 +296,351 @@ function _findExistNameScope(id) {
 /**
  * Processing nodes data, statistics const and parameter nodes.
  * Construct bipartite graph, do namescope aggregation.
+ * @param {Object} nodeMap Graph data.
+ */
+function testPathCount(nodeMap) {
+  const queue = [];
+  Object.keys(nodeMap).forEach((key) => {
+    const input = nodeMap[key].input;
+    nodeMap[key].pathCnt = 0;
+    let curCnt = 0;
+    for (let i = 0; i < input.length; i++) {
+      if (isNaN(input[i])) continue;
+      curCnt++;
+    }
+    nodeMap[key].indegree = curCnt;
+    if (curCnt === 0) {
+      queue.push(key);
+      nodeMap[key].pathCnt = 1;
+    }
+  });
+
+  while (queue.length) {
+    const top = queue[0];
+    queue.shift();
+    nodeMap[top].input.forEach((id) => {
+      if (isNaN(id)) return;
+      nodeMap[top].pathCnt += nodeMap[id].pathCnt;
+    });
+    // console.log(nodeMap[top].pathCnt);
+    nodeMap[top].output.forEach((id) => {
+      if (COMM_LIST.has(nodeMap[id].type)) return;
+      nodeMap[id].indegree--;
+      if (nodeMap[id].indegree === 0) {
+        queue.push(id);
+      }
+    });
+  }
+  // console.log(JSON.parse(JSON.stringify(nodeMap)));
+}
+
+/**
+ * calculate indegree of each node and return nodes of zero indegree
+ * @param {Object} nodeMap graph data
+ * @return {Object} indegreeZeroNodes
+ */
+function calcInDegree(nodeMap) {
+  const indegreeZeroNodes = [];
+  Object.keys(nodeMap).forEach((key) => {
+    const node = nodeMap[key];
+    if (isNaN(key)) {
+      node.indegree = NaN;
+    } else {
+      const newInput = node.input.filter((item) => !isNaN(item));
+      node.indegree = newInput.length;
+    }
+    if (node.indegree === 0) {
+      indegreeZeroNodes.push(node.id);
+    }
+  });
+  // console.log(indegreeZeroNodes);
+  return indegreeZeroNodes;
+}
+
+/**
+ * using BFS as the searching algorithm in the residual graph
+ * @param {Object} residualAllNodes nodes in the residual graph
+ * @param {Object} residualAllEdges edges in the residual graph
+ * @param {Number} source source
+ * @param {Number} target target
+ * @param {Array} parent store path
+ * @return {Boolean} whether found a path from source to target
+ */
+function bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, parent) {
+  const isVisit = new Map();
+  for (const residualNode of residualAllNodes) {
+    isVisit.set(residualNode, false);
+  }
+
+  const queue = [];
+  queue.push(source);
+  isVisit.set(source, true);
+  parent[source] = -1;
+
+  while (queue.length !== 0) {
+    const top = queue[0];
+    queue.shift();
+
+    for (const residualNode of residualAllNodes) {
+      if (!isVisit.get(residualNode) && residualAllEdges[top] && residualAllEdges[top][residualNode] > 0) {
+        queue.push(residualNode);
+        parent[residualNode] = top;
+        isVisit.set(residualNode, true);
+      }
+    }
+  }
+
+  return isVisit.get(target);
+}
+
+/**
+ * the Ford-Fulkerson Algorithm
+ * @param {Object} curAllNodes nodes
+ * @param {Object} curAllEdges edges
+ * @param {Number} source source
+ * @param {Number} target target
+ * @return {Object} last residual graph
+ */
+function fordFulkerson(curAllNodes, curAllEdges, source, target) {
+  const residualAllNodes = curAllNodes;
+  const residualAllEdges = JSON.parse(JSON.stringify(curAllEdges));
+
+  const parent = {};
+  curAllNodes.forEach((curNode) => {
+    parent[curNode] = -1;
+  });
+  let maxFlow = 0;
+
+  while (bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, parent)) {
+    let pathFlow = Number.MAX_VALUE;
+    for (let i = target; i !== source; i = parent[i]) {
+      pathFlow = Math.min(pathFlow, residualAllEdges[parent[i]][i]);
+    }
+
+    for (let i = target; i !== source; i = parent[i]) {
+      residualAllEdges[parent[i]][i] -= pathFlow;
+      if (residualAllEdges[parent[i]][i] === 0) {
+        delete residualAllEdges[parent[i]][i];
+      }
+      if (!(parent[i] in residualAllEdges[i])) {
+        residualAllEdges[i][parent[i]] = 0;
+      }
+      residualAllEdges[i][parent[i]] += pathFlow;
+    }
+
+    maxFlow += pathFlow;
+  }
+
+  console.log(maxFlow, JSON.parse(JSON.stringify(residualAllEdges)));
+
+  return residualAllEdges;
+}
+
+/**
+ * calculate minimum cut
+ * @param {Number} source source node
+ * @param {Number} target target node
+ * @param {Object} residualAllNodes nodes in the final residual graph
+ * @param {Object} residualAllEdges edges in the final residual graph
+ * @param {Object} originAllEdges edges in the original graph
+ * @return {Set} edges to cut
+ */
+function findCutEdges(source, target, residualAllNodes, residualAllEdges, originAllEdges) {
+  const isVisit = new Map();
+  for (const residualNode of residualAllNodes) {
+    isVisit.set(residualNode, false);
+  }
+
+  const queue = [];
+  queue.push(source);
+  isVisit.set(source, true);
+
+  const cutEdges = new Set();
+  const firstNodeSet = new Set();
+  const secondNodeSet = new Set();
+
+  firstNodeSet.add(source);
+  secondNodeSet.add(target);
+
+  while (queue.length !== 0) {
+    const top = queue[0];
+    queue.shift();
+
+    Object.keys(residualAllEdges[top]).forEach((id) => {
+      if (!isVisit.get(id)) {
+        firstNodeSet.add(id);
+        queue.push(id);
+        isVisit.set(id, true);
+      }
+    });
+  }
+
+  for (const node of residualAllNodes) {
+    if (!firstNodeSet.has(node)) {
+      secondNodeSet.add(node);
+    }
+  }
+
+  console.log(firstNodeSet, secondNodeSet);
+
+  for (const fromNode of firstNodeSet) {
+    if (fromNode === source || fromNode === target) {
+      continue;
+    }
+    Object.keys(originAllEdges[fromNode]).forEach((toNode) => {
+      if (toNode === source || toNode === target) {
+        return;
+      }
+      if (secondNodeSet.has(toNode)) {
+        cutEdges.add(`${fromNode}->${toNode}`);
+      }
+    });
+  }
+
+  return cutEdges;
+}
+
+/**
+ * using BFS to find all connected nodes
+ * @param {Object} nodes nodes
+ * @param {Object} allNodes all nodes
+ * @param {Object} allEdges all edges
+ * @return {Object} relate nodes
+ */
+function findRelateNodes(nodes, allNodes, allEdges) {
+  const relateNodes = new Set();
+  nodes.forEach((node) => {
+    relateNodes.add(node);
+
+    const isVisit = new Map();
+    for (const node of allNodes) {
+      isVisit.set(node, false);
+    }
+
+    const queue = [];
+    queue.push(node);
+    isVisit.set(node, true);
+
+    while (queue.length !== 0) {
+      const top = queue[0];
+      queue.pop();
+
+      Object.keys(allEdges[top]).forEach((key) => {
+        if (!isVisit.get(key)) {
+          queue.push(key);
+          relateNodes.add(key);
+          isVisit.set(key, true);
+        }
+      });
+    }
+  });
+
+  return Array.from(relateNodes);
+}
+
+/**
+ * calculate minimum cut
+ * @param {Object} nodeMap Graph data.
+ * @param {Object} indegreeZeroNodes indegree 0 nodes.
+ * @return {Object} edges to cut
+ * @return {Set} edges to cut
+ */
+function calcMinCut(nodeMap, indegreeZeroNodes) {
+  // console.log(nodeMap);
+  // 存储全图的边
+  const allEdges = {};
+  const allNodes = new Set();
+  const commNodes = [];
+
+  Object.keys(nodeMap).forEach((key) => {
+    const node = nodeMap[key];
+    if (isNaN(key)) {
+      return;
+    }
+    allNodes.add(key);
+    allEdges[key] = {};
+    if (COMM_LIST.has(node.type)) {
+      commNodes.push(key);
+    }
+    node.input.forEach((inputID) => {
+      if (!isNaN(inputID)) {
+        allNodes.add(inputID);
+        if (!(inputID in allEdges)) {
+          allEdges[inputID] = {};
+        }
+        allEdges[inputID][key] = 1;
+      }
+    });
+    node.output.forEach((outputID) => {
+      if (!isNaN(outputID)) {
+        allNodes.add(outputID);
+        // if (!(outputID in allEdges)) {
+        //   allEdges.outputID = {};
+        // }
+        allEdges[key][outputID] = 1;
+      }
+    });
+  });
+
+  // console.log(allNodes);
+  // console.log(JSON.parse(JSON.stringify(allEdges)));
+
+  // test
+  // const testNodes = new Set(['S', 'A', 'B', 'C', 'D', 'T']);
+  // const testEdges = {'S': {'A': 8, 'D': 3}, 'A': {'B': 9}, 'B': {'T': 2}, 'C': {'T': 5}, 'D': {'B': 7, 'C': 4}, 'T': {}};
+  // const testResidualNodes = testNodes;
+  // const testResidualEdges = JSON.parse(JSON.stringify(testEdges));
+  // const lastResidualGraph = fordFulkerson(testResidualNodes, testResidualEdges, 'S', 'T');
+  // console.log(findCutEdges('S', 'T', testResidualNodes, lastResidualGraph, testEdges));
+
+  const cutEdges = new Set();
+  commNodes.forEach((id) => {
+    const commNode = nodeMap[id];
+    let preNodes = commNode.input.filter((item) => !isNaN(item));
+    let nextNodes = commNode.output.filter((item) => !isNaN(item));
+    preNodes = Array.from(new Set([...preNodes, ...indegreeZeroNodes]));
+
+    preNodes = findRelateNodes(preNodes, allNodes, allEdges);
+    nextNodes = findRelateNodes(nextNodes, allNodes, allEdges);
+
+    const source = -1;
+    const target = -2;
+    const curAllNodes = allNodes;
+    const curAllEdges = allEdges;
+    curAllNodes.add(source);
+    curAllNodes.add(target);
+    curAllEdges[source] = {};
+    curAllEdges[target] = {};
+
+    preNodes.forEach((preID) => {
+      curAllEdges[source][preID] = 10000;
+    });
+    nextNodes.forEach((nextID) => {
+      if (!(nextID in curAllEdges)) {
+        curAllEdges[nextID] = {};
+      }
+      curAllEdges[nextID][target] = 10000;
+    });
+
+    const residualAllNodes = curAllNodes;
+    const residualAllEdges = JSON.parse(JSON.stringify(curAllEdges));
+    const lastResidualEdges = fordFulkerson(residualAllNodes, residualAllEdges, source, target);
+
+    const curCutEdges = findCutEdges(source, target, residualAllNodes, lastResidualEdges, curAllEdges);
+    console.log(curCutEdges);
+    for (const edge of curCutEdges) {
+      cutEdges.add(edge);
+    }
+  });
+
+  console.log(cutEdges);
+
+  return cutEdges;
+}
+
+/**
+ * Processing nodes data, statistics const and parameter nodes.
+ * Construct bipartite graph, do namescope aggregation.
  * @param {Object} data Graph data.
  */
 function _processNodesParallel(data) {
@@ -352,6 +697,13 @@ function _processNodesParallel(data) {
       basicNode.input_shape[inputId] = source.output_shape;
     }
   });
+
+  // testPathCount(nodeMap);
+
+  // 最小割暂时不执行
+  // const indegreeZeroNodes = calcInDegree(nodeMap);
+  // const cutEdges = calcMinCut(nodeMap, indegreeZeroNodes);
+
   const bipartiteRes = processBipartite(nodeMap);
   const components = bipartiteRes['components'];
   const bits = components.length.toString().length;

@@ -1,6 +1,6 @@
 <script>
 import ELK from 'elkjs/lib/elk.bundled';
-import { layoutOptions } from '../js/config';
+import {layoutOptions} from '../js/config';
 import {
   buildGraph,
   toggleExpanded,
@@ -8,7 +8,7 @@ import {
   buildPipelinedStageInfo,
   querySingleNode,
 } from '../js/build-graph';
-import { createElkGraph, dataNodeMap } from '../js/create-elk-graph';
+import {createElkGraph, dataNodeMap} from '../js/create-elk-graph';
 import {
   IN_PORT_SUFFIX,
   OUT_PORT_SUFFIX,
@@ -87,44 +87,44 @@ export default {
       // fetch('static/data/gpt-3.json')
       // fetch('static/data/bert_semi.json')
       fetch('static/data/resnet_pipeline_parallel.json')
-        // fetch('static/data/pangustage0.json')
-        // fetch('static/data/bert_mockshard.json')
-        // fetch('static/data/stack/series.json')
-        // fetch('static/data/stack/series_layer.json')
-        // fetch('static/data/stack/series_parallel.json')
-        // fetch('static/data/stack/parallel.json')
-        .then((res) => res.json())
-        .then((res) => {
+      // fetch('static/data/pangustage0.json')
+      // fetch('static/data/bert_mockshard.json')
+      // fetch('static/data/stack/series.json')
+      // fetch('static/data/stack/series_layer.json')
+      // fetch('static/data/stack/series_parallel.json')
+      // fetch('static/data/stack/parallel.json')
+          .then((res) => res.json())
+          .then((res) => {
           // pipelined stage
-          this.pipelinedStageInfo = buildPipelinedStageInfo(res);
-          console.log(this.pipelinedStageInfo);
-          // 卡选择器
-          this.showRankIdOptions = Object.keys(res).map((key) => {
-            const ranks = res[key];
-            return {
-              value: key,
-              label: ranks.rank_ids.join('-'),
-            };
-          });
-          if (!showRankId) showRankId = 0;
-          const visGraph = buildGraph(res[showRankId], this.conceptual, this.bipartite);
-          const topScopeSet = getTopScopeSet();
-          this.showNodeTypeOptions = [];
-          for (const topScope of topScopeSet) {
-            this.showNodeTypeOptions.push({
-              value: topScope,
-              label: topScope,
+            this.pipelinedStageInfo = buildPipelinedStageInfo(res);
+            // console.log(this.pipelinedStageInfo);
+            // 卡选择器
+            this.showRankIdOptions = Object.keys(res).map((key) => {
+              const ranks = res[key];
+              return {
+                value: key,
+                label: ranks.rank_ids.join('-'),
+              };
             });
-          }
-          this.showNodeType = showNodeType || this.showNodeTypeOptions[0].label;
-          this.showRankId = showRankId || this.showRankIdOptions[0].value;
-          // console.log(JSON.parse(JSON.stringify(visGraph)))
-          const elkGraph = createElkGraph(visGraph, true, this.conceptual);
-          this.elk.layout(elkGraph, this.option).then((res) => {
-            this.processDisplayedGraph(res.getDisplayedGraph());
-            this.nodeAttrMap = visGraph.nodeAttrMap;
+            if (!showRankId) showRankId = 0;
+            const visGraph = buildGraph(res[showRankId], this.conceptual, this.bipartite);
+            const topScopeSet = getTopScopeSet();
+            this.showNodeTypeOptions = [];
+            for (const topScope of topScopeSet) {
+              this.showNodeTypeOptions.push({
+                value: topScope,
+                label: topScope,
+              });
+            }
+            this.showNodeType = showNodeType || this.showNodeTypeOptions[0].label;
+            this.showRankId = showRankId || this.showRankIdOptions[0].value;
+            // console.log(JSON.parse(JSON.stringify(visGraph)))
+            const elkGraph = createElkGraph(visGraph, true, this.conceptual);
+            this.elk.layout(elkGraph, this.option).then((res) => {
+              this.processDisplayedGraph(res.getDisplayedGraph());
+              this.nodeAttrMap = visGraph.nodeAttrMap;
+            });
           });
-        });
     },
 
     /**
@@ -331,11 +331,11 @@ export default {
       const end =
         this.visPortMap.get(rootPort) ||
         this.visPortMap.get(
-          `${
+            `${
             dataNodeMap.get(dataNodeMap.get(id).root)
               ? dataNodeMap.get(dataNodeMap.get(id).root).root
               : dataNodeMap.get(id).root
-          }${suffix}` // 通信结点的root是它自己
+            }${suffix}`, // 通信结点的root是它自己
         );
       console.log(start, end);
       if (start === undefined || end === undefined) return;

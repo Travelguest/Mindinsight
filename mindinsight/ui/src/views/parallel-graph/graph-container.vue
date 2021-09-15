@@ -160,11 +160,23 @@
       </template>
     </svg-el-container>
 
-    <div class="pipeline-button" ref="pipeline-button" @click="clickPipelineBtn"></div>
+    <div
+      class="pipeline-button"
+      ref="pipeline-button"
+      @click="clickPipelineBtn"
+    >
+      <component :is="curPipelineBtn"></component>
+    </div>
 
     <!-- Training Pipeline -->
-    <div class="training-pipeline-container" ref="pipeline-container" style="background: #edf0f5">
-      <div class="training-pipeline-title">Training Pipeline</div>
+    <div
+      class="training-pipeline-container"
+      ref="pipeline-container"
+      style="background: #EDF0F5;"
+    >
+      <div class="training-pipeline-title">
+        Training Pipeline
+      </div>
       <div class="training-pipeline-legend">
         <svg width="100%" height="100%">
           <g>
@@ -191,21 +203,29 @@
         <svg :width="pipelineGraphWidth" height="100%">
           <!-- first ltr arrow -->
           <polygon
-            :points="`${
-              pipelineFirstStagePaddingLeft +
-              (pipelineStageWidth - pipelineRectWidth) / 2 +
-              pipelineRectWidth +
-              pipelineArrowPadding
-            },0 ${pipelineFirstStagePaddingLeft + pipelineStageWidth + pipelineArrowWidth - pipelineRectWidth},0 ${
-              pipelineFirstStagePaddingLeft + pipelineStageWidth + pipelineArrowWidth
-            },${(rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2} ${
-              pipelineFirstStagePaddingLeft + pipelineStageWidth + pipelineArrowWidth - pipelineRectWidth
-            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin} ${
-              pipelineFirstStagePaddingLeft +
-              (pipelineStageWidth - pipelineRectWidth) / 2 +
-              pipelineRectWidth +
-              pipelineArrowPadding
-            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin}`"
+            :points="
+              `${pipelineFirstStagePaddingLeft +
+                (pipelineStageWidth - pipelineRectWidth) / 2 +
+                pipelineRectWidth +
+                pipelineArrowPadding},0 ${pipelineFirstStagePaddingLeft +
+                pipelineStageWidth +
+                pipelineArrowWidth -
+                pipelineRectWidth},0 ${pipelineFirstStagePaddingLeft +
+                pipelineStageWidth +
+                pipelineArrowWidth},${(rectNumInEachColumn * pipelineRectWidth +
+                (rectNumInEachColumn - 1) * pipelineRectMargin) /
+                2} ${pipelineFirstStagePaddingLeft +
+                pipelineStageWidth +
+                pipelineArrowWidth -
+                pipelineRectWidth},${rectNumInEachColumn * pipelineRectWidth +
+                (rectNumInEachColumn - 1) *
+                  pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
+                (pipelineStageWidth - pipelineRectWidth) / 2 +
+                pipelineRectWidth +
+                pipelineArrowPadding},${rectNumInEachColumn *
+                pipelineRectWidth +
+                (rectNumInEachColumn - 1) * pipelineRectMargin}`
+            "
             :fill="pipelineArrowColor"
           ></polygon>
           <!-- last ltr arrow -->
@@ -316,80 +336,104 @@
           ></polygon>
           <!-- other ltr arrows -->
           <polygon
-            v-for="(item, index) in pipelineInnerStageIterator.slice(0, pipelineStageNum - 2)"
+            v-for="(item, index) in pipelineInnerStageIterator.slice(
+              0,
+              pipelineStageNum - 3
+            )"
             :key="`${index}_other_ltr_arrow`"
-            :points="`${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineArrowPadding
-            },0 ${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineArrowWidth -
-              pipelineRectWidth
-            },0 ${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineArrowWidth
-            },${(rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2} ${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineArrowWidth -
-              pipelineRectWidth
-            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin} ${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineArrowPadding
-            },${rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin}`"
+            :points="
+              `${pipelineFirstStagePaddingLeft +
+                (index + 1) * (pipelineStageWidth + pipelineArrowWidth) +
+                index * pipelineArrowPadding +
+                pipelineStageWidth -
+                pipelineRectWidth * 2 +
+                pipelineRectWidth +
+                pipelineArrowPadding},0 ${pipelineFirstStagePaddingLeft +
+                (index + 2) * (pipelineStageWidth + pipelineArrowWidth) +
+                (index + 1) * pipelineArrowPadding -
+                pipelineRectWidth},0 ${pipelineFirstStagePaddingLeft +
+                (index + 2) * (pipelineStageWidth + pipelineArrowWidth) +
+                (index + 1) * pipelineArrowPadding},${(rectNumInEachColumn *
+                pipelineRectWidth +
+                (rectNumInEachColumn - 1) * pipelineRectMargin) /
+                2} ${pipelineFirstStagePaddingLeft +
+                (index + 2) * (pipelineStageWidth + pipelineArrowWidth) +
+                (index + 1) * pipelineArrowPadding -
+                pipelineRectWidth},${rectNumInEachColumn * pipelineRectWidth +
+                (rectNumInEachColumn - 1) *
+                  pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
+                (index + 1) * (pipelineStageWidth + pipelineArrowWidth) +
+                index * pipelineArrowPadding +
+                pipelineStageWidth -
+                pipelineRectWidth * 2 +
+                pipelineRectWidth +
+                pipelineArrowPadding},${rectNumInEachColumn *
+                pipelineRectWidth +
+                (rectNumInEachColumn - 1) * pipelineRectMargin}`
+            "
             :fill="pipelineArrowColor"
           ></polygon>
           <!-- other rtl arrows -->
           <polygon
-            v-for="(item, index) in pipelineInnerStageIterator.slice(0, pipelineStageNum - 2)"
+            v-for="(item, index) in pipelineInnerStageIterator.slice(
+              0,
+              pipelineStageNum - 3
+            )"
             :key="`${index}_other_rtl_arrow`"
-            :points="`${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineRectWidth +
-              pipelineArrowPadding
-            },${(rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)} ${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineArrowWidth
-            },${(rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)} ${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineArrowWidth
-            },${(rectNumInEachColumn * 2 + 1) * (pipelineRectMargin + pipelineRectWidth) - pipelineRectMargin} ${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineRectWidth +
-              pipelineArrowPadding
-            },${(rectNumInEachColumn * 2 + 1) * (pipelineRectMargin + pipelineRectWidth) - pipelineRectMargin} ${
-              pipelineFirstStagePaddingLeft +
-              (index + 2) * pipelineStageWidth +
-              (index + 1) * pipelineArrowWidth +
-              pipelineArrowPadding
-            },${
-              (rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) +
-              (rectNumInEachColumn * pipelineRectWidth + (rectNumInEachColumn - 1) * pipelineRectMargin) / 2
-            }`"
+            :points="
+              `${pipelineFirstStagePaddingLeft +
+                (index + 1) * (pipelineStageWidth + pipelineArrowWidth) +
+                index * pipelineArrowPadding +
+                pipelineStageWidth -
+                pipelineRectWidth * 2 +
+                pipelineRectWidth +
+                pipelineArrowPadding +
+                pipelineRectWidth},${(rectNumInEachColumn + 2) *
+                (pipelineRectMargin +
+                  pipelineRectWidth)} ${pipelineFirstStagePaddingLeft +
+                (index + 2) * (pipelineStageWidth + pipelineArrowWidth) +
+                (index + 1) * pipelineArrowPadding},${(rectNumInEachColumn +
+                2) *
+                (pipelineRectMargin +
+                  pipelineRectWidth)} ${pipelineFirstStagePaddingLeft +
+                (index + 2) * (pipelineStageWidth + pipelineArrowWidth) +
+                (index + 1) * pipelineArrowPadding},${(rectNumInEachColumn * 2 +
+                2) *
+                (pipelineRectMargin + pipelineRectWidth) -
+                pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
+                (index + 1) * (pipelineStageWidth + pipelineArrowWidth) +
+                index * pipelineArrowPadding +
+                pipelineStageWidth -
+                pipelineRectWidth * 2 +
+                pipelineRectWidth +
+                pipelineArrowPadding +
+                pipelineRectWidth},${(rectNumInEachColumn * 2 + 2) *
+                (pipelineRectMargin + pipelineRectWidth) -
+                pipelineRectMargin} ${pipelineFirstStagePaddingLeft +
+                (index + 1) * (pipelineStageWidth + pipelineArrowWidth) +
+                index * pipelineArrowPadding +
+                pipelineStageWidth -
+                pipelineRectWidth * 2 +
+                pipelineRectWidth +
+                pipelineArrowPadding},${(rectNumInEachColumn + 2) *
+                (pipelineRectMargin + pipelineRectWidth) +
+                (rectNumInEachColumn * pipelineRectWidth +
+                  (rectNumInEachColumn - 1) * pipelineRectMargin) /
+                  2}`
+            "
             :fill="pipelineArrowColor"
           ></polygon>
           <!-- first stage -->
           <g>
-            <g v-for="(item, index) in pipelineStageSendInfo_ltr[0]" :key="`${index}_first_send`">
+            <g
+              v-for="(item, index) in pipelineStageSendInfo_ltr[0]"
+              :key="`${index}_first_send`"
+            >
               <rect
-                :x="pipelineFirstStagePaddingLeft + (pipelineStageWidth - pipelineRectWidth) / 2"
+                :x="
+                  pipelineFirstStagePaddingLeft +
+                    (pipelineStageWidth - pipelineRectWidth) / 2
+                "
                 :y="index * (pipelineRectMargin + pipelineRectWidth)"
                 :width="pipelineRectWidth"
                 :height="pipelineRectWidth"
@@ -399,7 +443,10 @@
               ></rect>
               <text
                 :x="
-                  pipelineFirstStagePaddingLeft + (pipelineStageWidth - pipelineRectWidth) / 2 + pipelineRectWidth + 2
+                  pipelineFirstStagePaddingLeft +
+                    (pipelineStageWidth - pipelineRectWidth) / 2 +
+                    pipelineRectWidth +
+                    2
                 "
                 :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
                 font-size="8px"
@@ -407,10 +454,19 @@
                 {{ item }}
               </text>
             </g>
-            <g v-for="(item, index) in pipelineStageReceiveInfo_rtl[0]" :key="`${index}_first_receive`">
+            <g
+              v-for="(item, index) in pipelineStageReceiveInfo_rtl[0]"
+              :key="`${index}_first_receive`"
+            >
               <rect
-                :x="pipelineFirstStagePaddingLeft + (pipelineStageWidth - pipelineRectWidth) / 2"
-                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)"
+                :x="
+                  pipelineFirstStagePaddingLeft +
+                    (pipelineStageWidth - pipelineRectWidth) / 2
+                "
+                :y="
+                  (index + rectNumInEachColumn + 2) *
+                    (pipelineRectMargin + pipelineRectWidth)
+                "
                 :width="pipelineRectWidth"
                 :height="pipelineRectWidth"
                 :fill="pipelineReceiveRectColor"
@@ -419,9 +475,16 @@
               ></rect>
               <text
                 :x="
-                  pipelineFirstStagePaddingLeft + (pipelineStageWidth - pipelineRectWidth) / 2 + pipelineRectWidth + 2
+                  pipelineFirstStagePaddingLeft +
+                    (pipelineStageWidth - pipelineRectWidth) / 2 +
+                    pipelineRectWidth +
+                    2
                 "
-                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) + 10"
+                :y="
+                  (index + rectNumInEachColumn + 2) *
+                    (pipelineRectMargin + pipelineRectWidth) +
+                    10
+                "
                 font-size="8px"
               >
                 {{ item }}
@@ -431,29 +494,38 @@
           <!-- last stage -->
           <g>
             <g
-              v-for="(item, index) in pipelineStageReceiveInfo_ltr[pipelineStageReceiveInfo_ltr.length - 1]"
+              v-for="(item, index) in pipelineStageReceiveInfo_ltr[
+                pipelineStageReceiveInfo_ltr.length - 1
+              ]"
               :key="`${index}_last_receive`"
             >
               <rect
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageReceiveInfo_ltr.length - 1) +
-                  (pipelineStageWidth - pipelineRectWidth) / 2
+                    (pipelineStageWidth + pipelineArrowWidth) *
+                      (pipelineStageNum - 1) +
+                    pipelineArrowPadding * (pipelineStageNum - 2)
                 "
                 :y="index * (pipelineRectMargin + pipelineRectWidth)"
                 :width="pipelineRectWidth"
                 :height="pipelineRectWidth"
                 :fill="pipelineReceiveRectColor"
                 :style="{ cursor: 'pointer' }"
-                @click="clickPipelineRect(item, pipelineStageReceiveInfo_ltr.length - 1)"
+                @click="
+                  clickPipelineRect(
+                    item,
+                    pipelineStageReceiveInfo_ltr.length - 1
+                  )
+                "
               ></rect>
               <text
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageReceiveInfo_ltr.length - 1) +
-                  (pipelineStageWidth - pipelineRectWidth) / 2 +
-                  pipelineRectWidth +
-                  2
+                    (pipelineStageWidth + pipelineArrowWidth) *
+                      (pipelineStageNum - 1) +
+                    pipelineArrowPadding * (pipelineStageNum - 2) +
+                    pipelineRectWidth +
+                    2
                 "
                 :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
                 font-size="8px"
@@ -462,31 +534,47 @@
               </text>
             </g>
             <g
-              v-for="(item, index) in pipelineStageSendInfo_rtl[pipelineStageSendInfo_rtl.length - 1]"
+              v-for="(item, index) in pipelineStageSendInfo_rtl[
+                pipelineStageSendInfo_rtl.length - 1
+              ]"
               :key="`${index}_last_send`"
             >
               <rect
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageSendInfo_rtl.length - 1) +
-                  (pipelineStageWidth - pipelineRectWidth) / 2
+                    (pipelineStageWidth + pipelineArrowWidth) *
+                      (pipelineStageNum - 1) +
+                    pipelineArrowPadding * (pipelineStageNum - 2)
                 "
-                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)"
+                :y="
+                  (index + rectNumInEachColumn + 2) *
+                    (pipelineRectMargin + pipelineRectWidth)
+                "
                 :width="pipelineRectWidth"
                 :height="pipelineRectWidth"
                 :fill="pipelineSendRectColor"
                 :style="{ cursor: 'pointer' }"
-                @click="clickPipelineRect(item, pipelineStageReceiveInfo_ltr.length - 1)"
+                @click="
+                  clickPipelineRect(
+                    item,
+                    pipelineStageReceiveInfo_ltr.length - 1
+                  )
+                "
               ></rect>
               <text
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  (pipelineStageWidth + pipelineArrowWidth) * (pipelineStageSendInfo_rtl.length - 1) +
-                  (pipelineStageWidth - pipelineRectWidth) / 2 +
-                  pipelineRectWidth +
-                  2
+                    (pipelineStageWidth + pipelineArrowWidth) *
+                      (pipelineStageNum - 1) +
+                    pipelineArrowPadding * (pipelineStageNum - 2) +
+                    pipelineRectWidth +
+                    2
                 "
-                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) + 10"
+                :y="
+                  (index + rectNumInEachColumn + 2) *
+                    (pipelineRectMargin + pipelineRectWidth) +
+                    10
+                "
                 font-size="8px"
               >
                 {{ item }}
@@ -494,11 +582,21 @@
             </g>
           </g>
           <!-- other stages -->
-          <g v-for="stageIndex in pipelineInnerStageIterator" :key="`${stageIndex}_stage_index`">
+          <g
+            v-for="stageIndex in pipelineInnerStageIterator"
+            :key="`${stageIndex}_stage_index`"
+          >
             <!-- ltr receive -->
-            <g v-for="(item, index) in pipelineStageReceiveInfo_ltr[stageIndex]" :key="`${index}_other_receive_ltr`">
+            <g
+              v-for="(item, index) in pipelineStageReceiveInfo_ltr[stageIndex]"
+              :key="`${index}_other_receive_ltr`"
+            >
               <rect
-                :x="pipelineFirstStagePaddingLeft + stageIndex * (pipelineStageWidth + pipelineArrowWidth)"
+                :x="
+                  pipelineFirstStagePaddingLeft +
+                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                    (stageIndex - 1) * pipelineArrowPadding
+                "
                 :y="index * (pipelineRectMargin + pipelineRectWidth)"
                 :width="pipelineRectWidth"
                 :height="pipelineRectWidth"
@@ -509,9 +607,10 @@
               <text
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                  pipelineRectWidth +
-                  2
+                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                    (stageIndex - 1) * pipelineArrowPadding +
+                    pipelineRectWidth +
+                    2
                 "
                 :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
                 font-size="8px"
@@ -520,10 +619,20 @@
               </text>
             </g>
             <!-- rtl send -->
-            <g v-for="(item, index) in pipelineStageSendInfo_rtl[stageIndex]" :key="`${index}_other_send_rtl`">
+            <g
+              v-for="(item, index) in pipelineStageSendInfo_rtl[stageIndex]"
+              :key="`${index}_other_send_rtl`"
+            >
               <rect
-                :x="pipelineFirstStagePaddingLeft + stageIndex * (pipelineStageWidth + pipelineArrowWidth)"
-                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)"
+                :x="
+                  pipelineFirstStagePaddingLeft +
+                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                    (stageIndex - 1) * pipelineArrowPadding
+                "
+                :y="
+                  (index + rectNumInEachColumn + 2) *
+                    (pipelineRectMargin + pipelineRectWidth)
+                "
                 :width="pipelineRectWidth"
                 :height="pipelineRectWidth"
                 :fill="pipelineSendRectColor"
@@ -533,24 +642,33 @@
               <text
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                  pipelineRectWidth +
-                  2
+                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                    (stageIndex - 1) * pipelineArrowPadding +
+                    pipelineRectWidth +
+                    2
                 "
-                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) + 10"
+                :y="
+                  (index + rectNumInEachColumn + 2) *
+                    (pipelineRectMargin + pipelineRectWidth) +
+                    10
+                "
                 font-size="8px"
               >
                 {{ item }}
               </text>
             </g>
             <!-- ltr send -->
-            <g v-for="(item, index) in pipelineStageSendInfo_ltr[stageIndex]" :key="`${index}_other_send_ltr`">
+            <g
+              v-for="(item, index) in pipelineStageSendInfo_ltr[stageIndex]"
+              :key="`${index}_other_send_ltr`"
+            >
               <rect
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                  pipelineStageWidth -
-                  pipelineRectWidth
+                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                    (stageIndex - 1) * pipelineArrowPadding +
+                    pipelineStageWidth -
+                    pipelineRectWidth * 2
                 "
                 :y="index * (pipelineRectMargin + pipelineRectWidth)"
                 :width="pipelineRectWidth"
@@ -562,9 +680,11 @@
               <text
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                  pipelineStageWidth +
-                  2
+                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                    (stageIndex - 1) * pipelineArrowPadding +
+                    pipelineStageWidth -
+                    pipelineRectWidth +
+                    2
                 "
                 :y="index * (pipelineRectMargin + pipelineRectWidth) + 10"
                 font-size="8px"
@@ -573,15 +693,22 @@
               </text>
             </g>
             <!-- rtl receive -->
-            <g v-for="(item, index) in pipelineStageReceiveInfo_rtl[stageIndex]" :key="`${index}_other_receive_rtl`">
+            <g
+              v-for="(item, index) in pipelineStageReceiveInfo_rtl[stageIndex]"
+              :key="`${index}_other_receive_rtl`"
+            >
               <rect
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                  pipelineStageWidth -
-                  pipelineRectWidth
+                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                    (stageIndex - 1) * pipelineArrowPadding +
+                    pipelineStageWidth -
+                    pipelineRectWidth * 2
                 "
-                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth)"
+                :y="
+                  (index + rectNumInEachColumn + 2) *
+                    (pipelineRectMargin + pipelineRectWidth)
+                "
                 :width="pipelineRectWidth"
                 :height="pipelineRectWidth"
                 :fill="pipelineReceiveRectColor"
@@ -591,11 +718,17 @@
               <text
                 :x="
                   pipelineFirstStagePaddingLeft +
-                  stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
-                  pipelineStageWidth +
-                  2
+                    stageIndex * (pipelineStageWidth + pipelineArrowWidth) +
+                    (stageIndex - 1) * pipelineArrowPadding +
+                    pipelineStageWidth -
+                    pipelineRectWidth +
+                    2
                 "
-                :y="(index + rectNumInEachColumn + 1) * (pipelineRectMargin + pipelineRectWidth) + 10"
+                :y="
+                  (index + rectNumInEachColumn + 2) *
+                    (pipelineRectMargin + pipelineRectWidth) +
+                    10
+                "
                 font-size="8px"
               >
                 {{ item }}
@@ -761,6 +894,8 @@ import ParallelBar from './parallel-bar.vue';
 import stackedStructureNodeVue from './graph-nodes/stacked-structure-node.vue';
 import {dataNodeMap, getEdge} from '../../js/create-elk-graph';
 import StrategyMatrix from './graph-nodes/strategy-matrix.vue';
+import PipelineOpenBtn from '@/assets/images/svg/pipeline-open.svg';
+import PipelineCloseBtn from '@/assets/images/svg/pipeline-close.svg';
 const CONNECTED_OPACITY = 1;
 const UNCONNECTED_OPACITY = 0.4;
 const COMM_LIST = new Set(['AllReduce', 'AllGather', 'AllToAll', 'ReduceScatter']);
@@ -773,6 +908,8 @@ export default {
     GraphEdge,
     ParallelBar,
     StrategyMatrix,
+    PipelineOpenBtn,
+    PipelineCloseBtn,
   },
 
   mixins: [elkGraph],
@@ -801,14 +938,15 @@ export default {
       selectedNode: null,
       notShowTypes: Object.keys(NODE_TYPE),
 
-      pipelineContainerWidth: 530,
+      pipelineContainerWidth: 630,
       pipelineContainerHeight: 230,
       pipelineRectWidth: 12,
       pipelineRectMargin: 2,
-      pipelineGraphHeight: 155,
+      pipelineGraphWidth: 626,
+      pipelineGraphHeight: 151,
       pipelineFirstStagePaddingLeft: 0,
       pipelineStageNum: 0,
-      pipelineStageWidth: 75,
+      pipelineStageWidth: 90,
       pipelineArrowWidth: 75,
       pipelineStageSendInfo_ltr: [],
       pipelineStageSendInfo_rtl: [],
@@ -822,6 +960,7 @@ export default {
       pipelineArrowColor: '#e4e4e4',
 
       isPipelineContainerShow: false,
+      curPipelineBtn: 'PipelineOpenBtn',
     };
   },
 
@@ -1062,13 +1201,17 @@ export default {
     },
 
     calcPipelineParas() {
-      this.rectNumInEachColumn = Object.keys(this.pipelinedStageInfo['0-1']).length;
+      this.rectNumInEachColumn = Object.keys(
+          this.pipelinedStageInfo['0-1'],
+      ).length;
       this.pipelineRectWidth =
-        (this.pipelineGraphHeight - this.rectNumInEachColumn * 2 * this.pipelineRectMargin) /
-        (this.rectNumInEachColumn * 2 + 1);
-      this.pipelineStageNum = Object.keys(this.pipelinedStageInfo).length / 2 + 1;
+        (this.pipelineGraphHeight -
+          this.rectNumInEachColumn * 2 * this.pipelineRectMargin) /
+        (this.rectNumInEachColumn * 2 + 2);
+      this.pipelineStageNum =
+        Object.keys(this.pipelinedStageInfo).length / 2 + 1;
 
-      if (this.pipelinedStageNum > 4) {
+      if (this.pipelineStageNum > 4) {
         this.pipelineFirstStagePaddingLeft = 20;
         this.pipelineGraphWidth =
           this.pipelineFirstStagePaddingLeft * 2 +
@@ -1078,10 +1221,13 @@ export default {
           (this.pipelineStageWidth -
             (this.pipelineStageWidth - this.pipelineRectWidth) / 2);
       } else {
-        this.pipelineFirstStagePaddingRight =
-          (this.pipelineContainerWidth -
-            this.pipelinedStageNum * this.pipelineStageWidth -
-            (this.pipelinedStageNum - 1) * this.pipelineArrowWidth) /
+        this.pipelineFirstStagePaddingLeft =
+          (this.pipelineGraphWidth -
+            this.pipelineStageNum * this.pipelineStageWidth -
+            (this.pipelineStageNum - 2) * this.pipelineArrowWidth -
+            (this.pipelineStageNum - 2) * this.pipelineArrowPadding -
+            (this.pipelineStageWidth -
+              (this.pipelineStageWidth - this.pipelineRectWidth) / 2)) /
           2;
       }
 
@@ -1097,14 +1243,23 @@ export default {
         const receiver = Number(tmp[1]);
         for (const tag in this.pipelinedStageInfo[key]) {
           if (sender < receiver) {
-            this.pipelineStageSendInfo_ltr[sender].push(this.pipelinedStageInfo[key][tag][0]);
-            this.pipelineStageReceiveInfo_ltr[receiver].push(this.pipelinedStageInfo[key][tag][1]);
+            this.pipelineStageSendInfo_ltr[sender].push(
+                this.pipelinedStageInfo[key][tag][0],
+            );
+            this.pipelineStageReceiveInfo_ltr[receiver].push(
+                this.pipelinedStageInfo[key][tag][1],
+            );
           } else {
-            this.pipelineStageSendInfo_rtl[sender].push(this.pipelinedStageInfo[key][tag][0]);
-            this.pipelineStageReceiveInfo_rtl[receiver].push(this.pipelinedStageInfo[key][tag][1]);
+            this.pipelineStageSendInfo_rtl[sender].push(
+                this.pipelinedStageInfo[key][tag][0],
+            );
+            this.pipelineStageReceiveInfo_rtl[receiver].push(
+                this.pipelinedStageInfo[key][tag][1],
+            );
           }
         }
       });
+      this.$forceUpdate();
       // console.log(
       //   this.pipelineStageSendInfo_ltr,
       //   this.pipelineStageSendInfo_rtl
@@ -1126,11 +1281,13 @@ export default {
 
     clickPipelineBtn() {
       if (!this.isPipelineContainerShow) {
-        this.$refs['pipeline-button'].style.left = '560px';
+        this.$refs['pipeline-button'].style.left = '660px';
         this.$refs['pipeline-container'].style.left = '12px';
+        this.curPipelineBtn = 'PipelineCloseBtn';
       } else {
         this.$refs['pipeline-button'].style.left = '30px';
-        this.$refs['pipeline-container'].style.left = '-560px';
+        this.$refs['pipeline-container'].style.left = '-660px';
+        this.curPipelineBtn = 'PipelineOpenBtn';
       }
       this.isPipelineContainerShow = !this.isPipelineContainerShow;
     },
@@ -1314,11 +1471,11 @@ export default {
 .training-pipeline-container {
   border: 2px solid #bebebe;
   border-radius: 10px;
-  width: 530px;
-  height: 230px;
+  width: 630px;
+  height: 240px;
   position: absolute;
   top: 12px;
-  left: -560px;
+  left: -660px;
   transition: left 1s;
 }
 
@@ -1343,13 +1500,20 @@ export default {
 }
 
 .pipeline-button {
-  background-color: red;
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
   top: 20px;
   left: 30px;
   transition: left 1s;
   cursor: pointer;
+}
+
+.cls-1 {
+  fill: gray;
+  stroke: gray;
+  stroke-linecap: round;
+  stroke-miterlimit: 10;
+  stroke-width: 2px;
 }
 </style>

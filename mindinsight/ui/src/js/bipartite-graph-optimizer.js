@@ -13,7 +13,12 @@ const debug = false;
 // const debug = true;
 
 // communication oeperator
-const COMM_LIST = new Set(['AllReduce', 'AllGather', 'AllToAll', 'ReduceScatter']);
+const COMM_LIST = new Set([
+  'AllReduce',
+  'AllGather',
+  'AllToAll',
+  'ReduceScatter',
+]);
 let processedGraph = {};
 // parent id => consistent methods
 const nodeConsistentNodesMap = {};
@@ -21,6 +26,7 @@ const nodeConsistentNodesMap = {};
 /**
  * Construct communication and computation bipartite.
  * @param {Object} nodeMap nodeMap
+ * @param {Object} cutEdges edges to cut
  * @return {Object}
  */
 function processBipartite(nodeMap) {
@@ -74,7 +80,7 @@ function processBipartite(nodeMap) {
         // 超级源
         if (
           COMM_LIST.has(nodeMap[id].type) &&
-            nodeMap[id].scope.indexOf(showNodeType) !== -1
+          nodeMap[id].scope.indexOf(showNodeType) !== -1
         ) {
           continue;
         } // 跳过
@@ -90,7 +96,7 @@ function processBipartite(nodeMap) {
           if (cutEdges.has(cur + '->' + nxtId)) continue; // 如果该边已被切掉，跳过。
           if (
             COMM_LIST.has(nodeMap[nxtId].type) &&
-              nodeMap[nxtId].scope.indexOf(showNodeType) !== -1
+            nodeMap[nxtId].scope.indexOf(showNodeType) !== -1
           ) {
             continue;
           } // 如果是通信结点，跳过。
@@ -108,8 +114,8 @@ function processBipartite(nodeMap) {
           if (cutEdges.has(nxtId + '->' + cur)) continue; // 如果该边已被切掉，跳过。
           if (
             !nodeMap[nxtId] ||
-              (COMM_LIST.has(nodeMap[nxtId].type) &&
-                nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
+            (COMM_LIST.has(nodeMap[nxtId].type) &&
+              nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
           ) {
             continue;
           } // 如果是通信结点，跳过。
@@ -128,7 +134,7 @@ function processBipartite(nodeMap) {
     }
   });
 
-  // console.log([...cutEdges])
+  // // console.log([...cutEdges])
 
   // dfs(13);
   const v = [];
@@ -222,11 +228,7 @@ const bigPrimitive = 10000019;
  */
 const _genNodeHash = (node, nodeMap, parameterMap, constMap) => {
   let hash = 0;
-  const genHashValues = [
-    node.type,
-    node.input.length,
-    node.output.length,
-  ];
+  const genHashValues = [node.type, node.input.length, node.output.length];
   const attrs = {
     parameters: Object.keys(node.parameters),
     consts: Object.keys(node.consts),
@@ -527,8 +529,10 @@ function toExpandStackedNode(id) {
       node.name = node.name + EXAMPLE_SEPERATOR + newName[0];
     } else {
       const suffix = newName.pop();
-      node.name = node.name + newName.join(SCOPE_SEPARATOR)
-        + newName.length ? SCOPE_SEPARATOR: ''+ EXAMPLE_SEPERATOR + suffix;
+      node.name =
+        node.name + newName.join(SCOPE_SEPARATOR) + newName.length
+          ? SCOPE_SEPARATOR
+          : '' + EXAMPLE_SEPERATOR + suffix;
     }
 
     node.expanded = true;
@@ -536,11 +540,15 @@ function toExpandStackedNode(id) {
     return node.id;
   } else if (type === NODE_TYPE.aggregate_structure_scope_2) {
     // remove the node
-    const {originInfo: {prevFirstChild, prevAggregateNode}} = node;
+    const {
+      originInfo: {prevFirstChild, prevAggregateNode},
+    } = node;
 
     const parentNode = parent !== '' ? nodeMap[parent] : root;
     // remove the node from parent
-    parentNode.children = parentNode.children.filter((childId) => childId !== id);
+    parentNode.children = parentNode.children.filter(
+        (childId) => childId !== id,
+    );
     const childrenSet = new Set(parentNode.children);
 
     // collapse first child
@@ -575,7 +583,9 @@ function getParallelInfo(strategy) {
   return [
     // getProduct(dataParallel),
     dataParallel.join(','),
-    modelParallel.length ? getProduct(modelParallel.map((arr) => getProduct(arr))): 0,
+    modelParallel.length
+      ? getProduct(modelParallel.map((arr) => getProduct(arr)))
+      : 0,
   ];
 }
 /**
@@ -602,18 +612,20 @@ class ExtraAttr {
     if (typeof shard === 'string') {
       shard = JSON.parse(shard);
     }
-    this.strategy = shard.map((arr, i) => {
-      const input = node.input[i];
+    this.strategy = shard
+        .map((arr, i) => {
+          const input = node.input[i];
 
-      if (getProduct(arr) === 1) return null;
-      // ignore const and parameters
-      if (nodeMap[input] === undefined) return null;
+          if (getProduct(arr) === 1) return null;
+          // ignore const and parameters
+          if (nodeMap[input] === undefined) return null;
 
-      return {
-        strategy: arr,
-        name: input,
-      };
-    }).filter((d) => d!==null);
+          return {
+            strategy: arr,
+            name: input,
+          };
+        })
+        .filter((d) => d !== null);
   }
   /**
    * @return {string}
@@ -644,8 +656,9 @@ function handleSharedMethod(nodeId) {
 
         if (childNode.expanded === true) {
           nodeStack.push(childNode);
-        } else if (NODE_TYPE[childNode.type] === undefined
-          && _checkShardMethod(childNode[INSERTED_ATTR.parallel_shard])
+        } else if (
+          NODE_TYPE[childNode.type] === undefined &&
+          _checkShardMethod(childNode[INSERTED_ATTR.parallel_shard])
         ) {
           // ignore compound nodes not been expanded
           nodeSet.add(childId);
