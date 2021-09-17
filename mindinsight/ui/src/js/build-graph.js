@@ -484,11 +484,11 @@ function findCutEdges(source, target, residualAllNodes, residualAllEdges, origin
   console.log(firstNodeSet, secondNodeSet);
 
   for (const fromNode of firstNodeSet) {
-    if (fromNode === source || fromNode === target) {
+    if (fromNode == source || fromNode == target) {
       continue;
     }
     Object.keys(originAllEdges[fromNode]).forEach((toNode) => {
-      if (toNode === source || toNode === target) {
+      if (toNode == source || toNode == target) {
         return;
       }
       if (secondNodeSet.has(toNode)) {
@@ -557,13 +557,16 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
     if (isNaN(key)) {
       return;
     }
-    allNodes.add(key);
-    allEdges[key] = {};
     if (COMM_LIST.has(node.type)) {
       commNodes.push(key);
+      return;
+    } else {
+      allNodes.add(key);
+      allEdges[key] = {};
     }
     node.input.forEach((inputID) => {
-      if (!isNaN(inputID)) {
+      const inputNode = nodeMap[inputID];
+      if (!isNaN(inputID) && !COMM_LIST.has(inputNode.type)) {
         allNodes.add(inputID);
         if (!(inputID in allEdges)) {
           allEdges[inputID] = {};
@@ -572,7 +575,8 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
       }
     });
     node.output.forEach((outputID) => {
-      if (!isNaN(outputID)) {
+      const outputNode = nodeMap[outputID];
+      if (!isNaN(outputID) && !COMM_LIST.has(outputNode.type)) {
         allNodes.add(outputID);
         // if (!(outputID in allEdges)) {
         //   allEdges.outputID = {};
@@ -603,8 +607,8 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
     preNodes = findRelateNodes(preNodes, allNodes, allEdges);
     nextNodes = findRelateNodes(nextNodes, allNodes, allEdges);
 
-    const source = -1;
-    const target = -2;
+    const source = '-1';
+    const target = '-2';
     const curAllNodes = allNodes;
     const curAllEdges = allEdges;
     curAllNodes.add(source);
@@ -701,10 +705,10 @@ function _processNodesParallel(data) {
   // testPathCount(nodeMap);
 
   // 最小割暂时不执行
-  // const indegreeZeroNodes = calcInDegree(nodeMap);
-  // const cutEdges = calcMinCut(nodeMap, indegreeZeroNodes);
+  const indegreeZeroNodes = calcInDegree(nodeMap);
+  const cutEdges = calcMinCut(nodeMap, indegreeZeroNodes);
 
-  const bipartiteRes = processBipartite(nodeMap);
+  const bipartiteRes = processBipartite(nodeMap, cutEdges);
   const components = bipartiteRes['components'];
   const bits = components.length.toString().length;
 
