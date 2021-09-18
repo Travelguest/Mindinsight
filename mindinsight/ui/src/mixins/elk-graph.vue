@@ -261,7 +261,7 @@ export default {
       dataNodeMap.get(port.owner)[port.isInput ? INPUT : OUTPUT].forEach((nodeId) => {
         nodeId = _findExistNameScope(nodeId);
         // 用于建立跨通信边
-        if (!isNaN(nodeId)) {
+        if (!isNaN(nodeId) || nodeId.indexOf('/') !== -1) { // 是算子或命名空间结点，都要建立隐藏边
           const outputNode = dataNodeMap.get(nodeId);
           if (
             outputNode &&
@@ -270,7 +270,7 @@ export default {
             outputNode.parent.length !== 0
           ) {
             // OutputNode不在同一个聚合结点下，且不是通信结点
-            const outputPartEdges = this.createHiddenEdge(expandedNodeId, true); // 是输入端口
+            const outputPartEdges = this.createHiddenEdge(nodeId, true); // 是输入端口
             hiddenEdges.push(outputPartEdges);
           }
         }
