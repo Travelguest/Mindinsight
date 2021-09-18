@@ -279,7 +279,6 @@ function _findExistNameScope(id) {
   if (!curentNode.parent) return id;
   let target = id;
   let parent = nodeMap[curentNode.parent];
-
   while (curentNode.parent) {
     if (
       !parent.expanded ||
@@ -291,6 +290,24 @@ function _findExistNameScope(id) {
     parent = nodeMap[curentNode.parent];
   }
   return target;
+}
+
+/**
+ * Finding top name scope of node.
+ * @param {String} id Node id.
+ * @return {String}
+ */
+function _findTopScope(id) {
+  const {nodeMap} = processedGraph;
+
+  let curentNode = nodeMap[id];
+  if (!curentNode.parent) return id;
+  let parent = nodeMap[curentNode.parent];
+  while (curentNode.parent) {
+    curentNode = parent;
+    parent = nodeMap[curentNode.parent];
+  }
+  return curentNode;
 }
 
 /**
@@ -1411,4 +1428,6 @@ export {
   changeShowRankId,
   getTopScopeSet,
   buildPipelinedStageInfo,
+  _findTopScope,
+  _findExistNameScope,
 };

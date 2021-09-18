@@ -7,6 +7,8 @@ import {
   getTopScopeSet,
   buildPipelinedStageInfo,
   querySingleNode,
+  _findTopScope,
+  _findExistNameScope,
 } from '../js/build-graph';
 import {createElkGraph, dataNodeMap} from '../js/create-elk-graph';
 import {
@@ -256,10 +258,11 @@ export default {
 
       const partEdges = this.createHiddenEdge(port.owner, port.isInput);
       partEdges && hiddenEdges.push(partEdges);
-      dataNodeMap.get(port.owner).output.forEach((outputId) => {
+      dataNodeMap.get(port.owner)[port.isInput ? INPUT : OUTPUT].forEach((nodeId) => {
+        nodeId = _findExistNameScope(nodeId);
         // 用于建立跨通信边
-        if (!isNaN(outputId)) {
-          const outputNode = dataNodeMap.get(outputId);
+        if (!isNaN(nodeId)) {
+          const outputNode = dataNodeMap.get(nodeId);
           if (
             outputNode &&
             dataNodeMap.get(port.owner).parent.split(SCOPE_SEPARATOR)[0] !==
@@ -267,12 +270,11 @@ export default {
             outputNode.parent.length !== 0
           ) {
             // OutputNode不在同一个聚合结点下，且不是通信结点
-            const outputPartEdges = this.createHiddenEdge(outputId, true); // 是输入端口
+            const outputPartEdges = this.createHiddenEdge(expandedNodeId, true); // 是输入端口
             hiddenEdges.push(outputPartEdges);
           }
         }
       });
-      console.log(dataNodeMap.get(port.owner));
       dataNodeMap.get(port.owner).hiddenEdges[port.isInput ? INPUT : OUTPUT].forEach((edge) => {
         const targetRoot = dataNodeMap.get(edge).root === '' ? edge : dataNodeMap.get(edge).root; // 处理通信结点parent是""
         if (targetRoot) {
@@ -286,28 +288,27 @@ export default {
           this.visNodeMap.get(edge).opacity = CONNECTED_OPACITY;
         }
       });
-      // Add 'source root -> target root' polyline
-      console.log(targetRootSet);
+      // Add 'source root -> target root' polyline and cross comm edges
       targetRootSet.forEach((target) => {
         if (strategyTarget !== undefined && target !== strategyTarget) return;
         // dataNodeMap.get(target).parent === ""
         const edgeTemp = port.isInput ? `${target}${EDGE_SEPARATOR}${root}` : `${root}${EDGE_SEPARATOR}${target}`;
         if (this.visEdgeMap.has(edgeTemp)) {
           hiddenPolylineEdges.push(this.visEdgeMap.get(edgeTemp));
+        } else {
+          const topScopePort = _findTopScope(port.owner);
+          const suffix = port.isInput ? IN_PORT_SUFFIX : OUT_PORT_SUFFIX;
+          const anotherSuffix = port.isInput ? OUT_PORT_SUFFIX : IN_PORT_SUFFIX;
+          const start = this.visPortMap.get(`${topScopePort.id}${suffix}`);
+          const end = this.visPortMap.get(`${target}${anotherSuffix}`);
+          if (start === undefined || end === undefined) return;
+          start.opacity = CONNECTED_OPACITY;
+          end.opacity = CONNECTED_OPACITY;
+          hiddenEdges.push({
+            id: `${port.owner}${suffix}${EDGE_SEPARATOR}${target}${anotherSuffix}`,
+            draw: this.calEdgeDraw([start.x, start.y], [end.x, end.y]),
+          });
         }
-        // else {
-        // const suffix = port.isInput ? IN_PORT_SUFFIX : OUT_PORT_SUFFIX;
-        // const anotherSuffix = port.isInput ? OUT_PORT_SUFFIX : IN_PORT_SUFFIX;
-        // const start = this.visPortMap.get(`${port.owner}${suffix}`);
-        // const end = this.visPortMap.get(`${target}${anotherSuffix}`);
-        // if (start === undefined || end === undefined) return;
-        // start.opacity = CONNECTED_OPACITY;
-        // end.opacity = CONNECTED_OPACITY;
-        // hiddenEdges.push({
-        //   id: `${port.owner}${suffix}${EDGE_SEPARATOR}${target}${anotherSuffix}`,
-        //   draw: this.calEdgeDraw([start.x, start.y], [end.x, end.y]),
-        // });
-        // }
       });
 
       this.hiddenEdges = hiddenEdges;
