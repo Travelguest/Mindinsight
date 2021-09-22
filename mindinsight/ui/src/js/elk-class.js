@@ -1,5 +1,18 @@
-import {DisplayedGraph, DisplayedNode, DisplayedEdge, DisplayedMap} from './displayed-class';
-import {NODE_TYPE, OUT_PORT_SUFFIX, IN_PORT_SUFFIX, INPUT, OUTPUT, COLOR, LAYER_TYPE} from './const';
+import {
+  DisplayedGraph,
+  DisplayedNode,
+  DisplayedEdge,
+  DisplayedMap,
+} from './displayed-class';
+import {
+  NODE_TYPE,
+  OUT_PORT_SUFFIX,
+  IN_PORT_SUFFIX,
+  INPUT,
+  OUTPUT,
+  COLOR,
+  LAYER_TYPE,
+} from './const';
 import {labelOptions, childrenOptions} from './config';
 
 /**
@@ -36,12 +49,8 @@ export class ElkDataNode {
     this.stacked = stacked;
     this.edges = new Map();
     this.next = new Map();
-    this.input = Object.keys(input).map((id) => {
-      return {id, label: input[id].name.split('/').pop(), name: input[id].name};
-    });
-    this.output = Object.keys(output).map((id) => {
-      return {id, label: output[id].name.split('/').pop(), name: output[id].name};
-    });
+    this.input = input;
+    this.output = output;
     this.hoverEdges = new Set();
     this.hiddenEdges = {
       [INPUT]: new Set(),
@@ -87,14 +96,17 @@ export class ElkRootNode {
             if (edge.sections) {
               let points = '';
               const data = edge.sections[0];
-              points += `${data.startPoint.x += target.x},${data.startPoint.y += target.y} `;
+              points += `${(data.startPoint.x +=
+                target.x)},${(data.startPoint.y += target.y)} `;
               if (data.bendPoints) {
                 data.bendPoints.forEach((point) => {
-                  points += `${point.x += target.x},${point.y += target.y} `;
+                  points += `${(point.x += target.x)},${(point.y +=
+                    target.y)} `;
                 });
               }
-              points += `${data.endPoint.x += target.x},${data.endPoint.y += target.y}`;
-              const newEdge = new DisplayedEdge(edge.id, points);
+              points += `${(data.endPoint.x += target.x)},${(data.endPoint.y +=
+                target.y)}`;
+              const newEdge = new DisplayedEdge(edge.id, points, edge.outline);
               map.visEdgeMap.set(edge.id, newEdge);
               result.edges.push(newEdge);
             }
@@ -108,7 +120,11 @@ export class ElkRootNode {
               result.nodes.push(node);
               map.visNodeMap.set(node.id, node);
               // Transition
-              if ([NODE_TYPE.basic_scope, NODE_TYPE.name_scope].includes(node.type)) {
+              if (
+                [NODE_TYPE.basic_scope, NODE_TYPE.name_scope].includes(
+                  node.type
+                )
+              ) {
                 transition.set(child.id, {
                   x: node.x,
                   y: node.y,
@@ -122,11 +138,19 @@ export class ElkRootNode {
                     if (p.x !== 0) p.x -= 15;
                     p.x += child.x;
                   } else {
-                    p.x = p.x + child.x - 7.5;
+                    p.x =
+                      p.x +
+                      child.x -
+                      7.5 -
+                      // offset for aggregate_structure_scope node
+                      (child.type === NODE_TYPE.aggregate_structure_scope
+                        ? 5 * (p.isInput ? -1 : 1)
+                        : 0);
                   }
-                  p.y = child.type === NODE_TYPE.name_scope ?
-                    (p.y + child.y - child.height / 2) :
-                    (p.y + child.y - 7.5);
+                  p.y =
+                    child.type === NODE_TYPE.name_scope
+                      ? p.y + child.y - child.height / 2
+                      : p.y + child.y - 7.5;
                   p.opacity = 1;
                   result.ports.push(p);
                   map.visPortMap.set(p.id, p);
@@ -170,15 +194,7 @@ export class ElkNode {
    * The constructor of ELKNode
    * @param {Object} ELKNode
    */
-  constructor({
-    id,
-    type,
-    layerType,
-    label,
-    width,
-    height,
-    ports,
-  }) {
+  constructor({id, type, layerType, label, width, height, ports, rects}) {
     this.id = id;
     this.type = type;
     this.layerType = layerType;
@@ -197,6 +213,7 @@ export class ElkNode {
     this.layoutOptions = Object.assign({}, childrenOptions, {
       'nodeSize.minimum': `[${width}, ${height}]`,
     });
+    this.rects = rects;
   }
 }
 

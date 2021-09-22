@@ -4,14 +4,28 @@ export const OUT_PORT_SUFFIX = '-out-port';
 
 export const SCOPE_SEPARATOR = '/';
 
+export const SCOPE_AGGREGATOR = '+';
+
 export const EDGE_SEPARATOR = '->';
+
+export const EXAMPLE_SEPERATOR = ':';
 
 export const NODE_TYPE = {
   basic_scope: 'basic_scope',
   name_scope: 'name_scope',
   aggregate_scope: 'aggregate_scope',
+  aggregate_structure_scope: 'aggregate_structure_scope',
+  aggregate_structure_scope_2: 'aggregate_structure_scope_after_expand',
   parameter: 'parameter',
   const: 'const',
+  comm: 'communication',
+};
+
+// attributes to insert
+export const INSERTED_ATTR = {
+  'parallel_shard': 'parallel_shard',
+  'parallel_group': 'parallel_group',
+  'parallel_group_rank': 'parallel_group_rank',
 };
 
 export const LAYER_TYPE = {
@@ -26,6 +40,7 @@ export const INPUT = 'input';
 export const OUTPUT = 'output';
 
 export const MIN_COUNT_OF_NODE_STACK = 10;
+export const MIN_COUNT_OF_STRUCTURE_STACK = 2;
 
 export const COLOR = {
   conv: '#90ee90',
