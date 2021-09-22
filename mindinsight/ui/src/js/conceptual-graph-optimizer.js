@@ -96,7 +96,7 @@ function _upgradeNodes() {
 function _getNoInputNodes() {
   const nodes = Object.values(processedGraph.nodeMap);
   const noInputNodes = nodes.filter((node) => {
-    return !('children' in node) && !Object.keys(node.input);
+    return !('children' in node) && !node.input;
   });
 
   return noInputNodes;
@@ -154,7 +154,7 @@ function _deloop() {
     recordedScopes.add(currentScope);
     lastScope = currentScope;
 
-    for (const id of Object.keys(currentNode.output)) {
+    for (const id of currentNode.output) {
       if (recordedNodes.has(id)) continue;
       const node = nodeMap[id];
       nodes.push(node);
