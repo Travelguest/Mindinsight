@@ -29,114 +29,108 @@ const nodeConsistentNodesMap = {};
  * @param {Object} cutEdges edges to cut
  * @return {Object}
  */
-function processBipartite(nodeMap, cutEdges) {
-  // const cutEdges = new Set(); // 记录要切断的边
-  // Object.keys(nodeMap).forEach((nodeid) => {
-  //   const node = nodeMap[nodeid];
-  //   if (COMM_LIST.has(node.type) && node.scope.indexOf(showNodeType) !== -1) {
-  //     // 以通信结点为源点进行染色
-  //     let v = [];
-  //     const colorDict = {
-  //       // 记录通信结点的前驱和后继
-  //       pre: new Set(),
-  //       nxt: new Set(),
-  //     };
-  //     let q = [nodeid];
-  //     v[nodeid] = true; // 通信点v标记为1
-  //     while (q.length !== 0) {
-  //       const cur = q.shift();
-  //       const curNode = nodeMap[cur];
-  //       for (const nxtId of curNode.input) {
-  //         // 向上染色
-  //         if (cutEdges.has(nxtId + '->' + cur) || !nodeMap[nxtId]) continue; // 该边已经被其它通信结点切断
-  //         if (!v[nxtId]) {
-  //           colorDict['pre'].add(nxtId);
-  //           v[nxtId] = true;
-  //           q.push(nxtId);
-  //         }
-  //       }
-  //     }
-  //     v = [];
-  //     q = [nodeid];
-  //     v[nodeid] = true;
-  //     while (q.length !== 0) {
-  //       const cur = q.shift();
-  //       const curNode = nodeMap[cur];
-  //       for (const nxtId of curNode.output) {
-  //         // 向下染色
-  //         if (cutEdges.has(cur + '->' + nxtId)) continue;
-  //         if (!v[nxtId]) {
-  //           colorDict['nxt'].add(nxtId);
-  //           v[nxtId] = true;
-  //           q.push(nxtId);
-  //         }
-  //       }
-  //     }
-  //     // debug && console.log(node.name)
-  //     // debug && console.log(colorDict);
-  //     v = [];
-  //     q = [];
-  //     for (const id of colorDict['pre']) {
-  //       // 超级源
-  //       if (
-  //         COMM_LIST.has(nodeMap[id].type) &&
-  //         nodeMap[id].scope.indexOf(showNodeType) !== -1
-  //       ) {
-  //         continue;
-  //       } // 跳过
-  //       v[id] = true;
-  //       q.push(id);
-  //     }
-  //     // debug && console.log("超级源大小：", q.length)
-  //     while (q.length) {
-  //       // 超级源向下流
-  //       const cur = q.shift();
-  //       const curNode = nodeMap[cur];
-  //       for (const nxtId of curNode.output) {
-  //         if (cutEdges.has(cur + '->' + nxtId)) continue; // 如果该边已被切掉，跳过。
-  //         if (
-  //           COMM_LIST.has(nodeMap[nxtId].type) &&
-  //           nodeMap[nxtId].scope.indexOf(showNodeType) !== -1
-  //         ) {
-  //           continue;
-  //         } // 如果是通信结点，跳过。
-  //         if (!v[nxtId]) {
-  //           if (colorDict['nxt'].has(nxtId)) {
-  //             // 未经通信访问到了后继
-  //             cutEdges.add(cur + '->' + nxtId); // 删边
-  //           } else {
-  //             v[nxtId] = true;
-  //             q.push(nxtId);
-  //           }
-  //         }
-  //       }
-  //       for (const nxtId of curNode.input) {
-  //         if (cutEdges.has(nxtId + '->' + cur)) continue; // 如果该边已被切掉，跳过。
-  //         if (
-  //           !nodeMap[nxtId] ||
-  //           (COMM_LIST.has(nodeMap[nxtId].type) &&
-  //             nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
-  //         ) {
-  //           continue;
-  //         } // 如果是通信结点，跳过。
-  //         if (!v[nxtId]) {
-  //           if (colorDict['nxt'].has(nxtId)) {
-  //             // 未经通信访问到了后继
-  //             cutEdges.add(cur + '->' + nxtId); // 删边
-  //           } else {
-  //             v[nxtId] = true;
-  //             q.push(nxtId);
-  //           }
-  //         }
-  //       }
-  //     }
-  //     // debug && console.log(cutEdges.size);
-  //   }
-  // });
-
-  // // console.log([...cutEdges])
-
-  // dfs(13);
+function processBipartite(nodeMap, cutEdges=null) {
+  if (!cutEdges) {
+    cutEdges = new Set(); // 记录要切断的边
+    Object.keys(nodeMap).forEach((nodeid) => {
+      const node = nodeMap[nodeid];
+      if (COMM_LIST.has(node.type) && node.scope.indexOf(showNodeType) !== -1) {
+        // 以通信结点为源点进行染色
+        let v = [];
+        const colorDict = {
+          // 记录通信结点的前驱和后继
+          pre: new Set(),
+          nxt: new Set(),
+        };
+        let q = [nodeid];
+        v[nodeid] = true; // 通信点v标记为1
+        while (q.length !== 0) {
+          const cur = q.shift();
+          const curNode = nodeMap[cur];
+          for (const nxtId of curNode.input) {
+            // 向上染色
+            if (cutEdges.has(nxtId + '->' + cur) || !nodeMap[nxtId]) continue; // 该边已经被其它通信结点切断
+            if (!v[nxtId]) {
+              colorDict['pre'].add(nxtId);
+              v[nxtId] = true;
+              q.push(nxtId);
+            }
+          }
+        }
+        v = [];
+        q = [nodeid];
+        v[nodeid] = true;
+        while (q.length !== 0) {
+          const cur = q.shift();
+          const curNode = nodeMap[cur];
+          for (const nxtId of curNode.output) {
+            // 向下染色
+            if (cutEdges.has(cur + '->' + nxtId)) continue;
+            if (!v[nxtId]) {
+              colorDict['nxt'].add(nxtId);
+              v[nxtId] = true;
+              q.push(nxtId);
+            }
+          }
+        }
+        v = [];
+        q = [];
+        for (const id of colorDict['pre']) {
+          // 超级源
+          if (
+            COMM_LIST.has(nodeMap[id].type) &&
+            nodeMap[id].scope.indexOf(showNodeType) !== -1
+          ) {
+            continue;
+          }
+          v[id] = true;
+          q.push(id);
+        }
+        while (q.length) {
+          // 超级源向下流
+          const cur = q.shift();
+          const curNode = nodeMap[cur];
+          for (const nxtId of curNode.output) {
+            if (cutEdges.has(cur + '->' + nxtId)) continue; // 如果该边已被切掉，跳过。
+            if (
+              COMM_LIST.has(nodeMap[nxtId].type) &&
+              nodeMap[nxtId].scope.indexOf(showNodeType) !== -1
+            ) {
+              continue;
+            } // 如果是通信结点，跳过。
+            if (!v[nxtId]) {
+              if (colorDict['nxt'].has(nxtId)) {
+                // 未经通信访问到了后继
+                cutEdges.add(cur + '->' + nxtId); // 删边
+              } else {
+                v[nxtId] = true;
+                q.push(nxtId);
+              }
+            }
+          }
+          for (const nxtId of curNode.input) {
+            if (cutEdges.has(nxtId + '->' + cur)) continue; // 如果该边已被切掉，跳过。
+            if (
+              !nodeMap[nxtId] ||
+              (COMM_LIST.has(nodeMap[nxtId].type) &&
+                nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
+            ) {
+              continue;
+            } // 如果是通信结点，跳过。
+            if (!v[nxtId]) {
+              if (colorDict['nxt'].has(nxtId)) {
+                // 未经通信访问到了后继
+                cutEdges.add(cur + '->' + nxtId); // 删边
+              } else {
+                v[nxtId] = true;
+                q.push(nxtId);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
   const v = [];
   const components = [];
   for (const key in nodeMap) {
@@ -154,7 +148,6 @@ function processBipartite(nodeMap, cutEdges) {
         while (queue.length) {
           const cur = queue.shift();
           for (const nid of nodeMap[cur].output) {
-            // if (nid == "344") debug && console.log("前驱结点：", cur);
             if (cutEdges.has(cur + '->' + nid)) continue;
             if (
               !v[nid] &&
@@ -169,7 +162,6 @@ function processBipartite(nodeMap, cutEdges) {
             }
           }
           for (const nid of nodeMap[cur].input) {
-            // if (nid == "344") debug && console.log("后继结点：", cur);
             if (!nodeMap[nid]) continue;
             if (cutEdges.has(nid + '->' + cur)) continue;
             if (

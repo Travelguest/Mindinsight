@@ -71,10 +71,6 @@ export function createElkGraph(data, isFirst, isConcept) {
     } else {
       visNode.root = visNode.parent === '' ? '' : getScopeRoot(visNode.parent);
     }
-    if (visNode.id === '614') {
-      console.log(visNode);
-      console.log(getScopeRoot(visNode.parent));
-    }
     dataNodeMap.set(visNode.id, new ElkDataNode(visNode));
   });
   if (isFirst) {

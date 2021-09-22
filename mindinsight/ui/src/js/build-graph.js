@@ -27,6 +27,7 @@ let processedGraph = {
 let nameScopeIds = [];
 let conceptualGraphMode = false;
 let bipartiteGraphMode = false;
+const minimumCutMode = false;
 let insertedAttr = [];
 
 const COMM_LIST = new Set([
@@ -311,47 +312,6 @@ function _findTopScope(id) {
 }
 
 /**
- * Processing nodes data, statistics const and parameter nodes.
- * Construct bipartite graph, do namescope aggregation.
- * @param {Object} nodeMap Graph data.
- */
-function testPathCount(nodeMap) {
-  const queue = [];
-  Object.keys(nodeMap).forEach((key) => {
-    const input = nodeMap[key].input;
-    nodeMap[key].pathCnt = 0;
-    let curCnt = 0;
-    for (let i = 0; i < input.length; i++) {
-      if (isNaN(input[i])) continue;
-      curCnt++;
-    }
-    nodeMap[key].indegree = curCnt;
-    if (curCnt === 0) {
-      queue.push(key);
-      nodeMap[key].pathCnt = 1;
-    }
-  });
-
-  while (queue.length) {
-    const top = queue[0];
-    queue.shift();
-    nodeMap[top].input.forEach((id) => {
-      if (isNaN(id)) return;
-      nodeMap[top].pathCnt += nodeMap[id].pathCnt;
-    });
-    // console.log(nodeMap[top].pathCnt);
-    nodeMap[top].output.forEach((id) => {
-      if (COMM_LIST.has(nodeMap[id].type)) return;
-      nodeMap[id].indegree--;
-      if (nodeMap[id].indegree === 0) {
-        queue.push(id);
-      }
-    });
-  }
-  // console.log(JSON.parse(JSON.stringify(nodeMap)));
-}
-
-/**
  * calculate indegree of each node and return nodes of zero indegree
  * @param {Object} nodeMap graph data
  * @return {Object} indegreeZeroNodes
@@ -563,7 +523,6 @@ function findRelateNodes(nodes, allNodes, allEdges) {
  * @return {Set} edges to cut
  */
 function calcMinCut(nodeMap, indegreeZeroNodes) {
-  // console.log(nodeMap);
   // 存储全图的边
   const allEdges = {};
   const allNodes = new Set();
@@ -595,24 +554,10 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
       const outputNode = nodeMap[outputID];
       if (!isNaN(outputID) && !COMM_LIST.has(outputNode.type)) {
         allNodes.add(outputID);
-        // if (!(outputID in allEdges)) {
-        //   allEdges.outputID = {};
-        // }
         allEdges[key][outputID] = 1;
       }
     });
   });
-
-  // console.log(allNodes);
-  // console.log(JSON.parse(JSON.stringify(allEdges)));
-
-  // test
-  // const testNodes = new Set(['S', 'A', 'B', 'C', 'D', 'T']);
-  // const testEdges = {'S': {'A': 8, 'D': 3}, 'A': {'B': 9}, 'B': {'T': 2}, 'C': {'T': 5}, 'D': {'B': 7, 'C': 4}, 'T': {}};
-  // const testResidualNodes = testNodes;
-  // const testResidualEdges = JSON.parse(JSON.stringify(testEdges));
-  // const lastResidualGraph = fordFulkerson(testResidualNodes, testResidualEdges, 'S', 'T');
-  // console.log(findCutEdges('S', 'T', testResidualNodes, lastResidualGraph, testEdges));
 
   const cutEdges = new Set();
   commNodes.forEach((id) => {
@@ -721,11 +666,16 @@ function _processNodesParallel(data) {
 
   // testPathCount(nodeMap);
 
-  // 最小割暂时不执行
-  const indegreeZeroNodes = calcInDegree(nodeMap);
-  const cutEdges = calcMinCut(nodeMap, indegreeZeroNodes);
+  // 最小割暂不执行
+  let bipartiteRes;
+  if (minimumCutMode) {
+    const indegreeZeroNodes = calcInDegree(nodeMap);
+    const cutEdges = calcMinCut(nodeMap, indegreeZeroNodes);
+    bipartiteRes = processBipartite(nodeMap, cutEdges);
+  } else {
+    bipartiteRes = processBipartite(nodeMap);
+  }
 
-  const bipartiteRes = processBipartite(nodeMap, cutEdges);
   const components = bipartiteRes['components'];
   const bits = components.length.toString().length;
 
@@ -744,7 +694,6 @@ function _processNodesParallel(data) {
       nodes[id].parent = scopes;
     }
   });
-  // console.log(JSON.parse(JSON.stringify(nodes)));
   const trie = new TrieNode(null);
   for (const sNode of nodes) {
     _insertTrieNode(
@@ -792,7 +741,6 @@ function _processNodesParallel(data) {
  */
 function _processNodes(data) {
   const nodes = data.op_nodes || [];
-  // debug && console.log(JSON.parse(JSON.stringify(nodes)));
   const {parameter_nodes: parameterNodes, const_nodes: constNodes} = data;
   const {nodeMap, parameterMap, constMap} = processedGraph;
 
@@ -1349,21 +1297,10 @@ function expandStackedNode(id) {
 }
 
 /**
- * Prune Trivial Nodes like Load, MakeTuple, TupleGetItem.
+ * Build Pipeline stage info for training pipeline panel.
  * @param {Object} data All graph data
+ * @return {Object}
  */
-function pruneTrivialNodes(data) {
-  const nodes = data.op_nodes;
-  const reserveNodeMap = {};
-  for (const node of nodes) {
-    const scope = node.scope;
-    if (scope && node.type !== 'Load') {
-      reserveNodeMap[node.node_id] = node;
-    }
-  }
-  data.node = Object.values(reserveNodeMap);
-}
-
 function buildPipelinedStageInfo(data) {
   if (!isFirstBuildGraph) {
     return pipelinedStageInfo;

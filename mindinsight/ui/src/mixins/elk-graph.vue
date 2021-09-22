@@ -84,17 +84,7 @@ export default {
   methods: {
     // The logic of get displayedGraph
     getDisplayedGraph(showNodeType = null, showRankId = null) {
-      // fetch('static/data/bert_4.json')
-      // fetch('static/data/yolov3.json')
-      // fetch('static/data/gpt-3.json')
-      // fetch('static/data/bert_semi.json')
       fetch('static/data/resnet_pipeline_parallel.json')
-      // fetch('static/data/pangustage0.json')
-      // fetch('static/data/bert_mockshard.json')
-      // fetch('static/data/stack/series.json')
-      // fetch('static/data/stack/series_layer.json')
-      // fetch('static/data/stack/series_parallel.json')
-      // fetch('static/data/stack/parallel.json')
           .then((res) => res.json())
           .then((res) => {
           // pipelined stage
@@ -120,7 +110,6 @@ export default {
             }
             this.showNodeType = showNodeType || this.showNodeTypeOptions[0].label;
             this.showRankId = showRankId || this.showRankIdOptions[0].value;
-            // console.log(JSON.parse(JSON.stringify(visGraph)))
             const elkGraph = createElkGraph(visGraph, true, this.conceptual);
             this.elk.layout(elkGraph, this.option).then((res) => {
               this.processDisplayedGraph(res.getDisplayedGraph());
@@ -174,12 +163,10 @@ export default {
       this.resetPathSearch();
 
       const visGraph = toggleExpanded(node.id);
-      // console.log(JSON.parse(JSON.stringify(visGraph)));
       this.updateVisGraph(visGraph);
     },
 
     updateVisGraph(visGraph) {
-      // console.log(JSON.parse(JSON.stringify(visGraph)));
       const elkGraph = createElkGraph(visGraph, false, this.conceptual);
 
       this.elk.layout(elkGraph, this.option).then((res) => {
@@ -259,6 +246,7 @@ export default {
       const partEdges = this.createHiddenEdge(port.owner, port.isInput);
       partEdges && hiddenEdges.push(partEdges);
       dataNodeMap.get(port.owner)[port.isInput ? INPUT : OUTPUT].forEach((nodeId) => {
+        if (isNaN(nodeId)) return;
         nodeId = _findExistNameScope(nodeId);
         // 用于建立跨通信边
         if (!isNaN(nodeId) || nodeId.indexOf('/') !== -1) { // 是算子或命名空间结点，都要建立隐藏边
@@ -313,7 +301,6 @@ export default {
 
       this.hiddenEdges = hiddenEdges;
       this.hiddenPolylineEdges = hiddenPolylineEdges;
-      console.log(this.hiddenPolylineEdges);
     },
     /**
      * The logic of create draw of polyline by two array which stores value of point's x and y
@@ -322,10 +309,6 @@ export default {
      * @return {String} draw
      */
     createHiddenEdge(id, isInput) {
-      // console.log(id, isInput);
-      // console.log(dataNodeMap.get(id));
-      // console.log(dataNodeMap.get(id).root);
-      // console.log(dataNodeMap);
       const suffix = isInput ? IN_PORT_SUFFIX : OUT_PORT_SUFFIX;
       const rootPort = `${dataNodeMap.get(id).root}${suffix}`;
       const start = this.visPortMap.get(`${id}${suffix}`);
@@ -338,7 +321,6 @@ export default {
               : dataNodeMap.get(id).root
             }${suffix}`, // 通信结点的root是它自己
         );
-      console.log(start, end);
       if (start === undefined || end === undefined) return;
       start.opacity = CONNECTED_OPACITY;
       end.opacity = CONNECTED_OPACITY;
