@@ -27,7 +27,7 @@ let processedGraph = {
 let nameScopeIds = [];
 let conceptualGraphMode = false;
 let bipartiteGraphMode = false;
-const minimumCutMode = false;
+const minimumCutMode = true;
 let insertedAttr = [];
 
 const COMM_LIST = new Set([
@@ -344,17 +344,24 @@ function calcInDegree(nodeMap) {
  * @return {Boolean} whether found a path from source to target
  */
 function bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, parent) {
+  const maxIterateCnt = 10;
+
   const isVisit = new Map();
   for (const residualNode of residualAllNodes) {
     isVisit.set(residualNode, false);
   }
 
+  let curIterateCnt = 0;
   const queue = [];
   queue.push(source);
   isVisit.set(source, true);
   parent[source] = -1;
 
   while (queue.length !== 0) {
+    if (curIterateCnt > maxIterateCnt && !isVisit.get(target)) {
+      return false;
+    }
+
     const top = queue[0];
     queue.shift();
 
@@ -365,6 +372,8 @@ function bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, 
         isVisit.set(residualNode, true);
       }
     }
+
+    curIterateCnt++;
   }
 
   return isVisit.get(target);
@@ -376,9 +385,10 @@ function bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, 
  * @param {Object} curAllEdges edges
  * @param {Number} source source
  * @param {Number} target target
- * @return {Object} last residual graph
+ * @param {Object} nodeMap graph data
+ * @return {Object} last residual graph and edge type set
  */
-function fordFulkerson(curAllNodes, curAllEdges, source, target) {
+function fordFulkerson(curAllNodes, curAllEdges, source, target, nodeMap) {
   const residualAllNodes = curAllNodes;
   const residualAllEdges = JSON.parse(JSON.stringify(curAllEdges));
 
@@ -388,10 +398,15 @@ function fordFulkerson(curAllNodes, curAllEdges, source, target) {
   });
   let maxFlow = 0;
 
+  const edgeTypeSet = new Set();
+
   while (bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, parent)) {
     let pathFlow = Number.MAX_VALUE;
     for (let i = target; i !== source; i = parent[i]) {
       pathFlow = Math.min(pathFlow, residualAllEdges[parent[i]][i]);
+      // if (i !== source && i !== target && parent[i] !== source && parent[i] !== target) {
+      //   edgeTypeSet.add(`${nodeMap[parent[i]].type}->${nodeMap[i].type}`);
+      // }
     }
 
     for (let i = target; i !== source; i = parent[i]) {
@@ -410,7 +425,10 @@ function fordFulkerson(curAllNodes, curAllEdges, source, target) {
 
   console.log(maxFlow, JSON.parse(JSON.stringify(residualAllEdges)));
 
-  return residualAllEdges;
+  return {
+    lastResidualEdges: residualAllEdges,
+    edgeTypeSet: edgeTypeSet,
+  };
 }
 
 /**
@@ -479,40 +497,72 @@ function findCutEdges(source, target, residualAllNodes, residualAllEdges, origin
 
 /**
  * using BFS to find all connected nodes
- * @param {Object} nodes nodes
+ * @param {Number} commNodeID communication node id
  * @param {Object} allNodes all nodes
- * @param {Object} allEdges all edges
- * @return {Object} relate nodes
+ * @param {Object} nodeMap graph data
+ * @return {Object} pre and next nodes
  */
-function findRelateNodes(nodes, allNodes, allEdges) {
-  const relateNodes = new Set();
-  nodes.forEach((node) => {
-    relateNodes.add(node);
+function findRelateNodes(commNodeID, allNodes, nodeMap) {
+  const maxIterateCnt = 10;
 
-    const isVisit = new Map();
-    for (const node of allNodes) {
-      isVisit.set(node, false);
-    }
+  const preNodes = new Set();
+  const nextNodes = new Set();
 
-    const queue = [];
-    queue.push(node);
-    isVisit.set(node, true);
+  // find pre nodes
+  let isVisit = new Map();
+  for (const node of allNodes) {
+    isVisit.set(node, false);
+  }
 
-    while (queue.length !== 0) {
-      const top = queue[0];
-      queue.pop();
+  let curIterateCnt = 0;
+  let queue = [];
+  queue.push(commNodeID);
+  isVisit.set(commNodeID, true);
 
-      Object.keys(allEdges[top]).forEach((key) => {
-        if (!isVisit.get(key)) {
-          queue.push(key);
-          relateNodes.add(key);
-          isVisit.set(key, true);
-        }
-      });
-    }
-  });
+  while (queue.length !== 0 && curIterateCnt <= maxIterateCnt) {
+    const top = queue[0];
+    queue.pop();
 
-  return Array.from(relateNodes);
+    nodeMap[top].input.forEach((inputID) => {
+      if (!isVisit.get(inputID) && !isNaN(inputID)) {
+        queue.push(inputID);
+        preNodes.add(inputID);
+        isVisit.set(inputID, true);
+      }
+    });
+
+    curIterateCnt++;
+  }
+
+  // find next nodes
+  isVisit = new Map();
+  for (const node of allNodes) {
+    isVisit.set(node, false);
+  }
+  curIterateCnt = 0;
+  queue = [];
+  queue.push(commNodeID);
+  isVisit.set(commNodeID, true);
+
+  while (queue.length !== 0 && curIterateCnt <= maxIterateCnt) {
+    const top = queue[0];
+    queue.pop();
+
+    nodeMap[top].output.forEach((outputID) => {
+      if (!isVisit.get(outputID)) {
+        queue.push(outputID);
+        nextNodes.add(outputID);
+        isVisit.set(outputID, true);
+      }
+    });
+
+    curIterateCnt++;
+  }
+
+  return {
+    preNodes: preNodes,
+    nextNodes: nextNodes,
+  };
 }
 
 /**
@@ -560,14 +610,17 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
   });
 
   const cutEdges = new Set();
+  const edgeTypes = new Set();
   commNodes.forEach((id) => {
-    const commNode = nodeMap[id];
-    let preNodes = commNode.input.filter((item) => !isNaN(item));
-    let nextNodes = commNode.output.filter((item) => !isNaN(item));
-    preNodes = Array.from(new Set([...preNodes, ...indegreeZeroNodes]));
+    // const commNode = nodeMap[id];
+    // let preNodes = commNode.input.filter((item) => !isNaN(item));
+    // let nextNodes = commNode.output.filter((item) => !isNaN(item));
+    // // preNodes = Array.from(new Set([...preNodes, ...indegreeZeroNodes]));
 
-    preNodes = findRelateNodes(preNodes, allNodes, allEdges);
-    nextNodes = findRelateNodes(nextNodes, allNodes, allEdges);
+    // preNodes = findRelateNodes(preNodes, allNodes, allEdges);
+    // nextNodes = findRelateNodes(nextNodes, allNodes, allEdges);
+
+    const {preNodes, nextNodes} = findRelateNodes(id, allNodes, nodeMap);
 
     const source = '-1';
     const target = '-2';
@@ -590,16 +643,19 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
 
     const residualAllNodes = curAllNodes;
     const residualAllEdges = JSON.parse(JSON.stringify(curAllEdges));
-    const lastResidualEdges = fordFulkerson(residualAllNodes, residualAllEdges, source, target);
+    const {lastResidualEdges, edgeTypeSet} = fordFulkerson(residualAllNodes, residualAllEdges, source, target, nodeMap);
 
     const curCutEdges = findCutEdges(source, target, residualAllNodes, lastResidualEdges, curAllEdges);
-    console.log(curCutEdges);
+    // console.log(curCutEdges);
     for (const edge of curCutEdges) {
       cutEdges.add(edge);
     }
+    for (const edgeType of edgeTypeSet) {
+      edgeTypes.add(edgeType);
+    }
   });
 
-  console.log(cutEdges);
+  console.log(cutEdges, edgeTypes);
 
   return cutEdges;
 }
@@ -666,11 +722,10 @@ function _processNodesParallel(data) {
 
   // testPathCount(nodeMap);
 
-  // 最小割暂不执行
   let bipartiteRes;
   if (minimumCutMode) {
-    const indegreeZeroNodes = calcInDegree(nodeMap);
-    const cutEdges = calcMinCut(nodeMap, indegreeZeroNodes);
+    // const indegreeZeroNodes = calcInDegree(nodeMap);
+    const cutEdges = calcMinCut(nodeMap);
     bipartiteRes = processBipartite(nodeMap, cutEdges);
   } else {
     bipartiteRes = processBipartite(nodeMap);
