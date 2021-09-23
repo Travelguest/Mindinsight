@@ -861,7 +861,7 @@
     </div>
 
     <!-- Right Menu -->
-    <div class="selector-container" style="right: 460px">
+    <div class="selector-container">
       <el-select v-model="showRankId" @change="showRankIdChange">
         <el-option
           v-for="option in showRankIdOptions"
@@ -871,7 +871,7 @@
         ></el-option>
       </el-select>
     </div>
-    <div class="selector-container">
+    <div class="selector-container" style="top: 50px;">
       <el-select v-model="showNodeType" @change="showNodeTypeChange">
         <el-option
           v-for="option in showNodeTypeOptions"
@@ -880,6 +880,9 @@
           :value="option.value"
         ></el-option>
       </el-select>
+    </div>
+    <div class="graph-right-info ">
+
     </div>
     <div
       class="graph-right-info menu-item"
@@ -1541,7 +1544,7 @@ export default {
 .graph-container .selector-container {
   position: absolute;
   top: 12px;
-  right: 260px;
+  right: 460px;
 }
 
 /** Info */
