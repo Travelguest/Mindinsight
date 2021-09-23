@@ -881,8 +881,14 @@
         ></el-option>
       </el-select>
     </div>
-    <div class="graph-right-info ">
-
+    <div class="graph-right-info menu-item" style="right: 260px; padding-bottom: 0px; border-bottom: none;">
+      <draggable v-model="edgeTypesArray" v-bind="dragOptions" @start="onDragStart" @end="onDragEnd">
+        <transition-group type="transition" :name="!isDrag ? 'flip-list' : null">
+          <div class="draggable-item" v-for="element in edgeTypesArray" :key="element.type">
+            {{element.type}}: {{element.cnt}}
+          </div>
+        </transition-group>
+      </draggable>
     </div>
     <div
       class="graph-right-info menu-item"
@@ -993,6 +999,7 @@
 </template>
 
 <script>
+import draggable from 'vuedraggable';
 import elkGraph from '@/mixins/elk-graph';
 import {
   expandStackedNode,
@@ -1033,6 +1040,7 @@ export default {
   name: 'graph-conatiner',
 
   components: {
+    draggable,
     SvgElContainer,
     GraphEdge,
     ParallelBar,
@@ -1091,6 +1099,15 @@ export default {
 
       isPipelineContainerShow: false,
       curPipelineBtn: 'PipelineOpenBtn',
+
+      isDrag: false,
+
+      dragOptions: {
+        animation: 200,
+        group: 'description',
+        disabled: false,
+        ghostClass: 'ghost',
+      },
     };
   },
 
@@ -1446,6 +1463,15 @@ export default {
       }
       this.isPipelineContainerShow = !this.isPipelineContainerShow;
     },
+
+    onDragStart() {
+      this.isDrag = true;
+    },
+
+    onDragEnd() {
+      this.isDrag = false;
+      console.log(this.edgeTypesArray);
+    },
   },
 };
 </script>
@@ -1544,7 +1570,7 @@ export default {
 .graph-container .selector-container {
   position: absolute;
   top: 12px;
-  right: 460px;
+  right: 507px;
 }
 
 /** Info */
@@ -1680,5 +1706,29 @@ export default {
   stroke-linecap: round;
   stroke-miterlimit: 10;
   stroke-width: 2px;
+}
+
+.draggable-item {
+  text-align: center;
+  line-height: 32px;
+  height: 32px;
+  border-right: 1px solid #d3d3d3;
+  border-bottom: 1px solid #d3d3d3;
+  background-color: #ffffff;
+  width: 240px;
+  cursor: move;
+}
+
+.ghost {
+  opacity: 0.5;
+  background: #c8ebfb;
+}
+
+.flip-list-move {
+  transition: transform 0.5s;
+}
+
+.no-move {
+  transition: transform 0s;
 }
 </style>

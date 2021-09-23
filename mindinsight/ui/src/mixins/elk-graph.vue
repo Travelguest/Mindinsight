@@ -5,6 +5,7 @@ import {
   buildGraph,
   toggleExpanded,
   getTopScopeSet,
+  getCurEdgeTypes,
   buildPipelinedStageInfo,
   querySingleNode,
   _findTopScope,
@@ -72,6 +73,8 @@ export default {
       showRankIdOptions: [],
 
       pipelinedStageInfo: null,
+
+      edgeTypesArray: [],
     };
   },
 
@@ -110,6 +113,25 @@ export default {
             }
             this.showNodeType = showNodeType || this.showNodeTypeOptions[0].label;
             this.showRankId = showRankId || this.showRankIdOptions[0].value;
+
+            // edge type 拖拽选择
+            const edgeTypes = getCurEdgeTypes();
+            Object.keys(edgeTypes).forEach((edgeType) => {
+              this.edgeTypesArray.push({
+                type: edgeType,
+                cnt: edgeTypes[edgeType],
+              });
+            });
+
+            // test
+            this.edgeTypesArray.push({
+              type: '123->456',
+              cnt: 22,
+            }, {
+              type: '678->321',
+              cnt: 99,
+            });
+
             const elkGraph = createElkGraph(visGraph, true, this.conceptual);
             this.elk.layout(elkGraph, this.option).then((res) => {
               this.processDisplayedGraph(res.getDisplayedGraph());
