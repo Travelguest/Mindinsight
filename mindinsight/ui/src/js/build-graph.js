@@ -46,6 +46,8 @@ const pipelinedStageInfo = {};
 
 export const edgeIdMap = {};
 
+let curEdgeTypes = {};
+
 /**
  * Reset data.
  */
@@ -398,15 +400,20 @@ function fordFulkerson(curAllNodes, curAllEdges, source, target, nodeMap) {
   });
   let maxFlow = 0;
 
-  const edgeTypeSet = new Set();
+  const edgeTypes = {};
 
   while (bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, parent)) {
     let pathFlow = Number.MAX_VALUE;
     for (let i = target; i !== source; i = parent[i]) {
       pathFlow = Math.min(pathFlow, residualAllEdges[parent[i]][i]);
-      // if (i !== source && i !== target && parent[i] !== source && parent[i] !== target) {
-      //   edgeTypeSet.add(`${nodeMap[parent[i]].type}->${nodeMap[i].type}`);
-      // }
+      if (i !== source && i !== target && parent[i] !== source && parent[i] !== target) {
+        const edgeType = `${nodeMap[parent[i]].type}->${nodeMap[i].type}`;
+        if (edgeType in edgeTypes) {
+          edgeTypes[edgeType] += 1;
+        } else {
+          edgeTypes[edgeType] = 1;
+        }
+      }
     }
 
     for (let i = target; i !== source; i = parent[i]) {
@@ -427,7 +434,7 @@ function fordFulkerson(curAllNodes, curAllEdges, source, target, nodeMap) {
 
   return {
     lastResidualEdges: residualAllEdges,
-    edgeTypeSet: edgeTypeSet,
+    edgeTypes: edgeTypes,
   };
 }
 
@@ -610,7 +617,7 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
   });
 
   const cutEdges = new Set();
-  const edgeTypes = new Set();
+  const allEdgeTypes = {};
   commNodes.forEach((id) => {
     // const commNode = nodeMap[id];
     // let preNodes = commNode.input.filter((item) => !isNaN(item));
@@ -643,21 +650,28 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
 
     const residualAllNodes = curAllNodes;
     const residualAllEdges = JSON.parse(JSON.stringify(curAllEdges));
-    const {lastResidualEdges, edgeTypeSet} = fordFulkerson(residualAllNodes, residualAllEdges, source, target, nodeMap);
+    const {lastResidualEdges, edgeTypes} = fordFulkerson(residualAllNodes, residualAllEdges, source, target, nodeMap);
 
     const curCutEdges = findCutEdges(source, target, residualAllNodes, lastResidualEdges, curAllEdges);
     // console.log(curCutEdges);
     for (const edge of curCutEdges) {
       cutEdges.add(edge);
     }
-    for (const edgeType of edgeTypeSet) {
-      edgeTypes.add(edgeType);
-    }
+    Object.keys(edgeTypes).forEach((edgeType) => {
+      if (edgeType in allEdgeTypes) {
+        allEdgeTypes[edgeType] += edgeTypes[edgeType];
+      } else {
+        allEdgeTypes[edgeType] = edgeTypes[edgeType];
+      }
+    });
   });
 
-  console.log(cutEdges, edgeTypes);
+  console.log(cutEdges, allEdgeTypes);
 
-  return cutEdges;
+  return {
+    cutEdges: cutEdges,
+    edgeTypes: allEdgeTypes,
+  };
 }
 
 /**
@@ -725,8 +739,9 @@ function _processNodesParallel(data) {
   let bipartiteRes;
   if (minimumCutMode) {
     // const indegreeZeroNodes = calcInDegree(nodeMap);
-    const cutEdges = calcMinCut(nodeMap);
+    const {cutEdges, edgeTypes} = calcMinCut(nodeMap);
     bipartiteRes = processBipartite(nodeMap, cutEdges);
+    curEdgeTypes = edgeTypes;
   } else {
     bipartiteRes = processBipartite(nodeMap);
   }
@@ -1306,6 +1321,14 @@ function getTopScopeSet() {
 }
 
 /**
+ * get cur edge types
+ * @return {Object}
+ */
+function getCurEdgeTypes() {
+  return curEdgeTypes;
+}
+
+/**
  * Modify name scope expansion status.
  * @param {String} id Name scope id.
  * @return {Object}
@@ -1419,6 +1442,7 @@ export {
   changeShowNodeType,
   changeShowRankId,
   getTopScopeSet,
+  getCurEdgeTypes,
   buildPipelinedStageInfo,
   _findTopScope,
   _findExistNameScope,
