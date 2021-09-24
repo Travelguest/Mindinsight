@@ -430,7 +430,7 @@ function fordFulkerson(curAllNodes, curAllEdges, source, target, nodeMap) {
     maxFlow += pathFlow;
   }
 
-  console.log(maxFlow, JSON.parse(JSON.stringify(residualAllEdges)));
+  // console.log(maxFlow, JSON.parse(JSON.stringify(residualAllEdges)));
 
   return {
     lastResidualEdges: residualAllEdges,
@@ -483,7 +483,7 @@ function findCutEdges(source, target, residualAllNodes, residualAllEdges, origin
     }
   }
 
-  console.log(firstNodeSet, secondNodeSet);
+  // console.log(firstNodeSet, secondNodeSet);
 
   for (const fromNode of firstNodeSet) {
     if (fromNode == source || fromNode == target) {
@@ -510,7 +510,7 @@ function findCutEdges(source, target, residualAllNodes, residualAllEdges, origin
  * @return {Object} pre and next nodes
  */
 function findRelateNodes(commNodeID, allNodes, nodeMap) {
-  const maxIterateCnt = 10;
+  const maxIterateCnt = 5;
 
   const preNodes = new Set();
   const nextNodes = new Set();
@@ -714,6 +714,8 @@ function _processNodesParallel(data) {
       nodeMap[node.id] = node;
     }
   }
+
+  // getInstanceTypeInfo();
   // output & input_shape
   Object.values(nodeMap).forEach((basicNode) => {
     const inputs = basicNode.input;
@@ -1414,6 +1416,29 @@ function buildPipelinedStageInfo(data) {
 }
 
 /**
+ * get instance type info of all nodes
+ * @return {Object} typeMapNodes
+ */
+function getInstanceTypeInfo() {
+  const {nodeMap} = processedGraph;
+  const typeMapNodes = {};
+  Object.keys(nodeMap).forEach((nodeId) => {
+    const node = nodeMap[nodeId];
+    if (NODE_TYPE[node.type] === undefined) {
+      const type = node[INSERTED_ATTR.instance_type];
+
+      if (type !== '') {
+        if (typeMapNodes[type] === undefined) {
+          typeMapNodes[type] = [];
+        }
+        typeMapNodes[type].push(nodeId);
+      }
+    }
+  });
+
+  return typeMapNodes;
+}
+/**
  * Build graph data.
  * @param {Object} data All graph data
  * @param {Boolean} conceptualMode Whether is conceptual mode
@@ -1444,6 +1469,7 @@ export {
   getTopScopeSet,
   getCurEdgeTypes,
   buildPipelinedStageInfo,
+  getInstanceTypeInfo,
   _findTopScope,
   _findExistNameScope,
 };

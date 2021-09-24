@@ -489,6 +489,10 @@ function getAllHashOfNodes() {
     // nodeHashMap[key] = _genCompoundNodesHash(node);
     const value = _genCompoundNodesHash(node);
     nodeHashMap[key] = value;
+
+    // if (node[INSERTED_ATTR.instance_type]!=='') {
+    //   _nodesExtraAttributesMap[key] = new ExtraAttr(node, 'instanceType');
+    // }
   });
 
   // console.log(nodeHashMap);
@@ -598,8 +602,25 @@ const _nodesExtraAttributesMap = {};
 class ExtraAttr {
   /**
    * @param {Object} node
+   * @param {String} type
    */
-  constructor(node) {
+  constructor(node, type) {
+    if (this[type]) {
+      this[type](node);
+    }
+  }
+
+  /**
+   * @param {Object} node
+   */
+  instanceType(node) {
+    this.type = node[INSERTED_ATTR.instance_type];
+  }
+
+  /**
+   * @param {Object} node
+   */
+  shardStrategy(node) {
     const {nodeMap} = processedGraph;
     let shard = node[INSERTED_ATTR.parallel_shard];
     if (typeof shard === 'string') {
@@ -642,7 +663,7 @@ function handleSharedMethod(nodeId) {
     const curNode = nodeStack.pop();
 
     // ignore basic nodes
-    if (curNode.type in NODE_TYPE) {
+    if (curNode.type in NODE_TYPE || nodeId===undefined) {
       // console.log(node.children);
       for (const childId of curNode.children) {
         const childNode = nodeMap[childId];
@@ -656,12 +677,16 @@ function handleSharedMethod(nodeId) {
           // ignore compound nodes not been expanded
           nodeSet.add(childId);
         }
+
+        if (childNode[INSERTED_ATTR.instance_type]&&childNode[INSERTED_ATTR.instance_type]!=='') {
+          _nodesExtraAttributesMap[childId] = new ExtraAttr(childNode, 'instanceType');
+        }
       }
     }
   }
 
   nodeSet.forEach((childId) => {
-    _nodesExtraAttributesMap[childId] = new ExtraAttr(nodeMap[childId]);
+    _nodesExtraAttributesMap[childId] = new ExtraAttr(nodeMap[childId], 'shardStrategy');
   });
 }
 

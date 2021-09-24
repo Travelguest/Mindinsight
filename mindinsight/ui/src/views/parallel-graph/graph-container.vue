@@ -2,7 +2,7 @@
   <div class="graph-container">
     <svg-el-container ref="graphContainer" class="elk-graph" id="p-graph">
       <filter
-        id="outline_selected"
+        id="outline_selected_y"
         filterUnits="userSpaceOnUse"
         x="-50%"
         y="-50%"
@@ -21,9 +21,37 @@
           result="drop"
           in="offset"
           type="matrix"
-          values="0 0 0 0 0.3215686274509804
-            0 0 0 0 0.5803921568627451
-            0 0 0 0 0.7607843137254902
+          values="0 0 0 0 0.96
+            0 0 0 0 0.76
+            0 0 0 0 0.55
+            0 0 0 1 0"
+        />
+        <feBlend in="SourceGraphic" in2="drop" mode="normal" />
+      </filter>
+
+      <filter
+        id="outline_selected_g"
+        filterUnits="userSpaceOnUse"
+        x="-50%"
+        y="-50%"
+        width="200%"
+        height="200%"
+        slot="marker"
+      >
+        <feMorphology
+          result="offset"
+          in="SourceGraphic"
+          operator="dilate"
+          radius="2"
+        />
+        <feColorMatrix
+          color-interpolation-filters="sRGB"
+          result="drop"
+          in="offset"
+          type="matrix"
+          values="0 0 0 0 0.82
+            0 0 0 0 0.9
+            0 0 0 0 0.82
             0 0 0 1 0"
         />
         <feBlend in="SourceGraphic" in2="drop" mode="normal" />
@@ -131,7 +159,7 @@
           v-for="node in nodes"
           :key="node.id"
           :is="type2NodeComponent[node.type] || operatorNodeVue"
-          :class="node.outline ? 'outline' : ''"
+          :class="instanceType2Class(nodeAttrMap[node.id])"
           v-bind="getBindPropertyOfNode(node)"
           :mouseenterListener="() => enterScopeWrapper(node)"
           :mouseleaveListener="() => leaveScopeWrapper(node)"
@@ -203,7 +231,7 @@
       <template slot="g">
         <template v-for="(value, nodeId) in nodeAttrMap">
           <strategy-matrix
-            v-if="visNodeMap.get(nodeId)"
+            v-if="visNodeMap.get(nodeId) && value.strategy!== undefined"
             :key="nodeId"
             v-bind="value"
             :x="visNodeMap.get(nodeId).x"
@@ -1130,6 +1158,18 @@ export default {
   },
 
   methods: {
+    // TODO 目前只设置了两种颜色
+    instanceType2Class(extraAttr) {
+      if (extraAttr && extraAttr.type) {
+        switch (extraAttr.type) {
+          case 'GradientAggregation':
+            return 'outline-y';
+          default:
+            return 'outline-g';
+        }
+      }
+      return '';
+    },
     getBindPropertyOfNode(node) {
       switch (node.type) {
         case NODE_TYPE.aggregate_scope:
@@ -1559,11 +1599,18 @@ export default {
   fill: none;
 }
 
-.outline path,
-.outline polyline,
-.outline rect,
-.outline ellipse {
-  filter: url(#outline_selected);
+.outline-y path,
+.outline-y polyline,
+.outline-y rect,
+.outline-y ellipse {
+  filter: url(#outline_selected_y);
+}
+
+.outline-g path,
+.outline-g polyline,
+.outline-g rect,
+.outline-g ellipse {
+  filter: url(#outline_selected_g);
 }
 
 /* Selector */
