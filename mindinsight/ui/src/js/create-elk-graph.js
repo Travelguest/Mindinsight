@@ -100,7 +100,7 @@ export function createElkGraph(data, isFirst, isConcept) {
  * @return {Number}
  */
 function _getStrategyHeight(extraAttr) {
-  if (!extraAttr) return 0;
+  if (!extraAttr || !extraAttr.strategy) return 0;
 
   return extraAttr.strategy.length * 8 * 2;
 }

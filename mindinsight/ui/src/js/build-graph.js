@@ -356,6 +356,8 @@ function _processNodesParallel(data) {
       nodeMap[node.id] = node;
     }
   }
+
+  // getInstanceTypeInfo();
   // output & input_shape
   Object.values(nodeMap).forEach((basicNode) => {
     const inputs = basicNode.input;
@@ -1067,6 +1069,29 @@ function buildPipelinedStageInfo(data) {
 }
 
 /**
+ * get instance type info of all nodes
+ * @return {Object} typeMapNodes
+ */
+function getInstanceTypeInfo() {
+  const {nodeMap} = processedGraph;
+  const typeMapNodes = {};
+  Object.keys(nodeMap).forEach((nodeId) => {
+    const node = nodeMap[nodeId];
+    if (NODE_TYPE[node.type] === undefined) {
+      const type = node[INSERTED_ATTR.instance_type];
+
+      if (type !== '') {
+        if (typeMapNodes[type] === undefined) {
+          typeMapNodes[type] = [];
+        }
+        typeMapNodes[type].push(nodeId);
+      }
+    }
+  });
+
+  return typeMapNodes;
+}
+/**
  * Build graph data.
  * @param {Object} data All graph data
  * @param {Boolean} conceptualMode Whether is conceptual mode
@@ -1098,6 +1123,7 @@ export {
   getCurEdgeTypes,
   setEdgeTypesOrder,
   buildPipelinedStageInfo,
+  getInstanceTypeInfo,
   _findTopScope,
   _findExistNameScope,
 };

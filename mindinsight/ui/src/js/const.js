@@ -26,6 +26,7 @@ export const INSERTED_ATTR = {
   'parallel_shard': 'parallel_shard',
   'parallel_group': 'parallel_group',
   'parallel_group_rank': 'parallel_group_rank',
+  'instance_type': 'instance_type',
 };
 
 export const LAYER_TYPE = {
