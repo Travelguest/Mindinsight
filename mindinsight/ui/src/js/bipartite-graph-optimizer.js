@@ -27,14 +27,15 @@ const nodeConsistentNodesMap = {};
  * Construct communication and computation bipartite.
  * @param {Object} nodeMap nodeMap
  * @param {Object} cutEdges edges to cut
+ * @param {Object} curEdgeTypes cur edge types to cut
  * @return {Object}
  */
-function processBipartite(nodeMap, cutEdges=null) {
+function processBipartite(nodeMap, cutEdges = null, curEdgeTypes = null) {
   // if (!cutEdges) {
   // cutEdges = new Set(); // 记录要切断的边
   Object.keys(nodeMap).forEach((nodeid) => {
     const node = nodeMap[nodeid];
-    if (COMM_LIST.has(node.type) && node.scope.indexOf(showNodeType) !== -1) {
+    if (COMM_LIST.has(node.type) && node.scope.startsWith(showNodeType)) {
       // 以通信结点为源点进行染色
       let v = [];
       const colorDict = {
@@ -79,7 +80,7 @@ function processBipartite(nodeMap, cutEdges=null) {
         // 超级源
         if (
           COMM_LIST.has(nodeMap[id].type) &&
-            nodeMap[id].scope.indexOf(showNodeType) !== -1
+            nodeMap[id].scope.startsWith(showNodeType)
         ) {
           continue;
         }
@@ -94,7 +95,7 @@ function processBipartite(nodeMap, cutEdges=null) {
           if (cutEdges.has(cur + '->' + nxtId)) continue; // 如果该边已被切掉，跳过。
           if (
             COMM_LIST.has(nodeMap[nxtId].type) &&
-              nodeMap[nxtId].scope.indexOf(showNodeType) !== -1
+              nodeMap[nxtId].scope.startsWith(showNodeType)
           ) {
             continue;
           } // 如果是通信结点，跳过。
@@ -102,6 +103,12 @@ function processBipartite(nodeMap, cutEdges=null) {
             if (colorDict['nxt'].has(nxtId)) {
               // 未经通信访问到了后继
               cutEdges.add(cur + '->' + nxtId); // 删边
+              const edgeType = `${nodeMap[cur].type}→${nodeMap[nxtId].type}`;
+              if (edgeType in curEdgeTypes) {
+                curEdgeTypes[edgeType] += 1;
+              } else {
+                curEdgeTypes[edgeType] = 1;
+              }
             } else {
               v[nxtId] = true;
               q.push(nxtId);
@@ -113,7 +120,7 @@ function processBipartite(nodeMap, cutEdges=null) {
           if (
             !nodeMap[nxtId] ||
               (COMM_LIST.has(nodeMap[nxtId].type) &&
-                nodeMap[nxtId].scope.indexOf(showNodeType) !== -1)
+                nodeMap[nxtId].scope.startsWith(showNodeType))
           ) {
             continue;
           } // 如果是通信结点，跳过。
@@ -121,6 +128,12 @@ function processBipartite(nodeMap, cutEdges=null) {
             if (colorDict['nxt'].has(nxtId)) {
               // 未经通信访问到了后继
               cutEdges.add(cur + '->' + nxtId); // 删边
+              const edgeType = `${nodeMap[cur].type}→${nodeMap[nxtId].type}`;
+              if (edgeType in curEdgeTypes) {
+                curEdgeTypes[edgeType] += 1;
+              } else {
+                curEdgeTypes[edgeType] = 1;
+              }
             } else {
               v[nxtId] = true;
               q.push(nxtId);
@@ -130,7 +143,7 @@ function processBipartite(nodeMap, cutEdges=null) {
       }
     }
   });
-  console.log(cutEdges);
+  // console.log(cutEdges);
   // }
   const v = [];
   const components = [];
@@ -140,7 +153,7 @@ function processBipartite(nodeMap, cutEdges=null) {
       if (
         !isNaN(key) &&
         !v[key] &&
-        !(COMM_LIST.has(node.type) && node.scope.indexOf(showNodeType) !== -1)
+        !(COMM_LIST.has(node.type) && node.scope.startsWith(showNodeType))
       ) {
         const curConnectedComponent = [];
         curConnectedComponent.push(key);
@@ -154,7 +167,7 @@ function processBipartite(nodeMap, cutEdges=null) {
               !v[nid] &&
               !(
                 COMM_LIST.has(nodeMap[nid].type) &&
-                nodeMap[nid].scope.indexOf(showNodeType) !== -1
+                nodeMap[nid].scope.startsWith(showNodeType)
               )
             ) {
               curConnectedComponent.push(nid);
@@ -169,7 +182,7 @@ function processBipartite(nodeMap, cutEdges=null) {
               !v[nid] &&
               !(
                 COMM_LIST.has(nodeMap[nid].type) &&
-                nodeMap[nid].scope.indexOf(showNodeType) !== -1
+                nodeMap[nid].scope.startsWith(showNodeType)
               )
             ) {
               curConnectedComponent.push(nid);

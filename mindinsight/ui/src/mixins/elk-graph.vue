@@ -6,6 +6,7 @@ import {
   toggleExpanded,
   getTopScopeSet,
   getCurEdgeTypes,
+  setEdgeTypesOrder,
   buildPipelinedStageInfo,
   querySingleNode,
   _findTopScope,
@@ -86,7 +87,7 @@ export default {
   },
   methods: {
     // The logic of get displayedGraph
-    getDisplayedGraph(showNodeType = null, showRankId = null) {
+    getDisplayedGraph(showNodeType = null, showRankId = null, edgeTypesArray = null) {
       fetch('static/data/resnet_pipeline_parallel.json')
           .then((res) => res.json())
           .then((res) => {
@@ -102,6 +103,9 @@ export default {
               };
             });
             if (!showRankId) showRankId = 0;
+            if (edgeTypesArray) {
+              setEdgeTypesOrder(edgeTypesArray);
+            }
             const visGraph = buildGraph(res[showRankId], this.conceptual, this.bipartite);
             const topScopeSet = getTopScopeSet();
             this.showNodeTypeOptions = [];
@@ -115,22 +119,19 @@ export default {
             this.showRankId = showRankId || this.showRankIdOptions[0].value;
 
             // edge type 拖拽选择
-            const edgeTypes = getCurEdgeTypes();
-            Object.keys(edgeTypes).forEach((edgeType) => {
-              this.edgeTypesArray.push({
-                type: edgeType,
-                cnt: edgeTypes[edgeType],
+            if (!edgeTypesArray) {
+              const edgeTypes = getCurEdgeTypes();
+              this.edgeTypesArray = [];
+              Object.keys(edgeTypes).forEach((edgeType, index) => {
+                this.edgeTypesArray.push({
+                  index: index + 1,
+                  type: edgeType,
+                  cnt: edgeTypes[edgeType],
+                });
               });
-            });
-
-            // test
-            this.edgeTypesArray.push({
-              type: '123->456',
-              cnt: 22,
-            }, {
-              type: '678->321',
-              cnt: 99,
-            });
+            } else {
+              this.edgeTypesArray = edgeTypesArray;
+            }
 
             const elkGraph = createElkGraph(visGraph, true, this.conceptual);
             this.elk.layout(elkGraph, this.option).then((res) => {

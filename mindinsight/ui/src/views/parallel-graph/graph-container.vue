@@ -861,6 +861,12 @@
     </div>
 
     <!-- Right Menu -->
+    <div class="selector-title">
+      Rank选择器:
+    </div>
+    <div class="selector-title" style="top: 50px;">
+      二部图切分选择器:
+    </div>
     <div class="selector-container">
       <el-select v-model="showRankId" @change="showRankIdChange">
         <el-option
@@ -881,14 +887,45 @@
         ></el-option>
       </el-select>
     </div>
-    <div class="graph-right-info menu-item" style="right: 260px; padding-bottom: 0px; border-bottom: none;">
-      <draggable v-model="edgeTypesArray" v-bind="dragOptions" @start="onDragStart" @end="onDragEnd">
-        <transition-group type="transition" :name="!isDrag ? 'flip-list' : null">
-          <div class="draggable-item" v-for="element in edgeTypesArray" :key="element.type">
-            {{element.type}}: {{element.cnt}}
+    <div class="draggable-container">
+      <div
+        class="draggable-item"
+        style="font-size: 15px; font-weight: 500; cursor: auto;"
+      >
+        切边排序
+      </div>
+      <draggable
+        v-model="edgeTypesArray"
+        v-bind="dragOptions"
+        @start="onDragStart"
+        @end="onDragEnd"
+      >
+        <transition-group
+          type="transition"
+          :name="!isDrag ? 'flip-list' : null"
+        >
+          <div
+            class="draggable-item"
+            v-for="element in edgeTypesArray"
+            :key="element.type"
+          >
+            {{ element.type }}: {{ element.cnt }}
           </div>
         </transition-group>
       </draggable>
+      <el-button
+        :style="{
+          width: '100px',
+          height: '32px',
+          right: '330px',
+          paddingTop: '10px',
+          display: edgeTypesArray.length === 0 ? 'none' : 'block',
+          margin: '0 auto',
+          marginTop: '10px',
+        }"
+        @click="clickUpdateEdgeTypeBtn"
+        >更新</el-button
+      >
     </div>
     <div
       class="graph-right-info menu-item"
@@ -1470,7 +1507,12 @@ export default {
 
     onDragEnd() {
       this.isDrag = false;
+      // console.log(this.edgeTypesArray);
+    },
+
+    clickUpdateEdgeTypeBtn() {
       console.log(this.edgeTypesArray);
+      this.getDisplayedGraph(this.showNodeType, this.showRankId, this.edgeTypesArray);
     },
   },
 };
@@ -1571,6 +1613,18 @@ export default {
   position: absolute;
   top: 12px;
   right: 507px;
+}
+
+.selector-title {
+  position: absolute;
+  top: 12px;
+  right: 705px;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 500;
+  height: 32px;
+  line-height: 32px;
+  width: 240px;
 }
 
 /** Info */
@@ -1708,15 +1762,28 @@ export default {
   stroke-width: 2px;
 }
 
+.draggable-container {
+  position: absolute;
+  width: 240px;
+  top: 12px;
+  right: 260px;
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-top: 1px solid #d3d3d3;
+}
+
 .draggable-item {
   text-align: center;
   line-height: 32px;
-  height: 32px;
+  min-height: 32px;
+  border-left: 1px solid #d3d3d3;
   border-right: 1px solid #d3d3d3;
   border-bottom: 1px solid #d3d3d3;
   background-color: #ffffff;
   width: 240px;
   cursor: move;
+  /* text-overflow: ellipsis; */
 }
 
 .ghost {
