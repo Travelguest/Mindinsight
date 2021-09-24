@@ -119,8 +119,8 @@ export default {
             this.showRankId = showRankId || this.showRankIdOptions[0].value;
 
             // edge type 拖拽选择
+            const edgeTypes = getCurEdgeTypes();
             if (!edgeTypesArray) {
-              const edgeTypes = getCurEdgeTypes();
               this.edgeTypesArray = [];
               Object.keys(edgeTypes).forEach((edgeType, index) => {
                 this.edgeTypesArray.push({
@@ -131,6 +131,9 @@ export default {
               });
             } else {
               this.edgeTypesArray = edgeTypesArray;
+              this.edgeTypesArray.forEach((edgeType) => {
+                edgeType.cnt = edgeTypes[edgeType.type];
+              });
             }
 
             const elkGraph = createElkGraph(visGraph, true, this.conceptual);
