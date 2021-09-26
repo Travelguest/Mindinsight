@@ -20,6 +20,8 @@ const COMM_LIST = new Set([
   'ReduceScatter',
 ]);
 let processedGraph = {};
+const edgeTypesOrder = {};
+
 // parent id => consistent methods
 const nodeConsistentNodesMap = {};
 
@@ -143,8 +145,6 @@ function processBipartite(nodeMap, cutEdges = null, curEdgeTypes = null) {
       }
     }
   });
-  // console.log(cutEdges);
-  // }
   const v = [];
   const components = [];
   for (const key in nodeMap) {
@@ -678,6 +678,416 @@ function handleSharedMethod(nodeId) {
   });
 }
 
+
+/**
+ * using BFS as the searching algorithm in the residual graph
+ * @param {Object} residualAllNodes nodes in the residual graph
+ * @param {Object} residualAllEdges edges in the residual graph
+ * @param {Number} source source
+ * @param {Number} target target
+ * @param {Array} parent store path
+ * @return {Boolean} whether found a path from source to target
+ */
+function bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, parent) {
+  const maxIterateCnt = 10;
+
+  const isVisit = new Map();
+  for (const residualNode of residualAllNodes) {
+    isVisit.set(residualNode, false);
+  }
+
+  let curIterateCnt = 0;
+  const queue = [];
+  queue.push(source);
+  isVisit.set(source, true);
+  parent[source] = -1;
+
+  while (queue.length !== 0) {
+    if (curIterateCnt > maxIterateCnt && !isVisit.get(target)) {
+      return false;
+    }
+
+    const top = queue[0];
+    queue.shift();
+
+    for (const residualNode of residualAllNodes) {
+      if (!isVisit.get(residualNode) && residualAllEdges[top] && residualAllEdges[top][residualNode] > 0) {
+        queue.push(residualNode);
+        parent[residualNode] = top;
+        isVisit.set(residualNode, true);
+      }
+    }
+
+    curIterateCnt++;
+  }
+
+  return isVisit.get(target);
+}
+
+/**
+ * the Ford-Fulkerson Algorithm
+ * @param {Object} curAllNodes nodes
+ * @param {Object} curAllEdges edges
+ * @param {Number} source source
+ * @param {Number} target target
+ * @param {Object} nodeMap graph data
+ * @return {Object} last residual graph and edge type set
+ */
+function fordFulkerson(curAllNodes, curAllEdges, source, target, nodeMap) {
+  const residualAllNodes = curAllNodes;
+  const residualAllEdges = JSON.parse(JSON.stringify(curAllEdges));
+
+  const parent = {};
+  curAllNodes.forEach((curNode) => {
+    parent[curNode] = -1;
+  });
+
+  const edgeTypes = {};
+  let maxFlow = 0;
+
+  while (bfsInResidualGraph(residualAllNodes, residualAllEdges, source, target, parent)) {
+    let pathFlow = Number.MAX_VALUE;
+    for (let i = target; i !== source; i = parent[i]) {
+      pathFlow = Math.min(pathFlow, residualAllEdges[parent[i]][i]);
+      if (i !== source && i !== target && parent[i] !== source && parent[i] !== target) {
+        const edgeType = `${nodeMap[parent[i]].type}→${nodeMap[i].type}`;
+        if (edgeType in edgeTypes) {
+          edgeTypes[edgeType] += 1;
+        } else {
+          edgeTypes[edgeType] = 1;
+        }
+      }
+    }
+
+    for (let i = target; i !== source; i = parent[i]) {
+      residualAllEdges[parent[i]][i] -= pathFlow;
+      if (residualAllEdges[parent[i]][i] === 0) {
+        delete residualAllEdges[parent[i]][i];
+      }
+      if (!(parent[i] in residualAllEdges[i])) {
+        residualAllEdges[i][parent[i]] = 0;
+      }
+      residualAllEdges[i][parent[i]] += pathFlow;
+    }
+
+    maxFlow += pathFlow;
+  }
+
+  // console.log(maxFlow, JSON.parse(JSON.stringify(residualAllEdges)));
+
+  return {
+    lastResidualEdges: residualAllEdges,
+    edgeTypes: edgeTypes,
+  };
+}
+
+/**
+ * calculate minimum cut
+ * @param {Number} source source node
+ * @param {Number} target target node
+ * @param {Object} residualAllNodes nodes in the final residual graph
+ * @param {Object} residualAllEdges edges in the final residual graph
+ * @param {Object} originAllEdges edges in the original graph
+ * @return {Set} edges to cut
+ */
+function findCutEdges(source, target, residualAllNodes, residualAllEdges, originAllEdges) {
+  const isVisit = new Map();
+  for (const residualNode of residualAllNodes) {
+    isVisit.set(residualNode, false);
+  }
+
+  const queue = [];
+  queue.push(source);
+  isVisit.set(source, true);
+
+  const cutEdges = new Set();
+  const firstNodeSet = new Set();
+  const secondNodeSet = new Set();
+
+  firstNodeSet.add(source);
+  secondNodeSet.add(target);
+
+  while (queue.length !== 0) {
+    const top = queue[0];
+    queue.shift();
+
+    Object.keys(residualAllEdges[top]).forEach((id) => {
+      if (!isVisit.get(id)) {
+        firstNodeSet.add(id);
+        queue.push(id);
+        isVisit.set(id, true);
+      }
+    });
+  }
+
+  for (const node of residualAllNodes) {
+    if (!firstNodeSet.has(node)) {
+      secondNodeSet.add(node);
+    }
+  }
+
+  // console.log(firstNodeSet, secondNodeSet);
+
+  for (const fromNode of firstNodeSet) {
+    if (fromNode == source || fromNode == target) {
+      continue;
+    }
+    Object.keys(originAllEdges[fromNode]).forEach((toNode) => {
+      if (toNode == source || toNode == target) {
+        return;
+      }
+      if (secondNodeSet.has(toNode)) {
+        cutEdges.add(`${fromNode}->${toNode}`);
+      }
+    });
+  }
+
+  return cutEdges;
+}
+
+/**
+ * using BFS to find all connected nodes
+ * @param {Number} commNodeID communication node id
+ * @param {Object} allNodes all nodes
+ * @param {Object} nodeMap graph data
+ * @return {Object} pre and next nodes
+ */
+function findRelateNodes(commNodeID, allNodes, nodeMap) {
+  const maxIterateCnt = 5;
+
+  const preNodes = new Set();
+  const nextNodes = new Set();
+
+  // find pre nodes
+  let isVisit = new Map();
+  for (const node of allNodes) {
+    isVisit.set(node, false);
+  }
+
+  let curIterateCnt = 0;
+  let queue = [];
+  queue.push(commNodeID);
+  isVisit.set(commNodeID, true);
+
+  while (queue.length !== 0 && curIterateCnt <= maxIterateCnt) {
+    const top = queue[0];
+    queue.pop();
+
+    nodeMap[top].input.forEach((inputID) => {
+      if (!isVisit.get(inputID) && !isNaN(inputID)) {
+        queue.push(inputID);
+        preNodes.add(inputID);
+        isVisit.set(inputID, true);
+      }
+    });
+
+    curIterateCnt++;
+  }
+
+  // find next nodes
+  isVisit = new Map();
+  for (const node of allNodes) {
+    isVisit.set(node, false);
+  }
+  curIterateCnt = 0;
+  queue = [];
+  queue.push(commNodeID);
+  isVisit.set(commNodeID, true);
+
+  while (queue.length !== 0 && curIterateCnt <= maxIterateCnt) {
+    const top = queue[0];
+    queue.pop();
+
+    nodeMap[top].output.forEach((outputID) => {
+      if (!isVisit.get(outputID)) {
+        queue.push(outputID);
+        nextNodes.add(outputID);
+        isVisit.set(outputID, true);
+      }
+    });
+
+    curIterateCnt++;
+  }
+
+  return {
+    preNodes: preNodes,
+    nextNodes: nextNodes,
+  };
+}
+
+/**
+ * calculate minimum cut
+ * @param {Object} nodeMap Graph data.
+ * @param {Object} indegreeZeroNodes indegree 0 nodes.
+ * @return {Object} edges to cut
+ * @return {Set} edges to cut
+ */
+function calcMinCut(nodeMap, indegreeZeroNodes) {
+  // 存储全图的边
+  const allEdges = {};
+  const allNodes = new Set();
+  const commNodes = [];
+
+  Object.keys(nodeMap).forEach((key) => {
+    const node = nodeMap[key];
+    if (isNaN(key)) {
+      return;
+    }
+    if (COMM_LIST.has(node.type) && node.scope.indexOf(showNodeType) === 0) {
+      commNodes.push(key);
+      return;
+    } else {
+      allNodes.add(key);
+      allEdges[key] = {};
+    }
+    node.input.forEach((inputID) => {
+      const inputNode = nodeMap[inputID];
+      if (!isNaN(inputID) && !COMM_LIST.has(inputNode.type)) {
+        allNodes.add(inputID);
+        if (!(inputID in allEdges)) {
+          allEdges[inputID] = {};
+        }
+        const edgeType = `${nodeMap[inputID].type}→${nodeMap[key].type}`;
+        allEdges[inputID][key] = (edgeType in edgeTypesOrder) ? edgeTypesOrder[edgeType] : 1;
+      }
+    });
+    node.output.forEach((outputID) => {
+      const outputNode = nodeMap[outputID];
+      if (!isNaN(outputID) && !COMM_LIST.has(outputNode.type)) {
+        allNodes.add(outputID);
+        const edgeType = `${nodeMap[key].type}→${nodeMap[outputID].type}`;
+        allEdges[key][outputID] = (edgeType in edgeTypesOrder) ? edgeTypesOrder[edgeType] : 1;
+      }
+    });
+  });
+
+  const MaxDepth = 5; // 统计五阶邻域的结点类型
+  const classifiedDict = {}; // 存储分类结果
+  const topoToCutEdgesDict = {}; // 拓扑结构编码 => cutEdges
+  const topoToEdgesTypeDict = {}; // 拓扑结构编码 => 切边类型信息
+
+  commNodes.forEach((id) => {
+    const preTypeDict = {}; // 统计前邻域结点类型
+    const nxtTypeDict = {}; // 统计后邻域结点类型
+
+    let levDict = {}; // 记录结点序号及对应层数
+    levDict[id] = 0;
+
+    let q = [id];
+    const nodesList = [parseInt(id)]; // 记录nodes并排序，用于做匹配
+
+    while (q.length) {
+      const cur = q.shift();
+      const curNode = nodeMap[cur];
+      for (const preId of curNode.input) {
+        if (!isNaN(preId) && !levDict.hasOwnProperty(preId) && levDict[cur] < MaxDepth) {
+          const nxtNode = nodeMap[preId];
+          levDict[preId] = levDict[cur] + 1;
+          q.push(preId);
+          nodesList.push(parseInt(preId));
+          if (!preTypeDict.hasOwnProperty(nxtNode.type)) preTypeDict[nxtNode.type] = 1;
+          else preTypeDict[nxtNode.type] = preTypeDict[nxtNode.type] + 1;
+        }
+      }
+    }
+
+    q = [id];
+    levDict = {}; // 记录结点序号及对应层数
+    levDict[id] = 0;
+
+    while (q.length) {
+      const cur = q.shift();
+      const curNode = nodeMap[cur];
+      for (const nxtId of curNode.output) {
+        if (!isNaN(nxtId) && !levDict.hasOwnProperty(nxtId) && levDict[cur] < MaxDepth) {
+          const nxtNode = nodeMap[nxtId];
+          levDict[nxtId] = levDict[cur] + 1;
+          q.push(nxtId);
+          nodesList.push(parseInt(nxtId));
+          if (!nxtTypeDict.hasOwnProperty(nxtNode.type)) nxtTypeDict[nxtNode.type] = 1;
+          else nxtTypeDict[nxtNode.type] = nxtTypeDict[nxtNode.type] + 1;
+        }
+      }
+    }
+    const commTypeKey = JSON.stringify(preTypeDict) + JSON.stringify(nxtTypeDict);
+    classifiedDict[id] = {};
+    classifiedDict[id]['topo'] = commTypeKey;
+    classifiedDict[id]['nodes'] = nodesList.sort((a, b) => a - b);
+  });
+
+
+  const cutEdges = new Set();
+  const allEdgeTypes = {};
+  commNodes.forEach((id) => {
+    const curTopo = classifiedDict[id]['topo'];
+    if (topoToEdgesTypeDict.hasOwnProperty(curTopo)) {
+      Object.keys(topoToEdgesTypeDict[curTopo]).forEach((edgeType) => {
+        if (edgeType in allEdgeTypes) {
+          allEdgeTypes[edgeType] += topoToEdgesTypeDict[curTopo][edgeType];
+        } else {
+          allEdgeTypes[edgeType] = topoToEdgesTypeDict[curTopo][edgeType];
+        }
+      });
+    }
+    if (topoToCutEdgesDict.hasOwnProperty(curTopo)) { // 该拓扑结构切边方案已计算完成
+      const curCutEdgesIdx = topoToCutEdgesDict[curTopo]; // 例：[[1,3], [4,5]]
+      for (const edge of curCutEdgesIdx) {
+        const src = classifiedDict[id]['nodes'][edge[0]];
+        const tg = classifiedDict[id]['nodes'][edge[1]];
+        cutEdges.add(src + '->' + tg);
+      }
+      return;
+    }
+
+    const {preNodes, nextNodes} = findRelateNodes(id, allNodes, nodeMap);
+
+    const source = '-1';
+    const target = '-2';
+    const curAllNodes = allNodes;
+    const curAllEdges = allEdges;
+    curAllNodes.add(source);
+    curAllNodes.add(target);
+    curAllEdges[source] = {};
+    curAllEdges[target] = {};
+
+    preNodes.forEach((preID) => {
+      curAllEdges[source][preID] = 10000;
+    });
+    nextNodes.forEach((nextID) => {
+      if (!(nextID in curAllEdges)) {
+        curAllEdges[nextID] = {};
+      }
+      curAllEdges[nextID][target] = 10000;
+    });
+
+    const residualAllNodes = curAllNodes;
+    const residualAllEdges = JSON.parse(JSON.stringify(curAllEdges));
+    const {lastResidualEdges, edgeTypes} = fordFulkerson(residualAllNodes, residualAllEdges, source, target, nodeMap);
+
+    const curCutEdges = findCutEdges(source, target, residualAllNodes, lastResidualEdges, curAllEdges);
+    topoToCutEdgesDict[curTopo] = [];
+    for (const edge of curCutEdges) {
+      cutEdges.add(edge);
+      const srcIdx = classifiedDict[id]['nodes'].indexOf(parseInt(edge.split('->')[0]));
+      const tgIdx = classifiedDict[id]['nodes'].indexOf(parseInt(edge.split('->')[1]));
+      topoToCutEdgesDict[curTopo].push([srcIdx, tgIdx]);
+    }
+    topoToEdgesTypeDict[curTopo] = edgeTypes;
+    Object.keys(edgeTypes).forEach((edgeType) => {
+      if (edgeType in allEdgeTypes) {
+        allEdgeTypes[edgeType] += edgeTypes[edgeType];
+      } else {
+        allEdgeTypes[edgeType] = edgeTypes[edgeType];
+      }
+    });
+  });
+
+  return {
+    cutEdges: cutEdges,
+    edgeTypes: allEdgeTypes,
+  };
+}
+
 const optimizer = {
   /**
    * @param {Object} graphData processedGraph
@@ -699,4 +1109,5 @@ export {
   optimizer as bipartiteGraphOptimzer,
   toExpandStackedNode,
   processBipartite,
+  calcMinCut,
 };
