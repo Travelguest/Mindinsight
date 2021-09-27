@@ -271,6 +271,7 @@ export default {
 
       const partEdges = this.createHiddenEdge(port.owner, port.isInput);
       partEdges && hiddenEdges.push(partEdges);
+      // const curPortScope = _findExistNameScope(port.owner);
       dataNodeMap.get(port.owner)[port.isInput ? INPUT : OUTPUT].forEach((nodeId) => {
         if (isNaN(nodeId)) return;
         nodeId = _findExistNameScope(nodeId);
@@ -283,8 +284,8 @@ export default {
               outputNode.parent.split(SCOPE_SEPARATOR)[0] &&
             outputNode.parent.length !== 0
           ) {
-            // OutputNode不在同一个聚合结点下，且不是通信结点
-            const outputPartEdges = this.createHiddenEdge(nodeId, true); // 是输入端口
+            // OutputNode/InputNode不在同一个聚合结点下，且不是通信结点
+            const outputPartEdges = this.createHiddenEdge(nodeId, !port.isInput); // =输入/输出端口
             hiddenEdges.push(outputPartEdges);
           }
         }
@@ -326,6 +327,7 @@ export default {
       });
 
       this.hiddenEdges = hiddenEdges;
+      console.log(hiddenEdges);
       this.hiddenPolylineEdges = hiddenPolylineEdges;
     },
     /**
