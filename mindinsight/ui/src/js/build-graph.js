@@ -51,7 +51,6 @@ export const edgeIdMap = {};
 
 let curEdgeTypes = {};
 
-
 /**
  * Reset data.
  */
@@ -1042,7 +1041,7 @@ function buildPipelinedStageInfo(data) {
     return {
       pipelinedStageInfo,
       pipelineNodeInfo,
-      pipelineEdgeInfo
+      pipelineEdgeInfo,
     };
   } else {
     isFirstBuildGraph = false;
@@ -1063,7 +1062,7 @@ function buildPipelinedStageInfo(data) {
         }
         if (opNode.type === 'Send') {
           pipelinedStageInfo[thisStr][opNode.attr.sr_tag].unshift(
-            opNode.node_id,
+              opNode.node_id,
           );
         } else {
           pipelinedStageInfo[thisStr][opNode.attr.sr_tag].push(opNode.node_id);
@@ -1074,8 +1073,8 @@ function buildPipelinedStageInfo(data) {
 
   for (const key of Object.keys(pipelinedStageInfo)) {
     const stageInfo = pipelinedStageInfo[key];
-    const [startStage, endStage] = key.split('-').map(v => Number(v))
-    let firstIndex, startSecondIndex, endSecondIndex;
+    const [startStage, endStage] = key.split('-').map((v) => Number(v));
+    let firstIndex; let startSecondIndex; let endSecondIndex;
     if (startStage < endStage) {
       firstIndex = 0;
       startSecondIndex = (startStage) * 2;
@@ -1096,15 +1095,15 @@ function buildPipelinedStageInfo(data) {
       pipelineNodeInfo[firstIndex][endSecondIndex].push(endNodeId);
       pipelineEdgeInfo.push([
         [firstIndex, startSecondIndex, pipelineNodeInfo[firstIndex][startSecondIndex].length - 1],
-        [firstIndex, endSecondIndex, pipelineNodeInfo[firstIndex][endSecondIndex].length - 1]
+        [firstIndex, endSecondIndex, pipelineNodeInfo[firstIndex][endSecondIndex].length - 1],
       ]);
     }
   }
-  
+
   return {
     pipelinedStageInfo,
     pipelineNodeInfo,
-    pipelineEdgeInfo
+    pipelineEdgeInfo,
   };
 }
 

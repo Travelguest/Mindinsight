@@ -697,6 +697,7 @@ export default {
   },
 
   methods: {
+    // TODO 目前只设置了两种颜色
     instanceType2Class(extraAttr) {
       if (extraAttr && extraAttr.type) {
         switch (extraAttr.type) {
@@ -710,22 +711,22 @@ export default {
     },
     getPipelineNodePosition(firstIndex, secondIndex, thirdIndex) {
       if (this.pipelineNodeInfo === null) return;
-      const rectWidth = this.pipelineRectWidth,
-        rectMargin = 2 * this.pipelineRectMargin,
-        textWidth = 10,
-        stageBetween = 80,
-        nodeBetween = 60,
-        blockBetween = 50,
-        viewMargin = 10;
+      const rectWidth = this.pipelineRectWidth;
+      const rectMargin = 2 * this.pipelineRectMargin;
+      const textWidth = 10;
+      const stageBetween = 80;
+      const nodeBetween = 60;
+      const blockBetween = 50;
+      const viewMargin = 10;
       const maxFirstBlockItemCount = this.pipelineNodeInfo[0].reduce(
-        (pre, cur) => {
-          if (cur.length > pre) return cur.length;
-          else return pre;
-        },
-        0
+          (pre, cur) => {
+            if (cur.length > pre) return cur.length;
+            else return pre;
+          },
+          0,
       );
-      let x = 0,
-        y = 0;
+      let x = 0;
+      let y = 0;
       x += textWidth + viewMargin;
       x += Math.floor((secondIndex + 1) / 2) * stageBetween;
       x += Math.floor(secondIndex / 2) * nodeBetween;
@@ -770,15 +771,15 @@ export default {
           endPos[0] + 4,
           endPos[1] + this.pipelineRectWidth / 2,
         ];
-        return `M${startPos.join(" ")} C ${startControlPoint.join(
-          " "
-        )}, ${endControlPoint.join(" ")}, ${endPos.join(
-          " "
-        )} L ${arrowPointPos.join(" ")} L ${shiftEndPos.join(
-          " "
-        )} C ${shiftEndControlPoint.join(" ")}, ${shiftStartControlPoint.join(
-          " "
-        )}, ${shiftStartPos.join(" ")}`;
+        return `M${startPos.join(' ')} C ${startControlPoint.join(
+            ' ',
+        )}, ${endControlPoint.join(' ')}, ${endPos.join(
+            ' ',
+        )} L ${arrowPointPos.join(' ')} L ${shiftEndPos.join(
+            ' ',
+        )} C ${shiftEndControlPoint.join(' ')}, ${shiftStartControlPoint.join(
+            ' ',
+        )}, ${shiftStartPos.join(' ')}`;
       } else {
         const startPos = this.getPipelineNodePosition(...start);
         startPos[0] += -this.pipelineRectMargin;
@@ -807,15 +808,15 @@ export default {
           endPos[0] - 4,
           endPos[1] + this.pipelineRectWidth / 2,
         ];
-        return `M${startPos.join(" ")} C ${startControlPoint.join(
-          " "
-        )}, ${endControlPoint.join(" ")}, ${endPos.join(
-          " "
-        )} L ${arrowPointPos.join(" ")} L ${shiftEndPos.join(
-          " "
-        )} C ${shiftEndControlPoint.join(" ")}, ${shiftStartControlPoint.join(
-          " "
-        )}, ${shiftStartPos.join(" ")}`;
+        return `M${startPos.join(' ')} C ${startControlPoint.join(
+            ' ',
+        )}, ${endControlPoint.join(' ')}, ${endPos.join(
+            ' ',
+        )} L ${arrowPointPos.join(' ')} L ${shiftEndPos.join(
+            ' ',
+        )} C ${shiftEndControlPoint.join(' ')}, ${shiftStartControlPoint.join(
+            ' ',
+        )}, ${shiftStartPos.join(' ')}`;
       }
     },
     getBindPropertyOfNode(node) {
