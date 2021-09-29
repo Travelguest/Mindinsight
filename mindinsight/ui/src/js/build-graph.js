@@ -44,11 +44,12 @@ const topScopeSet = new Set();
 let isFirstProcess = true;
 let isFirstBuildGraph = true;
 const pipelinedStageInfo = {};
+const pipelineNodeInfo = [[], []];
+const pipelineEdgeInfo = [];
 
 export const edgeIdMap = {};
 
 let curEdgeTypes = {};
-
 
 /**
  * Reset data.
@@ -1032,11 +1033,16 @@ function expandStackedNode(id) {
 /**
  * Build Pipeline stage info for training pipeline panel.
  * @param {Object} data All graph data
- * @return {Object}
+ * @return {Object} nodeInfo为算子表示：三级数组[][][], 第一级取值0,1，分别代表算子在从左往右的区域还是从右往左的区域；第二级为列号，第三级为行号。数组内元素为算子ID。
+    edgeInfo为边表示：[[start, end]], start和end都是一个三维数组，表示算子坐标，也是nodeInfo的索引。
  */
 function buildPipelinedStageInfo(data) {
   if (!isFirstBuildGraph) {
-    return pipelinedStageInfo;
+    return {
+      pipelinedStageInfo,
+      pipelineNodeInfo,
+      pipelineEdgeInfo,
+    };
   } else {
     isFirstBuildGraph = false;
   }
@@ -1064,8 +1070,41 @@ function buildPipelinedStageInfo(data) {
       }
     }
   }
-  // console.log(pipelinedStageInfo);
-  return pipelinedStageInfo;
+
+  for (const key of Object.keys(pipelinedStageInfo)) {
+    const stageInfo = pipelinedStageInfo[key];
+    const [startStage, endStage] = key.split('-').map((v) => Number(v));
+    let firstIndex; let startSecondIndex; let endSecondIndex;
+    if (startStage < endStage) {
+      firstIndex = 0;
+      startSecondIndex = (startStage) * 2;
+      endSecondIndex = (endStage) * 2 - 1;
+    } else {
+      firstIndex = 1;
+      startSecondIndex = (startStage) * 2 - 1;
+      endSecondIndex = (endStage) * 2;
+    }
+    if (pipelineNodeInfo[firstIndex][startSecondIndex] === undefined) {
+      pipelineNodeInfo[firstIndex][startSecondIndex] = [];
+    }
+    if (pipelineNodeInfo[firstIndex][endSecondIndex] === undefined) {
+      pipelineNodeInfo[firstIndex][endSecondIndex] = [];
+    }
+    for (const [startNodeId, endNodeId] of Object.values(stageInfo)) {
+      pipelineNodeInfo[firstIndex][startSecondIndex].push(startNodeId);
+      pipelineNodeInfo[firstIndex][endSecondIndex].push(endNodeId);
+      pipelineEdgeInfo.push([
+        [firstIndex, startSecondIndex, pipelineNodeInfo[firstIndex][startSecondIndex].length - 1],
+        [firstIndex, endSecondIndex, pipelineNodeInfo[firstIndex][endSecondIndex].length - 1],
+      ]);
+    }
+  }
+
+  return {
+    pipelinedStageInfo,
+    pipelineNodeInfo,
+    pipelineEdgeInfo,
+  };
 }
 
 /**
