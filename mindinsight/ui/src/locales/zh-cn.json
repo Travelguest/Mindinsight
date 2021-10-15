@@ -505,6 +505,13 @@
     "trainingPerformance": "训练性能",
     "resourceUtilization": "资源利用",
     "strategyPerception": "策略感知",
+    "rankSelector": "卡选择器",
+    "bipartiteExtractSelector": "二部图抽取选择器",
+    "cutEdgesPrior": "跨通信边优先级排序",
+    "noneNodesTips": "暂无选中结点",
+    "trainingPipeline": "流水线并行视图",
+    "nodeAttribute": "结点属性",
+    "updateButton": "更新",
     "memory": {
       "memoryDetailLink": "内存使用情况",
       "overView": "内存分配概览",

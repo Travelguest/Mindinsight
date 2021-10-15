@@ -506,6 +506,13 @@
     "trainingPerformance": "Training Performance",
     "resourceUtilization": "Resource Utilization",
     "strategyPerception": "Strategy Perception",
+    "rankSelector": "Rank Selector",
+    "bipartiteExtractSelector": "Bipartite Extraction Selector",
+    "cutEdgesPrior": "Cross-Communication Edges Priority",
+    "noneNodesTips": "No selected node",
+    "trainingPipeline": "Training Pipeline",
+    "nodeAttribute": "Node Attributes",
+    "updateButton": "Update",
     "memory": {
       "memoryDetailLink": "Memory Usage Information",
       "overView": "Memory Allocation OverView",

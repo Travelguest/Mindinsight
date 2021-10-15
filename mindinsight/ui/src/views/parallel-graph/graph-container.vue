@@ -392,10 +392,10 @@
 
     <!-- Right Menu -->
     <div class="selector-title">
-      Rank选择器:
+      {{this.$t('profiling.rankSelector')}}
     </div>
     <div class="selector-title" style="top: 50px;">
-      二部图切分选择器:
+      {{this.$t('profiling.bipartiteExtractSelector')}}
     </div>
     <div class="selector-container">
       <el-select v-model="showRankId" @change="showRankIdChange">
@@ -422,7 +422,7 @@
         class="draggable-item"
         style="font-size: 15px; font-weight: 500; cursor: auto;"
       >
-        切边排序
+        {{this.$t('profiling.cutEdgesPrior')}}
       </div>
       <draggable
         v-model="edgeTypesArray"
@@ -454,7 +454,7 @@
           marginTop: '10px',
         }"
         @click="clickUpdateEdgeTypeBtn"
-        >更新</el-button
+        >{{this.$t('profiling.updateButton')}}</el-button
       >
     </div>
     <div
@@ -463,7 +463,7 @@
         height: infoHeight,
       }"
     >
-      <div class="title">节点属性</div>
+      <div class="title">{{this.$t('profiling.nodeAttribute')}}</div>
       <template v-if="selectedNode">
         <div class="node-name" :title="selectedNode.name">
           {{ selectedNode.name }}
@@ -559,7 +559,7 @@
         </div>
       </template>
       <template v-else>
-        <div class="title">暂无选中节点</div>
+        <div class="title">{{this.$t('profiling.noneNodesTips')}}</div>
       </template>
     </div>
   </div>
