@@ -105,7 +105,7 @@ function processBipartite(nodeMap, cutEdges = null, curEdgeTypes = null) {
             if (colorDict['nxt'].has(nxtId)) {
               // 未经通信访问到了后继
               cutEdges.add(cur + '->' + nxtId); // 删边
-              const edgeType = `${nodeMap[cur].type}→${nodeMap[nxtId].type}`;
+              const edgeType = `${nodeMap[cur].type}❤${nodeMap[nxtId].type}`;
               if (edgeType in curEdgeTypes) {
                 curEdgeTypes[edgeType] += 1;
               } else {
@@ -130,7 +130,7 @@ function processBipartite(nodeMap, cutEdges = null, curEdgeTypes = null) {
             if (colorDict['nxt'].has(nxtId)) {
               // 未经通信访问到了后继
               cutEdges.add(cur + '->' + nxtId); // 删边
-              const edgeType = `${nodeMap[cur].type}→${nodeMap[nxtId].type}`;
+              const edgeType = `${nodeMap[cur].type}❤${nodeMap[nxtId].type}`;
               if (edgeType in curEdgeTypes) {
                 curEdgeTypes[edgeType] += 1;
               } else {
@@ -775,7 +775,7 @@ function fordFulkerson(curAllNodes, curAllEdges, source, target, nodeMap) {
     for (let i = target; i !== source; i = parent[i]) {
       pathFlow = Math.min(pathFlow, residualAllEdges[parent[i]][i]);
       if (i !== source && i !== target && parent[i] !== source && parent[i] !== target) {
-        const edgeType = `${nodeMap[parent[i]].type}→${nodeMap[i].type}`;
+        const edgeType = `${nodeMap[parent[i]].type}❤${nodeMap[i].type}`;
         if (edgeType in edgeTypes) {
           edgeTypes[edgeType] += 1;
         } else {
@@ -972,7 +972,7 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
         if (!(inputID in allEdges)) {
           allEdges[inputID] = {};
         }
-        const edgeType = `${nodeMap[inputID].type}→${nodeMap[key].type}`;
+        const edgeType = `${nodeMap[inputID].type}❤${nodeMap[key].type}`;
         allEdges[inputID][key] = (edgeType in edgeTypesOrder) ? edgeTypesOrder[edgeType] : 1;
       }
     });
@@ -980,7 +980,7 @@ function calcMinCut(nodeMap, indegreeZeroNodes) {
       const outputNode = nodeMap[outputID];
       if (!isNaN(outputID) && !COMM_LIST.has(outputNode.type)) {
         allNodes.add(outputID);
-        const edgeType = `${nodeMap[key].type}→${nodeMap[outputID].type}`;
+        const edgeType = `${nodeMap[key].type}❤${nodeMap[outputID].type}`;
         allEdges[key][outputID] = (edgeType in edgeTypesOrder) ? edgeTypesOrder[edgeType] : 1;
       }
     });

@@ -97,7 +97,7 @@
     "sessionLists": "目前存在的session列表",
     "deleteSessionConfirm": "此操作将删除当前session, 是否继续?",
     "deleteSessionSuccess": "删除session成功!",
-    "dumpPath":"Dump路径"
+    "dumpPath": "Dump路径"
   },
   "modelTraceback": {
     "summaryPath": "训练日志路径",
@@ -300,7 +300,7 @@
     "flopsS": "每秒浮点运算次数",
     "flopsUtilization": "FLOPS利用率：",
     "flopsUtilizationTitle": "FLOPS/峰值FLOPS",
-    "scopeLevelFlops":"Scope层级FLOPs(M)"
+    "scopeLevelFlops": "Scope层级FLOPs(M)"
   },
   "profiling": {
     "rankID": "逻辑卡号",
@@ -504,6 +504,7 @@
     "utilizationTitle": "利用率（%）",
     "trainingPerformance": "训练性能",
     "resourceUtilization": "资源利用",
+    "strategyPerception": "策略感知",
     "memory": {
       "memoryDetailLink": "内存使用情况",
       "overView": "内存分配概览",

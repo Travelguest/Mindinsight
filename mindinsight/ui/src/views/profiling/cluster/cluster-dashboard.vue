@@ -51,6 +51,10 @@ export default {
           name: 'resource',
           label: this.$t('profiling.resourceUtilization'),
         },
+        {
+          name: 'strategy',
+          label: this.$t('profiling.strategyPerception'),
+        },
       ],
     };
   },

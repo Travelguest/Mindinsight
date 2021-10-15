@@ -97,7 +97,7 @@
     "sessionLists": "Existing Sessions List",
     "deleteSessionConfirm": "The session will be deleted. Are you sure you want to continue?",
     "deleteSessionSuccess": "Session deleted.",
-    "dumpPath":"Dump Path"
+    "dumpPath": "Dump Path"
   },
   "modelTraceback": {
     "summaryPath": "Summary Path",
@@ -302,7 +302,7 @@
     "flopsS": "FLOPS",
     "flopsUtilization": "FLOPS Usage:",
     "flopsUtilizationTitle": "FLOPS/Peak FLOPS",
-    "scopeLevelFlops":"Scope-level FLOPs(M)"
+    "scopeLevelFlops": "Scope-level FLOPs(M)"
   },
   "profiling": {
     "rankID": "Rank ID",
@@ -505,6 +505,7 @@
     "utilizationTitle": "Usage(%)",
     "trainingPerformance": "Training Performance",
     "resourceUtilization": "Resource Utilization",
+    "strategyPerception": "Strategy Perception",
     "memory": {
       "memoryDetailLink": "Memory Usage Information",
       "overView": "Memory Allocation OverView",
