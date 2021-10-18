@@ -259,7 +259,7 @@
       style="background: #EDF0F5;"
     >
       <div class="training-pipeline-title">
-        Training Pipeline
+        {{this.$t('profiling.trainingPipeline')}}
       </div>
       <div class="training-pipeline-legend">
         <svg width="100%" height="100%">
@@ -1174,6 +1174,7 @@ export default {
 .graph-container {
   height: 100%;
   width: 100%;
+  background-color: var(--module-bg-color);
   display: flex;
   position: relative;
 }
