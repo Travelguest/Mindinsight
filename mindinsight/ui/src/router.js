@@ -87,6 +87,10 @@ export default new Router({
       component: () => import('./views/parallel-graph/graph-container.vue'),
     },
     {
+      path: '/marey-graph',
+      component: () => import('./views/marey-graph/marey-graph-container.vue'),
+    },
+    {
       path: '/profiling-gpu',
       component: () => import('./views/profiling-gpu/profiling.vue'),
       redirect: '/profiling-gpu/profiling-dashboard',
