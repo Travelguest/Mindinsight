@@ -424,6 +424,7 @@
       >
         {{this.$t('profiling.cutEdgesPrior')}}
       </div>
+      <div class="draggable-item-container">
       <draggable
         v-model="edgeTypesArray"
         v-bind="dragOptions"
@@ -439,10 +440,12 @@
             v-for="element in edgeTypesArray"
             :key="element.type"
           >
-            {{ element.type }}: {{ element.cnt }}
+            <div class="item">{{ 'type:' + element.type }}</div>
+            <div class="item">{{ 'count: ' + element.cnt}}</div>
           </div>
         </transition-group>
       </draggable>
+      </div>
       <el-button
         :style="{
           width: '100px',
@@ -1430,10 +1433,14 @@ export default {
   width: 240px;
   top: 12px;
   right: 260px;
-  max-height: 500px;
+  
+  border-top: 1px solid #d3d3d3;
+}
+
+.draggable-item-container {
   overflow-y: auto;
   overflow-x: hidden;
-  border-top: 1px solid #d3d3d3;
+  max-height: 500px;
 }
 
 .draggable-item {
@@ -1447,6 +1454,14 @@ export default {
   width: 240px;
   cursor: move;
   /* text-overflow: ellipsis; */
+}
+
+.draggable-item > .item {
+  max-width: 240px;
+  word-break: break-all;
+  padding: 0px 8px;
+  line-height: 1.5;
+  text-align: left;
 }
 
 .ghost {
