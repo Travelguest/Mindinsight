@@ -583,4 +583,15 @@ export default {
       url: 'v1/mindinsight/profile/flops-scope',
     });
   },
+  getGraphData(params) {
+    // 临时返回数据
+    return data;
+  },
+
+  getTimelineData() {
+    return axios({
+      method: 'get',
+      url: 'mock/timeline'
+    })
+  }
 };
