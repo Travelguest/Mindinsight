@@ -57,7 +57,18 @@ module.exports = {
   devServer: {
     port: 8085,
     disableHostCheck: true,
+    proxy: {
+      '/mock': {
+        target: 'http://127.0.0.1:8088/',
+        ws: true,
+        changeOrigin: true,
+        pathRewrite: {
+          '^/mock': '',
+        },
+      },
+    }
   },
+  
 
   pluginOptions: {
     i18n: {
