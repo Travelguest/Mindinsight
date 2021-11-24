@@ -2,7 +2,7 @@
   <div class="parallel-page">
     <div></div>
     <div class="strategy-view">
-      <graph-container />
+      <profile-graph />
       <marey-graph-container />
     </div>
     <div></div>
@@ -13,16 +13,18 @@
 <script>
 // import GraphContainer from './ELKGraph/graph-container.vue';
 import MareyGraphContainer from './marey-graph.vue';
+import ProfileGraph from '../profile-graph/profile-graph.vue';
 
 export default {
   components: {
     // GraphContainer,
-    MareyGraphContainer
+    MareyGraphContainer,
+    ProfileGraph,
   },
 
   data() {
     return {
-      margin: {left: 100, top: 20, right: 30, bottom: 20}
+      margin: {left: 100, top: 20, right: 30, bottom: 20},
     };
   },
 };

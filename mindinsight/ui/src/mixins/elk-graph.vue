@@ -89,50 +89,50 @@ export default {
   methods: {
     // The logic of get displayedGraph
     getDisplayedGraph(
-      showNodeType = null,
-      showRankId = null,
-      edgeTypesArray = null
+        showNodeType = null,
+        showRankId = null,
+        edgeTypesArray = null,
     ) {
-      fetch("static/data/resnet_pipeline_parallel.json")
-        .then((res) => res.json())
-        .then((res) => {
+      fetch('static/data/resnet_pipeline_parallel.json')
+          .then((res) => res.json())
+          .then((res) => {
           // pipelined stage
-          const {
-            pipelinedStageInfo,
-            pipelineNodeInfo,
-            pipelineEdgeInfo,
-          } = buildPipelinedStageInfo(res);
-          this.pipelinedStageInfo = pipelinedStageInfo;
-          this.pipelineNodeInfo = pipelineNodeInfo;
-          this.pipelineEdgeInfo = pipelineEdgeInfo;
-          // console.log(this.pipelinedStageInfo);
-          // 卡选择器
-          this.showRankIdOptions = Object.keys(res).map((key) => {
-            const ranks = res[key];
-            return {
-              value: key,
-              label: ranks.rank_ids.join('-'),
-            };
-          });
-          if (!showRankId) showRankId = 0;
-          if (edgeTypesArray) {
-            setEdgeTypesOrder(edgeTypesArray);
-          }
-          const visGraph = buildGraph(
-            res[showRankId],
-            this.conceptual,
-            this.bipartite
-          );
-          const topScopeSet = getTopScopeSet();
-          this.showNodeTypeOptions = [];
-          for (const topScope of topScopeSet) {
-            this.showNodeTypeOptions.push({
-              value: topScope,
-              label: topScope,
+            const {
+              pipelinedStageInfo,
+              pipelineNodeInfo,
+              pipelineEdgeInfo,
+            } = buildPipelinedStageInfo(res);
+            this.pipelinedStageInfo = pipelinedStageInfo;
+            this.pipelineNodeInfo = pipelineNodeInfo;
+            this.pipelineEdgeInfo = pipelineEdgeInfo;
+            // console.log(this.pipelinedStageInfo);
+            // 卡选择器
+            this.showRankIdOptions = Object.keys(res).map((key) => {
+              const ranks = res[key];
+              return {
+                value: key,
+                label: ranks.rank_ids.join('-'),
+              };
             });
-          }
-          this.showNodeType = showNodeType || this.showNodeTypeOptions[0].label;
-          this.showRankId = showRankId || this.showRankIdOptions[0].value;
+            if (!showRankId) showRankId = 0;
+            if (edgeTypesArray) {
+              setEdgeTypesOrder(edgeTypesArray);
+            }
+            const visGraph = buildGraph(
+                res[showRankId],
+                this.conceptual,
+                this.bipartite,
+            );
+            const topScopeSet = getTopScopeSet();
+            this.showNodeTypeOptions = [];
+            for (const topScope of topScopeSet) {
+              this.showNodeTypeOptions.push({
+                value: topScope,
+                label: topScope,
+              });
+            }
+            this.showNodeType = showNodeType || this.showNodeTypeOptions[0].label;
+            this.showRankId = showRankId || this.showRankIdOptions[0].value;
 
             // edge type 拖拽选择
             const edgeTypes = getCurEdgeTypes();
