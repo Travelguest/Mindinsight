@@ -30,11 +30,11 @@ export default function(links) {
   function force(alpha) {
     for (let k = 0, n = links.length; k < iterations; ++k) {
       for (var i = 0, link, source, target, x, y, b; i < n; ++i) {
-        link = links[i], source = link.source, target = link.target;
+        (link = links[i]), (source = link.source), (target = link.target);
         x = target.x + target.vx - source.x - source.vx;
         y = target.y + target.vy - source.y - source.vy;
         let xdiff = x - distances[i];
-        const timeDiff = ((Number(target.id) - Number(source.id)));
+        const timeDiff = Number(target.id) - Number(source.id);
         if (xdiff > 0) {
           // x = 0
           x = (xdiff * alpha * strengths[i]) / Math.pow(timeDiff, 2);
@@ -70,19 +70,26 @@ export default function(links) {
     let link;
 
     for (i = 0, count = new Array(n); i < m; ++i) {
-      link = links[i], link.index = i;
-      if (typeof link.source !== 'object') link.source = find(nodeById, link.source);
-      if (typeof link.target !== 'object') link.target = find(nodeById, link.target);
+      (link = links[i]), (link.index = i);
+      if (typeof link.source !== 'object') {
+        link.source = find(nodeById, link.source);
+      }
+      if (typeof link.target !== 'object') {
+        link.target = find(nodeById, link.target);
+      }
       count[link.source.index] = (count[link.source.index] || 0) + 1;
       count[link.target.index] = (count[link.target.index] || 0) + 1;
     }
 
     for (i = 0, bias = new Array(m); i < m; ++i) {
-      link = links[i], bias[i] = count[link.source.index] / (count[link.source.index] + count[link.target.index]);
+      (link = links[i]),
+      (bias[i] =
+          count[link.source.index] /
+          (count[link.source.index] + count[link.target.index]));
     }
 
-    strengths = new Array(m), initializeStrength();
-    distances = new Array(m), initializeDistance();
+    (strengths = new Array(m)), initializeStrength();
+    (distances = new Array(m)), initializeDistance();
   }
 
   function initializeStrength() {
@@ -102,7 +109,8 @@ export default function(links) {
       const {source, target} = link;
       if (
         (source.type === 'Conv2D' && target.type === 'ReLU') ||
-        (source.type === 'ReLU' && target.type === 'MaxPool')) {
+        (source.type === 'ReLU' && target.type === 'MaxPool')
+      ) {
         distances[i] = 1;
         strengths[i] = 5;
       }

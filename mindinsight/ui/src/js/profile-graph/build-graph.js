@@ -190,7 +190,6 @@ function _createConst(con) {
   };
 }
 
-
 /**
  * Processing nodes data, statistics const and parameter nodes.
  * @param {Object} data Graph data.
@@ -232,11 +231,14 @@ function _processNodesOld(data) {
   }
 }
 
-
-export const pruneSet = new Set(['MakeTuple', 'TupleGetItem',
-  'SyncBatchNorm', 'StridedSlice',
+export const pruneSet = new Set([
+  'MakeTuple',
+  'TupleGetItem',
+  'SyncBatchNorm',
+  'StridedSlice',
   'Depend',
-  'Load', 'GetNext',
+  'Load',
+  'GetNext',
   // 'UpdateState',
 ]);
 
