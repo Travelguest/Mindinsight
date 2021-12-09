@@ -34,12 +34,13 @@ export default {
     },
 
     async fetchData() {
-      let res = await fetch('static/data/fcn8s.json');
+      let res = await fetch('static/data/resnet_pipeline_parallel.json');
       res = await res.json();
+      console.log(res)
+      buildGraph(res.graphs[1]);
       
-      buildGraph(res.graphs[0]);
       // let res;
-      // res = await fetch('static/data/fcn8s.json');
+      // res = await fetch('static/data/resnet_pipeline.json');
       // res = await res.json();
       // buildGraphOld(res.data);
 
@@ -149,18 +150,21 @@ export default {
           .stop();
 
       this.normalEdgesView = this.g.append('g').selectAll('line').data(normalEdges).enter().append('line');
-      this.bigUpdateStateEdgesView = this.g.append('g').selectAll('path').data(bigUpdateStateEdges).enter().append('path')
-          .attr('class', 'update-state-edge')
-          .attr('fill', 'none');
-      this.loadEdgesView = this.g.append('g').selectAll('path').data(loadEdges).enter().append('path')
-          .attr('class', 'load-edge')
-          .attr('fill', 'none');
+      // this.bigUpdateStateEdgesView = this.g.append('g').selectAll('path').data(bigUpdateStateEdges).enter().append('path')
+      //     .attr('class', 'update-state-edge')
+      //     .attr('fill', 'none');
+      // this.loadEdgesView = this.g.append('g').selectAll('path').data(loadEdges).enter().append('path')
+      //     .attr('class', 'load-edge')
+      //     .attr('fill', 'none');
       this.getNextEdgesView = this.g.append('g').selectAll('path').data(getNextEdges).enter().append('path')
           .attr('class', 'get-next-edge')
           .attr('fill', 'none');
-      this.bigDependEdgesView = this.g.append('g').selectAll('path').data(bigDependEdges).enter().append('path')
-          .attr('class', 'big-depend-edge')
-          .attr('fill', 'none');
+      // this.bigDependEdgesView = this.g.append('g').selectAll('path').data(bigDependEdges).enter().append('path')
+      //     .attr('class', 'big-depend-edge')
+      //     .attr('fill', 'none');
+      this.opName = this.g.append('g').selectAll('text').data(this.opNodes).enter().append('text')
+          .attr('x', (v) => v.x - 10).attr('y', (v) => v.y + 20)
+          .text((v) => (v.id + v.type));
       this.nodes = this.g.append('g').selectAll('circle').data(this.opNodes).enter().append('circle')
           .attr('cx', (v) => v.x).attr('cy', (v) => v.y).attr('r', (v) => v.r)
           .classed('communication', (v) => communicationOps.has(v.type))
@@ -170,9 +174,7 @@ export default {
           .on('click', (data) => {
             console.log(data);
           });
-      this.opName = this.g.append('g').selectAll('text').data(this.opNodes).enter().append('text')
-          .attr('x', (v) => v.x - 10).attr('y', (v) => v.y + 20)
-          .text((v) => (v.id + v.type));
+      
     },
 
     tickAndUpdate(tick) {
@@ -182,32 +184,33 @@ export default {
           .attr('y1', (v) => v.source.y)
           .attr('x2', (v) => v.target.x)
           .attr('y2', (v) => v.target.y);
-      this.bigUpdateStateEdgesView.attr('d', (v) => {
-        const {source, target} = v;
-        const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-        return `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} 1000 ${tNode.x} ${tNode.y}`;
-      }).attr('fill', 'none');
-      this.bigDependEdgesView.attr('d', (v) => {
-        const {source, target} = v;
-        const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-        return `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} ${tNode.y + 100} ${tNode.x} ${tNode.y}`;
-      }).attr('fill', 'none');
-      this.loadEdgesView.attr('d', (v) => {
-        const {source, target} = v;
-        const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-        if (sNode.type === 'Load') {
-          return `M${sNode.x} ${sNode.y} Q${tNode.x} ${sNode.y} ${tNode.x} ${tNode.y}`;
-        }
-        return `M${sNode.x} ${sNode.y} Q${sNode.x} ${tNode.y} ${tNode.x} ${tNode.y}`;
-      });
+      this.opName
+          .attr('x', (v) => v.x - 10).attr('y', (v) => v.y + 20);
+      // this.bigUpdateStateEdgesView.attr('d', (v) => {
+      //   const {source, target} = v;
+      //   const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
+      //   return `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} 1000 ${tNode.x} ${tNode.y}`;
+      // }).attr('fill', 'none');
+      // this.bigDependEdgesView.attr('d', (v) => {
+      //   const {source, target} = v;
+      //   const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
+      //   return `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} ${tNode.y + 100} ${tNode.x} ${tNode.y}`;
+      // }).attr('fill', 'none');
+      // this.loadEdgesView.attr('d', (v) => {
+      //   const {source, target} = v;
+      //   const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
+      //   if (sNode.type === 'Load') {
+      //     return `M${sNode.x} ${sNode.y} Q${tNode.x} ${sNode.y} ${tNode.x} ${tNode.y}`;
+      //   }
+      //   return `M${sNode.x} ${sNode.y} Q${sNode.x} ${tNode.y} ${tNode.x} ${tNode.y}`;
+      // });
       this.getNextEdgesView.attr('d', (v) => {
         const {source, target} = v;
         const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
         return `M${sNode.x} ${sNode.y} Q${tNode.x} ${sNode.y} ${tNode.x} ${tNode.y}`;
       })
           .attr('fill', 'none');
-      this.opName
-          .attr('x', (v) => v.x - 10).attr('y', (v) => v.y + 20);
+      
     },
   },
 };
