@@ -34,14 +34,14 @@ export default {
     },
 
     async fetchData() {
-      let res = await fetch('static/data/resnet_pipeline_parallel.json');
+      let res = await fetch('static/data/fcn8s.json');
       res = await res.json();
-
-      buildGraph(res[0]);
-
-      res = await fetch('static/data/bert_semi.json');
-      res = await res.json();
-      buildGraphOld(res.data);
+      
+      buildGraph(res.graphs[0]);
+      // let res;
+      // res = await fetch('static/data/fcn8s.json');
+      // res = await res.json();
+      // buildGraphOld(res.data);
 
       this.nodeMap = processedGraph.nodeMap;
     },
