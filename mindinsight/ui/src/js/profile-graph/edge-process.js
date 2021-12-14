@@ -70,18 +70,19 @@ export function isActivationBigEdge(source, target, nodeMap) {
 }
 
 export function isBigDependEdge(source, target) {
-  if (source.type === 'Depend' || target.type === 'Depend') {
-    if (_isBigEdge(source, target)) {
-      return true;
-    }
-  }
-  if (source.type === 'Send' && target.type === 'Depend') {
-    return true;
-  }
-  if (source.type === 'Depend' && target.type === 'Receive') {
-    return true;
-  }
-  return false;
+  return _isBigEdge(source, target)
+  // if (source.type === 'Depend' || target.type === 'Depend') {
+  //   if (_isBigEdge(source, target)) {
+  //     return true;
+  //   }
+  // }
+  // if (source.type === 'Send' && target.type === 'Depend') {
+  //   return true;
+  // }
+  // if (source.type === 'Depend' && target.type === 'Receive') {
+  //   return true;
+  // }
+  // return false;
 }
 
 function _isBigEdge(source, target) {
