@@ -242,10 +242,44 @@ export const pruneSet = new Set([
   // 'UpdateState',
 ]);
 
+function stackOptimizer() {
+  const {nodeMap} = processedGraph;
+  const maxId = (Object.keys(nodeMap))[Object.keys(nodeMap).length - 1];
+  let curId = 1;
+
+  while (curId <= maxId) {
+    if (nodeMap[curId] && nodeMap[curId].scope.indexOf('optimizer') !== -1) {
+      const oldId = curId;
+      const stackedOptimizerNode = {};
+      stackedOptimizerNode.type = 'StackedOptimizer';
+      stackedOptimizerNode.input = [];
+      stackedOptimizerNode.output = [];
+      stackedOptimizerNode.id = stackedOptimizerNode.name = curId + '';
+      stackedOptimizerNode.parent = stackedOptimizerNode.scope = nodeMap[curId].scope;
+      stackedOptimizerNode.stackedIDs = [curId];
+      delete nodeMap[curId];
+      curId++;
+      while (curId <= maxId && nodeMap[curId] && nodeMap[curId].scope.indexOf('optimizer') !== -1) {
+        stackedOptimizerNode.input = [...stackedOptimizerNode.input, ...nodeMap[curId].input];
+        stackedOptimizerNode.output = [...stackedOptimizerNode.output, ...nodeMap[curId].output];
+        stackedOptimizerNode.stackedIDs = [...stackedOptimizerNode.stackedIDs, curId];
+        delete nodeMap[curId];
+        curId++;
+      }
+      nodeMap[oldId] = stackedOptimizerNode;
+    } else {
+      curId++;
+    }
+  }
+
+  console.log(nodeMap);
+}
+
 function _processSourceDataOld(data) {
   _processNodesOld(data);
   processOutput();
   pruneTupleGetItem();
+  // stackOptimizer();
 }
 
 function _processSourceData(data) {

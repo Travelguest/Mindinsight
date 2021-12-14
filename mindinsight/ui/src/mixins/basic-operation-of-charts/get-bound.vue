@@ -19,8 +19,6 @@ export default {
     const {width, height} = this.$refs[SVG_NAME];
     this.width = width;
     this.height = height;
-
-    console.log('getBound', this.width, this.height)
   },
 
   computed: {
