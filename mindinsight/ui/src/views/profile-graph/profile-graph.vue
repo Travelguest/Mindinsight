@@ -1,11 +1,18 @@
 <template>
   <div class="profile-graph">
+    <div class="special-edge-checkbox">
+      <p v-for="item in specialEdgesDisplayStates" :key="item[0]">
+        <input type="checkbox" v-model="item[1]" />
+        <label v-html="item[0]"></label>
+      </p>
+    </div>
+
     <svg id="profile-graph" style="width: 100%; height: 100%"></svg>
   </div>
 </template>
 
 <script>
-import {buildGraph, buildGraphOld, processedGraph, pruneSet} from '@/js/profile-graph/build-graph.js';
+import {buildGraphOld, processedGraph} from '@/js/profile-graph/build-graph.js';
 import * as d3 from 'd3';
 import forceLink from '@/js/profile-graph/link-force.js';
 import {communicationOps} from '@/js/profile-graph/node-process.js';
@@ -14,7 +21,7 @@ import {specialEdgesDef} from '@/js/profile-graph/edge-process.js';
 export default {
   data() {
     return {
-      specialEdgesDisplayState: {},
+      specialEdgesDisplayStates: specialEdgesDef.map((v) => [v.class, v.defaultDisplay]),
     };
   },
   mounted() {
@@ -26,6 +33,14 @@ export default {
         }),
     );
     this.initGraph();
+  },
+
+  watch: {
+    specialEdgesDisplayStates: function(states) {
+      for (const [cls, display] of states) {
+        this.specialEdgeViews[cls].style('display', display ? null : 'none');
+      }
+    },
   },
 
   methods: {
@@ -214,6 +229,9 @@ export default {
 .profile-graph {
   width: 100%;
   height: 100%;
+}
+.special-edge-checkbox {
+  position: absolute;
 }
 
 line {

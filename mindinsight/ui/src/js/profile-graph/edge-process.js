@@ -25,7 +25,7 @@ export const specialEdgesDef = [
     class: 'big-depend-edge',
     condition: isBigDependEdge,
     path: (sNode, tNode) => `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} ${tNode.y + 100} ${tNode.x} ${tNode.y}`,
-    defaultDisplay: true,
+    defaultDisplay: false,
   }, {
     class: 'get-next-edge',
     condition: isGetNextEdge,
