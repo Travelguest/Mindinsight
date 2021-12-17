@@ -1,4 +1,50 @@
 /* eslint-disable require-jsdoc */
+
+export const specialEdgesDef = [
+  {
+    class: 'update-state-edge',
+    condition: isUpdateStateBigEdge,
+    path: (sNode, tNode) => `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} 1000 ${tNode.x} ${tNode.y}`,
+    defaultDisplay: false,
+  }, {
+    class: 'activation-gradient-edges',
+    condition: isActivationBigEdge,
+    path: (sNode, tNode) => `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} 1000 ${tNode.x} ${tNode.y}`,
+    defaultDisplay: false,
+  }, {
+    class: 'load-edge',
+    condition: isLoadEdge,
+    path: (sNode, tNode) => {
+      if (sNode.type === 'Load') {
+        return `M${sNode.x} ${sNode.y} Q${tNode.x} ${sNode.y} ${tNode.x} ${tNode.y}`;
+      }
+      return `M${sNode.x} ${sNode.y} Q${sNode.x} ${tNode.y} ${tNode.x} ${tNode.y}`;
+    },
+    defaultDisplay: false,
+  }, {
+    class: 'big-depend-edge',
+    condition: isBigDependEdge,
+    path: (sNode, tNode) => `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} ${tNode.y + 100} ${tNode.x} ${tNode.y}`,
+    defaultDisplay: true,
+  }, {
+    class: 'get-next-edge',
+    condition: isGetNextEdge,
+    path: (sNode, tNode) => `M${sNode.x} ${sNode.y} Q${tNode.x} ${sNode.y} ${tNode.x} ${tNode.y}`,
+    defaultDisplay: true,
+  }, {
+    class: 'big-from-syncbatchnorm-edge',
+    condition: isBigFromSyncBatchNormGradEdge,
+    path: (sNode, tNode) => null,
+    defaultDisplay: false,
+  }, {
+    class: 'big-hub-node-edge',
+    condition: isBigHubNodeEdge,
+    path: (sNode, tNode) => null,
+    defaultDisplay: false,
+  },
+
+];
+
 export function isUpdateStateBigEdge(source, target) {
   if (source.type !== 'UpdateState' && target.type !== 'UpdateState') {
     return false;
@@ -70,7 +116,7 @@ export function isActivationBigEdge(source, target, nodeMap) {
 }
 
 export function isBigDependEdge(source, target) {
-  return _isBigEdge(source, target)
+  return _isBigEdge(source, target);
   // if (source.type === 'Depend' || target.type === 'Depend') {
   //   if (_isBigEdge(source, target)) {
   //     return true;
