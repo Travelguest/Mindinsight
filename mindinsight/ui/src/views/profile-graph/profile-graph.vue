@@ -1,9 +1,16 @@
 <template>
   <div class="profile-graph">
+    <div class="special-edge-checkbox">
+      <p v-for="item in specialEdgesDisplayStates" :key="item[0]">
+        <input type="checkbox" v-model="item[1]" />
+        <label v-html="item[0]"></label>
+      </p>
+    </div>
+
     <svg id="profile-graph" style="width: 100%; height: 100%"></svg>
     <a-tree-select
       v-model="selectNamespaces"
-      style="position: absolute; left: 20px; top: 20px; width: 300px; z-index: 99;"
+      style="position: absolute; left: 200px; top: 5px; width: 200px; z-index: 99;"
       :tree-data="treeData"
       tree-checkable
       :show-checked-strategy="SHOW_PARENT"
@@ -34,6 +41,7 @@ import {
   isBigFromSyncBatchNormGradEdge,
   isBigHubNodeEdge,
 } from '@/js/profile-graph/edge-process.js';
+import {specialEdgesDef} from '@/js/profile-graph/edge-process.js';
 import {TreeSelect} from 'ant-design-vue';
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 const NODE_COLORS = ['#fbb4ae', '#b3cde3', '#ccebc5', '#decbe4', '#fed9a6'];
@@ -45,6 +53,7 @@ export default {
       treeData,
       SHOW_PARENT,
       nodeGroups: [],
+      specialEdgesDisplayStates: specialEdgesDef.map((v) => [v.class, v.defaultDisplay]),
     };
   },
 
@@ -68,12 +77,18 @@ export default {
         this.preOrder(selectNode, nodeGroup);
         this.nodeGroups.push(nodeGroup);
       }
-      // console.log(this.nodeGroups);
+      console.log(this.nodeGroups);
       for (let i = 0; i < this.nodeGroups.length; i++) {
         this.g
             .selectAll('circle')
             .data(this.nodeGroups[i])
             .style('fill', NODE_COLORS[i]);
+      }
+    },
+
+    specialEdgesDisplayStates: function(states) {
+      for (const [cls, display] of states) {
+        this.specialEdgeViews[cls].style('display', display ? null : 'none');
       }
     },
   },
@@ -157,34 +172,21 @@ export default {
       });
 
       const normalEdges = [];
-      const bigUpdateStateEdges = [];
-      const loadEdges = [];
-      const getNextEdges = [];
-      const activationGradientEdges = [];
-      const bigDependEdges = [];
-      const bigFromSyncBatchNormGradEdges = [];
-      const bigHubNodeEdges = [];
+      const specialEdges = {};
+      specialEdgesDef.forEach((v) => (specialEdges[v.class] = []));
 
       for (const edge of this.allEdges) {
         const {source, target} = edge;
         const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-        if (isUpdateStateBigEdge(sNode, tNode)) {
-          bigUpdateStateEdges.push(edge);
-        } else if (isLoadEdge(sNode, tNode)) {
-          loadEdges.push(edge);
-        } else if (isActivationBigEdge(sNode, tNode, nodeMap)) {
-          activationGradientEdges.push(edge);
-        } else if (isGetNextEdge(sNode, tNode)) {
-          getNextEdges.push(edge);
-        } else if (isBigDependEdge(sNode, tNode)) {
-          bigDependEdges.push(edge);
-        } else if (isBigFromSyncBatchNormGradEdge(sNode, tNode)) {
-          bigFromSyncBatchNormGradEdges.push(edge);
-        } else if (isBigHubNodeEdge(sNode, tNode)) {
-          bigHubNodeEdges.push(edge);
-        } else {
-          normalEdges.push(edge);
+        const isNormalEdge = true;
+        for (const def of specialEdgesDef) {
+          if (def.condition(sNode, tNode, nodeMap)) {
+            isNormalEdge = false;
+            specialEdges[def.class].push(edge);
+            break;
+          }
         }
+        if (isNormalEdge) normalEdges.push(edge);
       }
 
       const vxs = [];
@@ -234,44 +236,20 @@ export default {
           })
           .stop();
 
-      this.normalEdgesView = this.g
-          .append('g')
-          .selectAll('line')
-          .data(normalEdges)
-          .enter()
-          .append('line');
-      this.bigUpdateStateEdgesView = this.g
-          .append('g')
-          .selectAll('path')
-          .data(bigUpdateStateEdges)
-          .enter()
-          .append('path')
-          .attr('class', 'update-state-edge')
-          .attr('fill', 'none');
-      this.loadEdgesView = this.g
-          .append('g')
-          .selectAll('path')
-          .data(loadEdges)
-          .enter()
-          .append('path')
-          .attr('class', 'load-edge')
-          .attr('fill', 'none');
-      this.getNextEdgesView = this.g
-          .append('g')
-          .selectAll('path')
-          .data(getNextEdges)
-          .enter()
-          .append('path')
-          .attr('class', 'get-next-edge')
-          .attr('fill', 'none');
-      this.bigDependEdgesView = this.g
-          .append('g')
-          .selectAll('path')
-          .data(bigDependEdges)
-          .enter()
-          .append('path')
-          .attr('class', 'big-depend-edge')
-          .attr('fill', 'none');
+      this.normalEdgesView = this.g.append('g').selectAll('line').data(normalEdges).enter().append('line');
+
+      this.specialEdgeViews = {};
+      for (const def of specialEdgesDef) {
+        this.specialEdgeViews[def.class] = this.g
+            .append('g')
+            .selectAll('path')
+            .data(specialEdges[def.class])
+            .enter()
+            .append('path')
+            .attr('class', def.class)
+            .style('display', def.defaultDisplay ? null : 'none');
+      }
+
       this.nodes = this.g
           .append('g')
           .selectAll('circle')
@@ -310,38 +288,15 @@ export default {
           .attr('y1', (v) => v.source.y)
           .attr('x2', (v) => v.target.x)
           .attr('y2', (v) => v.target.y);
-      this.bigUpdateStateEdgesView
-          .attr('d', (v) => {
-            const {source, target} = v;
-            const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-            return `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} 1000 ${
-              tNode.x
-            } ${tNode.y}`;
-          })
-          .attr('fill', 'none');
-      this.bigDependEdgesView
-          .attr('d', (v) => {
-            const {source, target} = v;
-            const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-            return `M${sNode.x} ${sNode.y} Q${(sNode.x + tNode.x) / 2} ${tNode.y +
-            100} ${tNode.x} ${tNode.y}`;
-          })
-          .attr('fill', 'none');
-      this.loadEdgesView.attr('d', (v) => {
-        const {source, target} = v;
-        const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-        if (sNode.type === 'Load') {
-          return `M${sNode.x} ${sNode.y} Q${tNode.x} ${sNode.y} ${tNode.x} ${tNode.y}`;
-        }
-        return `M${sNode.x} ${sNode.y} Q${sNode.x} ${tNode.y} ${tNode.x} ${tNode.y}`;
-      });
-      this.getNextEdgesView
-          .attr('d', (v) => {
-            const {source, target} = v;
-            const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-            return `M${sNode.x} ${sNode.y} Q${tNode.x} ${sNode.y} ${tNode.x} ${tNode.y}`;
-          })
-          .attr('fill', 'none');
+      for (const def of specialEdgesDef) {
+        const view = this.specialEdgeViews[def.class];
+        view.attr('d', (v) => {
+          const {source, target} = v;
+          const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
+          return def.path(sNode, tNode);
+        });
+      }
+
       this.opName.attr('x', (v) => v.x - 10).attr('y', (v) => v.y + 20);
     },
   },
@@ -353,6 +308,9 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
+}
+.special-edge-checkbox {
+  position: absolute;
 }
 
 line {
@@ -395,6 +353,7 @@ circle.load {
 
 path {
   stroke-width: 1px;
+  fill: none;
 }
 
 path.load-edge {

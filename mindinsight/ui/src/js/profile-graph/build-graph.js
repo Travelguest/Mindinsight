@@ -1,13 +1,3 @@
-/* eslint-disable require-jsdoc */
-import {
-  bipartiteGraphOptimzer,
-  toExpandStackedNode,
-  processBipartite,
-} from '@/js/bipartite-graph-optimizer.js';
-import {
-  filterSourceData,
-  conceptualGraphOptimizer,
-} from '@/js/conceptual-graph-optimizer.js';
 import {
   NODE_TYPE,
   LAYER_TYPE,
@@ -15,7 +5,6 @@ import {
   SCOPE_SEPARATOR,
   INSERTED_ATTR,
 } from '@/js/const.js';
-import {genHash} from '@/js/util.js';
 
 const debug = false;
 export let processedGraph = {
