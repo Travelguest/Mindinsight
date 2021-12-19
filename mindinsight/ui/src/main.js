@@ -29,6 +29,12 @@ import localezh from 'element-ui/lib/locale/lang/zh-CN';
 import {basePath} from '@/services/fetcher';
 import CommonProperty from './common/common-property';
 
+import 'ant-design-vue/dist/antd.css';
+import TreeSelect from 'ant-design-vue/lib/tree-select';
+import Input from 'ant-design-vue/lib/input';
+Vue.component(TreeSelect.name, TreeSelect);
+Vue.component(Input.name, Input);
+
 let language = window.localStorage.getItem('milang');
 const languageList = ['zh-cn', 'en-us'];
 if (!language) {

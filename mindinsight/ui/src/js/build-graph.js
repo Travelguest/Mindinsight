@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 import {
   bipartiteGraphOptimzer,
   toExpandStackedNode,
@@ -18,7 +19,7 @@ import {
 
 import {genHash} from './util';
 
-let processedGraph = {
+export let processedGraph = {
   nodeMap: {},
   parameterMap: {},
   constMap: {},
@@ -91,6 +92,29 @@ function _createBasicNode(node) {
   };
 }
 
+function _createBasicNodeOld(node) {
+  const attribute = {};
+  for (const key in node.attr) {
+    attribute[key] = node.attr[key];
+  }
+
+  return {
+    id: node.name,
+    name: node.name,
+    type: node.opType,
+    attribute,
+    parent: node.scope,
+    children: [], // 新添加
+    input: node.input.map((v) => v.name) || [],
+    output: [], // {}->[]
+    outputType: node.outputType || {},
+    parameters: {},
+    consts: {},
+    scope: node.scope,
+    ...insertedAttr.reduce((acc, key) => ((acc[key] = node[key]), acc), {}),
+    output_shape: node.output_shape,
+  };
+}
 /**
  * Creating a name scope.
  * @param {String} name Name of name scope.
@@ -592,6 +616,138 @@ function _processHierarchy() {
         Object.values(_filterIOData(nameScope.output, parent.id)),
     );
   }
+}
+
+export let treeData = null;
+
+function _insertNode(insertNode, scopeString, root) {
+  if (scopeString === '' || !scopeString) return;
+
+  const scopes = scopeString.split(SCOPE_SEPARATOR);
+  const children = root.children;
+  let hasSuffixChild = null;
+  for (let i = 0; i < children.length; i++) {
+    if (children[i].key === scopes[0]) {
+      hasSuffixChild = children[i];
+      break;
+    }
+  }
+
+  if (hasSuffixChild) {
+    _insertNode(
+        insertNode,
+        scopes.splice(1).join(SCOPE_SEPARATOR),
+        hasSuffixChild,
+    );
+  } else {
+    if (children.length === 0) {
+      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      children.push(newNode);
+      _insertNode(
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
+      );
+    } else {
+      let validPosition = 0;
+      for (let j = 0; j < children.length; j++) {
+        if (children[j].key < scopes[0]) {
+          validPosition++;
+        }
+      }
+      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      children.splice(validPosition, 0, newNode);
+      _insertNode(
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
+      );
+    }
+  }
+}
+
+function levelOrder(tree) {
+  // if (!tree) return;
+  // for (const node of tree.children) {
+  //   node.title = node.key;
+  //   node.key = node.value = (tree.key) ? tree.key + SCOPE_SEPARATOR + node.key : node.key;
+  //   preOrder(node);
+  // }
+  const queue = [];
+
+  queue.push(tree);
+  tree.title = tree.key;
+  tree.key = tree.value = '0';
+
+  while (queue.length !== 0) {
+    const front = queue[0];
+    queue.shift();
+    for (let i = 0; i < front.children.length; i++) {
+      const child = front.children[i];
+      queue.push(child);
+      child.title = child.key;
+      child.key = child.value = `${front.key}-${i}`;
+    }
+  }
+}
+
+function _processNodesOld(data) {
+  const nodes = data.node || [];
+  const {nodeMap, parameterMap, constMap} = processedGraph;
+  // 保存所有存在的命名空间的ID
+
+  for (const sNode of nodes) {
+    if (sNode && Object.keys(sNode).length) {
+      const node = _createBasicNodeOld(sNode);
+      nodeMap[node.id] = node;
+    }
+  }
+
+  treeData = new TrieNode(null);
+  for (const sNode of nodes) {
+    _insertNode(
+        sNode,
+        sNode.fullName,
+        treeData,
+    );
+  }
+  levelOrder(treeData);
+}
+
+function processOutput() {
+  Object.values(processedGraph.nodeMap).forEach((v) => {
+    v.input.forEach((preId) => {
+      processedGraph.nodeMap[preId]?.output.push(v.id);
+    });
+  });
+}
+
+function pruneTupleGetItem() {
+  const {nodeMap} = processedGraph;
+  Object.values(nodeMap).forEach((v) => {
+    if (v.type === 'TupleGetItem') {
+      const {input, output} = v;
+      const preNode = nodeMap[input[0]];
+      preNode.output.splice(preNode.output.indexOf(v.id), 1);
+      preNode.output = Array.from(new Set([...preNode.output, ...output]));
+      output.forEach((out) => {
+        const outNode = nodeMap[out];
+        for (let i = 0; i < outNode.input.length; ++i) {
+          if (outNode.input[i] === v.id) {
+            outNode.input[i] = preNode.id;
+          }
+        }
+      });
+      delete nodeMap[v.id];
+    }
+  });
+}
+
+function _processSourceDataOld(data) {
+  _processNodesOld(data);
+  processOutput();
+  pruneTupleGetItem();
+  // stackOptimizer();
 }
 
 /**
@@ -1149,8 +1305,14 @@ function buildGraph(data, conceptualMode = false, bipartiteMode = false) {
   return visGraph;
 }
 
+function buildGraphOld(data) {
+  _resetData();
+  _processSourceDataOld(data);
+}
+
 export {
   buildGraph,
+  buildGraphOld,
   toggleExpanded,
   searchNode,
   querySingleNode,

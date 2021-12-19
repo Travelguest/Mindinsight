@@ -1,6 +1,17 @@
 <template>
   <div class="profile-graph">
-    <svg id="profile-graph" style="width: 100%; height: 100%;"></svg>
+    <svg id="profile-graph" style="width: 100%; height: 100%"></svg>
+    <a-tree-select
+      v-model="selectNamespaces"
+      style="position: absolute; left: 20px; top: 20px; width: 300px; z-index: 99;"
+      :tree-data="treeData"
+      tree-checkable
+      :show-checked-strategy="SHOW_PARENT"
+      search-placeholder="Please select"
+      :dropdownStyle="{ maxHeight: '300px' }"
+      :maxTagCount="Number(1)"
+      @change="selectTreeNode"
+    />
   </div>
 </template>
 
@@ -9,8 +20,8 @@ import {
   buildGraph,
   buildGraphOld,
   processedGraph,
-  pruneSet,
-} from '@/js/profile-graph/build-graph.js';
+  treeData,
+} from '@/js/build-graph.js';
 import * as d3 from 'd3';
 import forceLink from '@/js/profile-graph/link-force.js';
 import {communicationOps} from '@/js/profile-graph/node-process.js';
@@ -23,8 +34,50 @@ import {
   isBigFromSyncBatchNormGradEdge,
   isBigHubNodeEdge,
 } from '@/js/profile-graph/edge-process.js';
+import {TreeSelect} from 'ant-design-vue';
+const SHOW_PARENT = TreeSelect.SHOW_PARENT;
+const NODE_COLORS = ['#fbb4ae', '#b3cde3', '#ccebc5', '#decbe4', '#fed9a6'];
 
 export default {
+  data() {
+    return {
+      selectNamespaces: [],
+      treeData,
+      SHOW_PARENT,
+      nodeGroups: [],
+    };
+  },
+
+  watch: {
+    selectNamespaces(curSelectNamespaces) {
+      this.nodeGroups = [];
+      this.g
+          .selectAll('circle')
+          .data(this.opNodes)
+          .style('fill', 'grey');
+      for (const curSelectNamespace of curSelectNamespaces) {
+        const childrenIndex = curSelectNamespace.split('-');
+        childrenIndex.shift();
+        let selectNode = this.treeData[Number(childrenIndex[0])];
+        childrenIndex.shift();
+        for (const childIndex of childrenIndex) {
+          selectNode = selectNode.children[Number(childIndex)];
+        }
+        const nodeGroup = [];
+        // iterate subtree
+        this.preOrder(selectNode, nodeGroup);
+        this.nodeGroups.push(nodeGroup);
+      }
+      // console.log(this.nodeGroups);
+      for (let i = 0; i < this.nodeGroups.length; i++) {
+        this.g
+            .selectAll('circle')
+            .data(this.nodeGroups[i])
+            .style('fill', NODE_COLORS[i]);
+      }
+    },
+  },
+
   mounted() {
     this.svg = d3.select('#profile-graph');
     this.g = this.svg.append('g');
@@ -37,6 +90,22 @@ export default {
   },
 
   methods: {
+    preOrder(tree, nodeGroup) {
+      if (!tree) return;
+      nodeGroup.push(this.opNodes[Number(tree.id) - 1]);
+      for (const child of tree.children) {
+        this.preOrder(child, nodeGroup);
+      }
+    },
+
+    selectTreeNode() {
+      // limit max select num to 5
+      if (this.selectNamespaces.length > 5) {
+        this.selectNamespaces.pop();
+        return;
+      }
+    },
+
     async initGraph() {
       await this.fetchData();
       this.initNode();
@@ -46,14 +115,15 @@ export default {
     async fetchData() {
       // let res = await fetch('static/data/resnet_pipeline_parallel.json');
       // res = await res.json();
-
-      // buildGraph(res[0]);
+      // buildGraph(res.graphs[0]);
 
       let res = await fetch('static/data/bert_semi.json');
       res = await res.json();
       buildGraphOld(res.data);
 
       this.nodeMap = processedGraph.nodeMap;
+      this.treeData = treeData.children;
+      // console.log(this.treeData);
     },
 
     initNode() {
@@ -282,6 +352,7 @@ export default {
 .profile-graph {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 line {

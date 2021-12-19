@@ -66,9 +66,18 @@ module.exports = {
           '^/mock': '',
         },
       },
-    }
+    },
   },
-  
+
+  css: {
+    loaderOptions: {
+      less: {
+        lessOptions: {
+          javascriptEnabled: true,
+        },
+      },
+    },
+  },
 
   pluginOptions: {
     i18n: {
