@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 import {
   NODE_TYPE,
   LAYER_TYPE,
@@ -14,10 +15,6 @@ export let processedGraph = {
   root: {},
 };
 
-let nameScopeIds = [];
-const conceptualGraphMode = false;
-const bipartiteGraphMode = false;
-const cutEdges = new Set();
 const insertedAttr = [];
 const COMM_LIST = new Set([
   'AllReduce',
@@ -26,9 +23,6 @@ const COMM_LIST = new Set([
   'ReduceScatter',
 ]);
 
-export let showNodeType = ''; // 通信结点筛选器
-export let showRankId = ''; // rank筛选器
-const topScopeSet = new Set();
 
 export const edgeIdMap = {};
 
@@ -94,62 +88,6 @@ function _createBasicNodeOld(node) {
 }
 
 /**
- * Creating a name scope.
- * @param {String} name Name of name scope.
- * @return {Object}
- */
-function _createNameScope(name) {
-  let parent = '';
-  const arr = name.split(SCOPE_SEPARATOR);
-  if (arr.length > 1) {
-    // let parentTemp = arr.slice(0, -1).join(SCOPE_SEPARATOR);
-    // if (childrenCount[parentTemp] > 1) {
-    //   parent = parentTemp;
-    // }
-    parent = arr.slice(0, -1).join(SCOPE_SEPARATOR);
-  }
-
-  return {
-    id: name,
-    name,
-    type: NODE_TYPE.name_scope,
-    layerType: LAYER_TYPE.other,
-    parent,
-    children: [],
-    input: [], // namescope的输入输出改为数组
-    output: [],
-    expanded: false,
-    stacked: false,
-    scope: parent,
-  };
-}
-
-/**
- * Creating a aggregate scope.
- * @param {String} name Name of aggregate scope.
- * @return {Object}
- */
-function _createAggregateScope(name) {
-  let parent = '';
-  const arr = name.split(SCOPE_SEPARATOR);
-  if (arr.length > 1) {
-    parent = arr.slice(0, -1).join(SCOPE_SEPARATOR);
-  }
-  return {
-    id: name,
-    name,
-    type: NODE_TYPE.aggregate_scope,
-    parent,
-    children: [],
-    input: [],
-    output: [],
-    expanded: false,
-    stacked: true,
-    scope: parent,
-  };
-}
-
-/**
  * Creating a parameter node.
  * @param {Object} param Parameter node data.
  * @return {Object}
@@ -179,6 +117,143 @@ function _createConst(con) {
   };
 }
 
+export let treeData = null;
+
+function _insertNodeOld(insertNode, scopeString, root) {
+  if (scopeString === '' || !scopeString) return;
+
+  const scopes = scopeString.split(SCOPE_SEPARATOR);
+  const children = root.children;
+  let hasSuffixChild = null;
+  for (let i = 0; i < children.length; i++) {
+    if (children[i].key === scopes[0]) {
+      hasSuffixChild = children[i];
+      break;
+    }
+  }
+
+  if (hasSuffixChild) {
+    _insertNodeOld(
+        insertNode,
+        scopes.splice(1).join(SCOPE_SEPARATOR),
+        hasSuffixChild,
+    );
+  } else {
+    if (children.length === 0) {
+      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      children.push(newNode);
+      _insertNodeOld(
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
+      );
+    } else {
+      let validPosition = 0;
+      for (let j = 0; j < children.length; j++) {
+        if (children[j].key < scopes[0]) {
+          validPosition++;
+        }
+      }
+      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      children.splice(validPosition, 0, newNode);
+      _insertNodeOld(
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
+      );
+    }
+  }
+}
+
+function _insertNode(insertNode, scopeString, root) {
+  if (scopeString === '' || !scopeString) return;
+
+  const scopes = scopeString.split(SCOPE_SEPARATOR);
+  const children = root.children;
+  let hasSuffixChild = null;
+  for (let i = 0; i < children.length; i++) {
+    if (children[i].key === scopes[0]) {
+      hasSuffixChild = children[i];
+      break;
+    }
+  }
+
+  if (hasSuffixChild) {
+    _insertNode(
+        insertNode,
+        scopes.splice(1).join(SCOPE_SEPARATOR),
+        hasSuffixChild,
+    );
+  } else {
+    if (children.length === 0) {
+      const newNode = {id: insertNode.node_id, key: scopes[0], children: []};
+      children.push(newNode);
+      _insertNode(
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
+      );
+    } else {
+      let validPosition = 0;
+      for (let j = 0; j < children.length; j++) {
+        if (children[j].key < scopes[0]) {
+          validPosition++;
+        }
+      }
+      const newNode = {id: insertNode.node_id, key: scopes[0], children: []};
+      children.splice(validPosition, 0, newNode);
+      _insertNode(
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
+      );
+    }
+  }
+}
+
+function levelOrder(tree) {
+  const queue = [];
+
+  queue.push(tree);
+  tree.title = tree.key;
+  tree.key = tree.value = '0';
+
+  while (queue.length !== 0) {
+    const front = queue[0];
+    queue.shift();
+    for (let i = 0; i < front.children.length; i++) {
+      const child = front.children[i];
+      queue.push(child);
+      child.title = child.key;
+      child.key = child.value = `${front.key}-${i}`;
+    }
+  }
+}
+
+function buildTreeDataOld(nodes) {
+  treeData = {id: null, key: null, children: []};
+  for (const sNode of nodes) {
+    _insertNodeOld(
+        sNode,
+        sNode.fullName,
+        treeData,
+    );
+  }
+  levelOrder(treeData);
+}
+
+function buildTreeData(nodes) {
+  treeData = {id: null, key: null, children: []};
+  for (const sNode of nodes) {
+    _insertNode(
+        sNode,
+        sNode.name,
+        treeData,
+    );
+  }
+  levelOrder(treeData);
+}
+
 /**
  * Processing nodes data, statistics const and parameter nodes.
  * @param {Object} data Graph data.
@@ -205,6 +280,7 @@ function _processNodes(data) {
       nodeMap[node.id] = node;
     }
   }
+  buildTreeData(nodes);
 }
 
 function _processNodesOld(data) {
@@ -218,6 +294,7 @@ function _processNodesOld(data) {
       nodeMap[node.id] = node;
     }
   }
+  buildTreeDataOld(nodes);
 }
 
 export const pruneSet = new Set([
@@ -260,8 +337,6 @@ function stackOptimizer() {
       curId++;
     }
   }
-
-  console.log(nodeMap);
 }
 
 function _processSourceDataOld(data) {
@@ -340,17 +415,6 @@ function processOutput() {
   });
 }
 
-function changeShowNodeType(newType) {
-  showNodeType = newType;
-}
-
-function changeShowRankId(newId) {
-  showRankId = newId;
-}
-
-function getTopScopeSet() {
-  return topScopeSet;
-}
 
 /**
  * Build graph data.
@@ -371,8 +435,5 @@ function buildGraphOld(data) {
 
 export {
   buildGraph,
-  changeShowNodeType,
-  changeShowRankId,
-  getTopScopeSet,
   buildGraphOld,
 };

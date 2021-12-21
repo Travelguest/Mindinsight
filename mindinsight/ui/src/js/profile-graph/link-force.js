@@ -29,8 +29,9 @@ export default function(links) {
 
   function force(alpha) {
     for (let k = 0, n = links.length; k < iterations; ++k) {
-      for (var i = 0, link, source, target, x, y, b; i < n; ++i) {
+      for (let i = 0, link, source, target, x, y, b; i < n; ++i) {
         (link = links[i]), (source = link.source), (target = link.target);
+        // console.log(target.x);
         x = target.x + target.vx - source.x - source.vx;
         y = target.y + target.vy - source.y - source.vy;
         let xdiff = x - distances[i];

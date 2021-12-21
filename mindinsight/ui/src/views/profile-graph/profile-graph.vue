@@ -57,7 +57,7 @@ import {
   buildGraphOld,
   processedGraph,
   treeData,
-} from '@/js/build-graph.js';
+} from '@/js/profile-graph/build-graph.js';
 import * as d3 from 'd3';
 import forceLink from '@/js/profile-graph/link-force.js';
 import {communicationOps} from '@/js/profile-graph/node-process.js';
@@ -172,13 +172,13 @@ export default {
     },
 
     async fetchData() {
-      // let res = await fetch('static/data/resnet_pipeline_parallel.json');
-      // res = await res.json();
-      // buildGraph(res.graphs[0]);
-
-      let res = await fetch('static/data/bert_semi.json');
+      let res = await fetch('static/data/resnet_pipeline_parallel.json');
       res = await res.json();
-      buildGraphOld(res.data);
+      buildGraph(res.graphs[0]);
+
+      // let res = await fetch('static/data/bert_semi.json');
+      // res = await res.json();
+      // buildGraphOld(res.data);
 
       this.nodeMap = processedGraph.nodeMap;
       this.treeData = treeData.children;
@@ -340,6 +340,7 @@ export default {
 
     tickAndUpdate(tick) {
       this.sim.tick(tick);
+      console.log(this.opNodes);
       this.gradients
           .selectAll('circle')
           .attr('cx', (v) => v.x)
