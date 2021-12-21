@@ -7,10 +7,39 @@
       </p>
     </div>
 
-    <svg id="profile-graph" style="width: 100%; height: 100%"></svg>
+    <svg id="profile-graph" style="width: 100%; height: 100%">
+      <defs>
+        <radialGradient id="NODE_COLOR1" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#fbb4ae"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+        <radialGradient id="NODE_COLOR2" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#b3cde3"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+        <radialGradient id="NODE_COLOR3" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#ccebc5"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+        <radialGradient id="NODE_COLOR4" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#decbe4"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+        <radialGradient id="NODE_COLOR5" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#fed9a6"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+      </defs>
+    </svg>
     <a-tree-select
       v-model="selectNamespaces"
-      style="position: absolute; left: 200px; top: 5px; width: 200px; z-index: 99;"
+      style="
+        position: absolute;
+        left: 200px;
+        top: 5px;
+        width: 200px;
+        z-index: 99;
+      "
       :tree-data="treeData"
       tree-checkable
       :show-checked-strategy="SHOW_PARENT"
@@ -32,19 +61,16 @@ import {
 import * as d3 from 'd3';
 import forceLink from '@/js/profile-graph/link-force.js';
 import {communicationOps} from '@/js/profile-graph/node-process.js';
-import {
-  isActivationBigEdge,
-  isGetNextEdge,
-  isLoadEdge,
-  isUpdateStateBigEdge,
-  isBigDependEdge,
-  isBigFromSyncBatchNormGradEdge,
-  isBigHubNodeEdge,
-} from '@/js/profile-graph/edge-process.js';
 import {specialEdgesDef} from '@/js/profile-graph/edge-process.js';
 import {TreeSelect} from 'ant-design-vue';
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
-const NODE_COLORS = ['#fbb4ae', '#b3cde3', '#ccebc5', '#decbe4', '#fed9a6'];
+const NODE_COLORS = [
+  'NODE_COLOR1',
+  'NODE_COLOR2',
+  'NODE_COLOR3',
+  'NODE_COLOR4',
+  'NODE_COLOR5',
+];
 
 export default {
   data() {
@@ -53,17 +79,35 @@ export default {
       treeData,
       SHOW_PARENT,
       nodeGroups: [],
-      specialEdgesDisplayStates: specialEdgesDef.map((v) => [v.class, v.defaultDisplay]),
+      specialEdgesDisplayStates: specialEdgesDef.map((v) => [
+        v.class,
+        v.defaultDisplay,
+      ]),
+      gradients: null,
     };
   },
 
   watch: {
     selectNamespaces(curSelectNamespaces) {
       this.nodeGroups = [];
-      this.g
+      // this.g.selectAll('circle').data(this.opNodes).style('fill', 'grey');
+      // if (!this.gradients) {
+      //   this.gradients = this.g
+      //       .append('g');
+      //   this.gradients
+      //       .selectAll('circle')
+      //       .data(this.opNodes)
+      //       .join('circle')
+      //       .attr('cx', (v) => v.x)
+      //       .attr('cy', (v) => v.y)
+      //       .attr('r', 20)
+      //       .style('fill', 'none')
+      //       .style('stroke', 'none');
+      // }
+      this.gradients
           .selectAll('circle')
-          .data(this.opNodes)
-          .style('fill', 'grey');
+          .style('fill', 'none')
+          .style('stroke', 'none');
       for (const curSelectNamespace of curSelectNamespaces) {
         const childrenIndex = curSelectNamespace.split('-');
         childrenIndex.shift();
@@ -79,10 +123,10 @@ export default {
       }
       console.log(this.nodeGroups);
       for (let i = 0; i < this.nodeGroups.length; i++) {
-        this.g
+        this.gradients
             .selectAll('circle')
-            .data(this.nodeGroups[i])
-            .style('fill', NODE_COLORS[i]);
+            .data(this.nodeGroups[i], (d) => d ? d.id : this.id)
+            .style('fill', `url(#${NODE_COLORS[i]})`);
       }
     },
 
@@ -107,7 +151,7 @@ export default {
   methods: {
     preOrder(tree, nodeGroup) {
       if (!tree) return;
-      nodeGroup.push(this.opNodes[Number(tree.id) - 1]);
+      nodeGroup.push(this.opNodes[this.idToIndex[tree.id]]);
       for (const child of tree.children) {
         this.preOrder(child, nodeGroup);
       }
@@ -138,24 +182,24 @@ export default {
 
       this.nodeMap = processedGraph.nodeMap;
       this.treeData = treeData.children;
-      // console.log(this.treeData);
+      console.log(this.treeData, this.nodeMap);
     },
 
     initNode() {
       const {nodeMap} = processedGraph;
       this.allEdges = [];
       this.opNodes = Object.values(nodeMap);
-      const idToIndex = {};
+      this.idToIndex = {};
       this.opNodes.forEach((v, i) => {
-        idToIndex[v.id] = i;
+        this.idToIndex[v.id] = i;
       });
 
       this.opNodes.forEach((v, i) => {
         v.input.forEach((preId) => {
           if (nodeMap[preId]) {
             this.allEdges.push({
-              source: idToIndex[preId],
-              target: idToIndex[v.id],
+              source: this.idToIndex[preId],
+              target: this.idToIndex[v.id],
               iterations: 5,
             });
           }
@@ -236,7 +280,24 @@ export default {
           })
           .stop();
 
-      this.normalEdgesView = this.g.append('g').selectAll('line').data(normalEdges).enter().append('line');
+      this.gradients = this.g
+          .append('g');
+      this.gradients
+          .selectAll('circle')
+          .data(this.opNodes, (d) => d ? d.id : this.id)
+          .join('circle')
+          .attr('cx', (v) => v.x)
+          .attr('cy', (v) => v.y)
+          .attr('r', 50)
+          .style('fill', 'none')
+          .style('stroke', 'none');
+
+      this.normalEdgesView = this.g
+          .append('g')
+          .selectAll('line')
+          .data(normalEdges)
+          .enter()
+          .append('line');
 
       this.specialEdgeViews = {};
       for (const def of specialEdgesDef) {
@@ -279,6 +340,10 @@ export default {
 
     tickAndUpdate(tick) {
       this.sim.tick(tick);
+      this.gradients
+          .selectAll('circle')
+          .attr('cx', (v) => v.x)
+          .attr('cy', (v) => v.y);
       this.nodes
           .attr('cx', (v) => v.x)
           .attr('cy', (v) => v.y)
@@ -324,30 +389,30 @@ text {
 
 circle {
   stroke: black;
-  stroke-width: 2;
-  fill: grey;
+  stroke-width: 0.5;
+  fill: transparent;
 }
 
 circle.communication {
   stroke: red;
   stroke-width: 2;
-  fill: grey;
+  fill: transparent;
 }
 
 circle.send {
   stroke: red;
-  stroke-width: 2;
+  stroke-width: 0.5;
   fill: rgb(113, 243, 27);
 }
 
 circle.receive {
   stroke: red;
-  stroke-width: 2;
+  stroke-width: 0.5;
   fill: rgb(33, 29, 241);
 }
 
 circle.load {
-  stroke-width: 2;
+  stroke-width: 0.5;
   fill: rgb(33, 29, 241);
 }
 
