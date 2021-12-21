@@ -515,6 +515,8 @@ function _processNodes(data) {
     }
   }
   nameScopeIds = Array.from(nameScopeSet).sort(); // 排序是为了确保父命名空间在子命名空间之前创建
+
+  buildTreeData(nodes);
 }
 
 /**
@@ -620,6 +622,52 @@ function _processHierarchy() {
 
 export let treeData = null;
 
+function _insertNodeOld(insertNode, scopeString, root) {
+  if (scopeString === '' || !scopeString) return;
+
+  const scopes = scopeString.split(SCOPE_SEPARATOR);
+  const children = root.children;
+  let hasSuffixChild = null;
+  for (let i = 0; i < children.length; i++) {
+    if (children[i].key === scopes[0]) {
+      hasSuffixChild = children[i];
+      break;
+    }
+  }
+
+  if (hasSuffixChild) {
+    _insertNodeOld(
+        insertNode,
+        scopes.splice(1).join(SCOPE_SEPARATOR),
+        hasSuffixChild,
+    );
+  } else {
+    if (children.length === 0) {
+      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      children.push(newNode);
+      _insertNodeOld(
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
+      );
+    } else {
+      let validPosition = 0;
+      for (let j = 0; j < children.length; j++) {
+        if (children[j].key < scopes[0]) {
+          validPosition++;
+        }
+      }
+      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      children.splice(validPosition, 0, newNode);
+      _insertNodeOld(
+          insertNode,
+          scopes.splice(1).join(SCOPE_SEPARATOR),
+          newNode,
+      );
+    }
+  }
+}
+
 function _insertNode(insertNode, scopeString, root) {
   if (scopeString === '' || !scopeString) return;
 
@@ -641,7 +689,7 @@ function _insertNode(insertNode, scopeString, root) {
     );
   } else {
     if (children.length === 0) {
-      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      const newNode = {id: insertNode.node_id, key: scopes[0], children: []};
       children.push(newNode);
       _insertNode(
           insertNode,
@@ -655,7 +703,7 @@ function _insertNode(insertNode, scopeString, root) {
           validPosition++;
         }
       }
-      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      const newNode = {id: insertNode.node_id, key: scopes[0], children: []};
       children.splice(validPosition, 0, newNode);
       _insertNode(
           insertNode,
@@ -667,12 +715,6 @@ function _insertNode(insertNode, scopeString, root) {
 }
 
 function levelOrder(tree) {
-  // if (!tree) return;
-  // for (const node of tree.children) {
-  //   node.title = node.key;
-  //   node.key = node.value = (tree.key) ? tree.key + SCOPE_SEPARATOR + node.key : node.key;
-  //   preOrder(node);
-  // }
   const queue = [];
 
   queue.push(tree);
@@ -691,6 +733,30 @@ function levelOrder(tree) {
   }
 }
 
+function buildTreeDataOld(nodes) {
+  treeData = {id: null, key: null, children: []};
+  for (const sNode of nodes) {
+    _insertNodeOld(
+        sNode,
+        sNode.fullName,
+        treeData,
+    );
+  }
+  levelOrder(treeData);
+}
+
+function buildTreeData(nodes) {
+  treeData = {id: null, key: null, children: []};
+  for (const sNode of nodes) {
+    _insertNode(
+        sNode,
+        sNode.name,
+        treeData,
+    );
+  }
+  levelOrder(treeData);
+}
+
 function _processNodesOld(data) {
   const nodes = data.node || [];
   const {nodeMap, parameterMap, constMap} = processedGraph;
@@ -703,15 +769,7 @@ function _processNodesOld(data) {
     }
   }
 
-  treeData = new TrieNode(null);
-  for (const sNode of nodes) {
-    _insertNode(
-        sNode,
-        sNode.fullName,
-        treeData,
-    );
-  }
-  levelOrder(treeData);
+  buildTreeDataOld(nodes);
 }
 
 function processOutput() {
