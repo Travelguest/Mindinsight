@@ -30,7 +30,6 @@ export const edgeIdMap = {};
  * Reset data.
  */
 function _resetData() {
-  nameScopeIds = [];
   processedGraph = {
     nodeMap: {},
     parameterMap: {},
