@@ -379,65 +379,65 @@ export default {
   position: absolute;
 }
 
-line {
+#profile-graph line {
   stroke-width: 1;
   stroke: rgb(42, 77, 233);
 }
 
-text {
+#profile-graph text {
   font-size: 5px;
 }
 
-circle {
+#profile-graph circle {
   stroke: black;
   stroke-width: 0.5;
   fill: transparent;
 }
 
-circle.communication {
+#profile-graph circle.communication {
   stroke: red;
   stroke-width: 2;
   fill: transparent;
 }
 
-circle.send {
+#profile-graph circle.send {
   stroke: red;
   stroke-width: 0.5;
   fill: rgb(113, 243, 27);
 }
 
-circle.receive {
+#profile-graph circle.receive {
   stroke: red;
   stroke-width: 0.5;
   fill: rgb(33, 29, 241);
 }
 
-circle.load {
+#profile-graph circle.load {
   stroke-width: 0.5;
   fill: rgb(33, 29, 241);
 }
 
-path {
+#profile-graph path {
   stroke-width: 1px;
   fill: none;
 }
 
-path.load-edge {
+#profile-graph path.load-edge {
   stroke: rgb(93, 213, 235);
   opacity: 0.2;
 }
 
-path.update-state-edge {
+#profile-graph path.update-state-edge {
   stroke: rgb(126, 233, 112);
   opacity: 0.2;
 }
 
-path.get-next-edge {
+#profile-graph path.get-next-edge {
   stroke: rgb(195, 230, 0);
   opacity: 0.8;
 }
 
-path.big-depend-edge {
+#profile-graph path.big-depend-edge {
   stroke: rgb(27, 29, 20);
   stroke-dasharray: 4;
   opacity: 0.3;
