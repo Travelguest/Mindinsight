@@ -391,13 +391,13 @@ export default {
 #profile-graph circle {
   stroke: black;
   stroke-width: 0.5;
-  fill: transparent;
+  fill: white;
 }
 
 #profile-graph circle.communication {
   stroke: red;
   stroke-width: 2;
-  fill: transparent;
+  fill: white;
 }
 
 #profile-graph circle.send {
