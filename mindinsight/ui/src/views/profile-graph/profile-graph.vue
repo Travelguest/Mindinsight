@@ -59,7 +59,7 @@ import {
   treeData,
 } from '@/js/profile-graph/build-graph.js';
 import * as d3 from 'd3';
-import forceLink from '@/js/profile-graph/link-force.js';
+import {layout} from '@/js/profile-graph/force-layout.js';
 import {communicationOps} from '@/js/profile-graph/node-process.js';
 import {specialEdgesDef} from '@/js/profile-graph/edge-process.js';
 import {TreeSelect} from 'ant-design-vue';
@@ -90,20 +90,6 @@ export default {
   watch: {
     selectNamespaces(curSelectNamespaces) {
       this.nodeGroups = [];
-      // this.g.selectAll('circle').data(this.opNodes).style('fill', 'grey');
-      // if (!this.gradients) {
-      //   this.gradients = this.g
-      //       .append('g');
-      //   this.gradients
-      //       .selectAll('circle')
-      //       .data(this.opNodes)
-      //       .join('circle')
-      //       .attr('cx', (v) => v.x)
-      //       .attr('cy', (v) => v.y)
-      //       .attr('r', 20)
-      //       .style('fill', 'none')
-      //       .style('stroke', 'none');
-      // }
       this.gradients
           .selectAll('circle')
           .style('fill', 'none')
@@ -186,9 +172,8 @@ export default {
     },
 
     initNode() {
-      const {nodeMap} = processedGraph;
       this.allEdges = [];
-      this.opNodes = Object.values(nodeMap);
+      this.opNodes = Object.values(this.nodeMap);
       this.idToIndex = {};
       this.opNodes.forEach((v, i) => {
         this.idToIndex[v.id] = i;
@@ -196,7 +181,7 @@ export default {
 
       this.opNodes.forEach((v, i) => {
         v.input.forEach((preId) => {
-          if (nodeMap[preId]) {
+          if (this.nodeMap[preId]) {
             this.allEdges.push({
               source: this.idToIndex[preId],
               target: this.idToIndex[v.id],
@@ -215,70 +200,23 @@ export default {
         }
       });
 
-      const normalEdges = [];
-      const specialEdges = {};
-      specialEdgesDef.forEach((v) => (specialEdges[v.class] = []));
+      this.normalEdges = [];
+      this.specialEdges = {};
+      specialEdgesDef.forEach((v) => (this.specialEdges[v.class] = []));
 
       for (const edge of this.allEdges) {
         const {source, target} = edge;
         const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
         const isNormalEdge = true;
         for (const def of specialEdgesDef) {
-          if (def.condition(sNode, tNode, nodeMap)) {
+          if (def.condition(sNode, tNode, this.nodeMap)) {
             isNormalEdge = false;
-            specialEdges[def.class].push(edge);
+            this.specialEdges[def.class].push(edge);
             break;
           }
         }
-        if (isNormalEdge) normalEdges.push(edge);
+        if (isNormalEdge) this.normalEdges.push(edge);
       }
-
-      const vxs = [];
-      this.sim = d3
-          .forceSimulation(this.opNodes)
-          .force('link', forceLink(normalEdges))
-          .force('record vx', () => {
-            for (let i = 0; i < this.opNodes; ++i) {
-              vxs[i] = this.opNodes[i].vx;
-            }
-          })
-          .force(
-              'collide',
-              d3.forceCollide(2).radius((d) => d.r + 15),
-          )
-          .force('recover vx', () => {
-            for (let i = 0; i < this.opNodes; ++i) {
-              this.opNodes[i].vx = vxs[i];
-            }
-          })
-          .force('float node', () => {
-            this.opNodes.forEach((v) => {
-              if (
-                v.type === 'Load' ||
-              v.type === 'GetNext' ||
-              (v.type === 'Send' && v.scope.slice(0, 8) === 'Gradient') ||
-              (v.type === 'Receive' && v.scope.slice(0, 7) === 'Default')
-              ) {
-                v.y = -150;
-                let minX = 10000000000;
-                v.output.forEach((out) => {
-                  if (nodeMap[out]?.x < minX) minX = nodeMap[out].x;
-                });
-                v.x = minX - 10;
-              } else if (
-                (v.type === 'Send' && v.scope.slice(0, 7) === 'Default') ||
-              (v.type === 'Receive' && v.scope.slice(0, 8) === 'Gradient')
-              ) {
-                v.y = 150;
-                let maxX = -10000000000;
-                v.input.forEach((i) => {
-                  if (nodeMap[i]?.x > maxX) maxX = nodeMap[i].x;
-                });
-                v.x = maxX + 10;
-              }
-            });
-          })
-          .stop();
 
       this.gradients = this.g
           .append('g');
@@ -295,7 +233,7 @@ export default {
       this.normalEdgesView = this.g
           .append('g')
           .selectAll('line')
-          .data(normalEdges)
+          .data(this.normalEdges)
           .enter()
           .append('line');
 
@@ -304,7 +242,7 @@ export default {
         this.specialEdgeViews[def.class] = this.g
             .append('g')
             .selectAll('path')
-            .data(specialEdges[def.class])
+            .data(this.specialEdges[def.class])
             .enter()
             .append('path')
             .attr('class', def.class)
@@ -339,8 +277,7 @@ export default {
     },
 
     tickAndUpdate(tick) {
-      this.sim.tick(tick);
-      console.log(this.opNodes);
+      layout(this.opNodes, this.normalEdges, this.nodeMap, tick);
       this.gradients
           .selectAll('circle')
           .attr('cx', (v) => v.x)
