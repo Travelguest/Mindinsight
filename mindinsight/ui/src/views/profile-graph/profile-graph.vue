@@ -9,11 +9,45 @@
 
     <svg id="profile-graph" style="width: 100%; height: 100%">
       <defs>
-        <radialGradient v-for="namespace in selectNamespaces" :id="namespace + '_gradient'" :key="namespace + '_gradient'" x1="0" x2="0" y1="0" y2="1">
+        <radialGradient
+          v-for="namespace in selectNamespaces"
+          :id="namespace + '_gradient'"
+          :key="namespace + '_gradient'"
+          x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" :stop-color="gradientsColorScale(namespace)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
       </defs>
+
+      <g ref="graph-container">
+        <g id="graph-edge-container">
+          <g id="normal-edge-container">
+            <line
+              v-for="(edge, index) in normalEdges" :key="index"
+              :x1="edge.source.x" :y1="edge.source.y"
+              :x2="edge.target.x" :y2=edge.target.y></line>
+          </g>
+          <g v-for="([cls, state], i) in specialEdgesDisplayStates" :key="cls" v-show="state">
+            <path
+              v-for="(edge, index) in specialEdges[cls]" :key="index"
+              :class="cls"
+              :d="specialEdgesDef[i].path(edge.source, edge.target)"
+             ></path>
+          </g>
+        </g>
+
+        <g id="graph-node-container">
+          <g
+            v-for="node in opNodes.filter(v => v.x !== undefined)"
+            :key="node.id"
+            v-on:click="onNodeClick(node)"
+            >
+            <circle :cx="node.x" :cy="node.y" :r="node.r" :class="node.type.toLowerCase()" ></circle>
+            <text :x="node.x-10" :y="node.y+20" v-html="node.id + node.type"></text>
+          </g>
+        </g>
+
+      </g>
     </svg>
     <a-tree-select
       v-model="selectNamespaces"
@@ -43,7 +77,6 @@ import {
 } from '@/js/profile-graph/build-graph.js';
 import * as d3 from 'd3';
 import {layout} from '@/js/profile-graph/force-layout.js';
-import {communicationOps} from '@/js/profile-graph/node-process.js';
 import {specialEdgesDef} from '@/js/profile-graph/edge-process.js';
 import {TreeSelect} from 'ant-design-vue';
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
@@ -56,11 +89,12 @@ export default {
       treeData,
       SHOW_PARENT,
       nodeGroups: [],
-      specialEdgesDisplayStates: specialEdgesDef.map((v) => [
-        v.class,
-        v.defaultDisplay,
-      ]),
+      specialEdgesDisplayStates: [],
       gradients: null,
+      opNodes: [],
+      normalEdges: [],
+      specialEdgesDef: specialEdgesDef,
+      specialEdges: {},
     };
   },
 
@@ -91,27 +125,26 @@ export default {
             .style('fill', `url(#${curSelectNamespaces[i]}_gradient)`);
       }
     },
-
-    specialEdgesDisplayStates: function(states) {
-      for (const [cls, display] of states) {
-        this.specialEdgeViews[cls].style('display', display ? null : 'none');
-      }
-    },
   },
 
   mounted() {
     this.svg = d3.select('#profile-graph');
-    this.g = this.svg.append('g');
+    this.g = d3.select(this.$refs['graph-container']);
     this.svg.call(
         d3.zoom().on('zoom', () => {
           this.g.attr('transform', d3.event.transform);
         }),
     );
-    this.gradientsColorScale = d3.scaleOrdinal(d3.schemeAccent);
     this.initGraph();
   },
 
   methods: {
+    gradientsColorScale: d3.scaleOrdinal(d3.schemeAccent),
+
+    onNodeClick(node) {
+      console.log(node);
+    },
+
     preOrder(tree, nodeGroup) {
       if (!tree) return;
       nodeGroup.push(this.opNodes[this.idToIndex[tree.id]]);
@@ -151,8 +184,8 @@ export default {
         v.input.forEach((preId) => {
           if (this.nodeMap[preId]) {
             this.allEdges.push({
-              source: this.idToIndex[preId],
-              target: this.idToIndex[v.id],
+              source: this.opNodes[this.idToIndex[preId]],
+              target: this.opNodes[this.idToIndex[v.id]],
               iterations: 5,
             });
           }
@@ -168,23 +201,30 @@ export default {
         }
       });
 
-      this.normalEdges = [];
-      this.specialEdges = {};
-      specialEdgesDef.forEach((v) => (this.specialEdges[v.class] = []));
+      const normalEdges = [];
+      const specialEdges = {};
+      specialEdgesDef.forEach((v) => (specialEdges[v.class] = []));
 
       for (const edge of this.allEdges) {
         const {source, target} = edge;
-        const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
+        const [sNode, tNode] = [source, target];
         const isNormalEdge = true;
         for (const def of specialEdgesDef) {
           if (def.condition(sNode, tNode, this.nodeMap)) {
             isNormalEdge = false;
-            this.specialEdges[def.class].push(edge);
+            specialEdges[def.class].push(edge);
             break;
           }
         }
-        if (isNormalEdge) this.normalEdges.push(edge);
+        if (isNormalEdge) normalEdges.push(edge);
       }
+
+      this.normalEdges = normalEdges;
+      this.specialEdges = specialEdges;
+      this.specialEdgesDisplayStates = specialEdgesDef.map((v) => [
+        v.class,
+        v.defaultDisplay,
+      ]);
 
       this.gradients = this.g
           .append('g');
@@ -197,51 +237,6 @@ export default {
           .attr('r', 50)
           .style('fill', 'none')
           .style('stroke', 'none');
-
-      this.normalEdgesView = this.g
-          .append('g')
-          .selectAll('line')
-          .data(this.normalEdges)
-          .enter()
-          .append('line');
-
-      this.specialEdgeViews = {};
-      for (const def of specialEdgesDef) {
-        this.specialEdgeViews[def.class] = this.g
-            .append('g')
-            .selectAll('path')
-            .data(this.specialEdges[def.class])
-            .enter()
-            .append('path')
-            .attr('class', def.class)
-            .style('display', def.defaultDisplay ? null : 'none');
-      }
-
-      this.nodes = this.g
-          .append('g')
-          .selectAll('circle')
-          .data(this.opNodes)
-          .enter()
-          .append('circle')
-          .attr('cx', (v) => v.x)
-          .attr('cy', (v) => v.y)
-          .attr('r', (v) => v.r)
-          .classed('communication', (v) => communicationOps.has(v.type))
-          .classed('send', (v) => v.type === 'Send')
-          .classed('receive', (v) => v.type === 'Receive')
-          .classed('load', (v) => v.type === 'Load')
-          .on('click', (data) => {
-            console.log(data);
-          });
-      this.opName = this.g
-          .append('g')
-          .selectAll('text')
-          .data(this.opNodes)
-          .enter()
-          .append('text')
-          .attr('x', (v) => v.x - 10)
-          .attr('y', (v) => v.y + 20)
-          .text((v) => v.id + v.type);
     },
 
     tickAndUpdate(tick) {
@@ -250,25 +245,6 @@ export default {
           .selectAll('circle')
           .attr('cx', (v) => v.x)
           .attr('cy', (v) => v.y);
-      this.nodes
-          .attr('cx', (v) => v.x)
-          .attr('cy', (v) => v.y)
-          .attr('r', (v) => v.r);
-      this.normalEdgesView
-          .attr('x1', (v) => v.source.x)
-          .attr('y1', (v) => v.source.y)
-          .attr('x2', (v) => v.target.x)
-          .attr('y2', (v) => v.target.y);
-      for (const def of specialEdgesDef) {
-        const view = this.specialEdgeViews[def.class];
-        view.attr('d', (v) => {
-          const {source, target} = v;
-          const [sNode, tNode] = [this.opNodes[source], this.opNodes[target]];
-          return def.path(sNode, tNode);
-        });
-      }
-
-      this.opName.attr('x', (v) => v.x - 10).attr('y', (v) => v.y + 20);
     },
   },
 };
@@ -299,10 +275,24 @@ export default {
   fill: white;
 }
 
-#profile-graph circle.communication {
+#profile-graph circle.allreduce {
   stroke: red;
   stroke-width: 2;
-  fill: white;
+}
+
+#profile-graph circle.allgather {
+  stroke: red;
+  stroke-width: 2;
+}
+
+#profile-graph circle.alltoall {
+  stroke: red;
+  stroke-width: 2;
+}
+
+#profile-graph circle.reducescatter {
+  stroke: red;
+  stroke-width: 2;
 }
 
 #profile-graph circle.send {
