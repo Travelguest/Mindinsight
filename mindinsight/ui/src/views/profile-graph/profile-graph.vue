@@ -11,15 +11,23 @@
       <defs>
         <radialGradient
           v-for="namespace in selectNamespaces"
-          :id="namespace + '_gradient'"
-          :key="namespace + '_gradient'"
+          :id="namespace + '_halo'"
+          :key="namespace + '_halo'"
           x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" :stop-color="gradientsColorScale(namespace)"/>
+          <stop offset="0%" :stop-color="haloColorScale(namespace)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
       </defs>
 
       <g ref="graph-container">
+        <g id="graph-halo-container">
+          <g v-for="[namespace, nodeGroup] in haloInfo" :key="namespace">
+            <circle
+              v-for="node in nodeGroup.filter(v => v !== undefined)" :key="node.id"
+              :cx="node.x" :cy="node.y" r="50"
+              :fill="`url(#${namespace}_halo)`"></circle>
+          </g>
+        </g>
         <g id="graph-edge-container">
           <g id="normal-edge-container">
             <line
@@ -42,7 +50,7 @@
             :key="node.id"
             v-on:click="onNodeClick(node)"
             >
-            <circle :cx="node.x" :cy="node.y" :r="node.r" :class="node.type.toLowerCase()" ></circle>
+            <circle :cx="node.x" :cy="node.y" :r="node.r" :class="node.type.toLowerCase()+ ' node'" ></circle>
             <text :x="node.x-10" :y="node.y+20" v-html="node.id + node.type"></text>
           </g>
         </g>
@@ -90,7 +98,6 @@ export default {
       SHOW_PARENT,
       nodeGroups: [],
       specialEdgesDisplayStates: [],
-      gradients: null,
       opNodes: [],
       normalEdges: [],
       specialEdgesDef: specialEdgesDef,
@@ -98,15 +105,11 @@ export default {
     };
   },
 
-  watch: {
-    selectNamespaces(curSelectNamespaces) {
-      this.nodeGroups = [];
-      this.gradients
-          .selectAll('circle')
-          .style('fill', 'none')
-          .style('stroke', 'none');
-      for (const curSelectNamespace of curSelectNamespaces) {
-        const childrenIndex = curSelectNamespace.split('-');
+  computed: {
+    haloInfo: function() {
+      const res = [];
+      for (const namespace of this.selectNamespaces) {
+        const childrenIndex = namespace.split('-');
         childrenIndex.shift();
         let selectNode = this.treeData[Number(childrenIndex[0])];
         childrenIndex.shift();
@@ -116,14 +119,9 @@ export default {
         const nodeGroup = [];
         // iterate subtree
         this.preOrder(selectNode, nodeGroup);
-        this.nodeGroups.push(nodeGroup);
+        res.push([namespace, nodeGroup]);
       }
-      for (let i = 0; i < this.nodeGroups.length; i++) {
-        this.gradients
-            .selectAll('circle')
-            .data(this.nodeGroups[i], (d) => d ? d.id : this.id)
-            .style('fill', `url(#${curSelectNamespaces[i]}_gradient)`);
-      }
+      return res;
     },
   },
 
@@ -139,7 +137,7 @@ export default {
   },
 
   methods: {
-    gradientsColorScale: d3.scaleOrdinal(d3.schemeAccent),
+    haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
 
     onNodeClick(node) {
       console.log(node);
@@ -225,26 +223,10 @@ export default {
         v.class,
         v.defaultDisplay,
       ]);
-
-      this.gradients = this.g
-          .append('g');
-      this.gradients
-          .selectAll('circle')
-          .data(this.opNodes, (d) => d ? d.id : this.id)
-          .join('circle')
-          .attr('cx', (v) => v.x)
-          .attr('cy', (v) => v.y)
-          .attr('r', 50)
-          .style('fill', 'none')
-          .style('stroke', 'none');
     },
 
     tickAndUpdate(tick) {
       layout(this.opNodes, this.normalEdges, this.nodeMap, tick);
-      this.gradients
-          .selectAll('circle')
-          .attr('cx', (v) => v.x)
-          .attr('cy', (v) => v.y);
     },
   },
 };
@@ -269,7 +251,7 @@ export default {
   font-size: 5px;
 }
 
-#profile-graph circle {
+#profile-graph circle.node {
   stroke: black;
   stroke-width: 0.5;
   fill: white;
