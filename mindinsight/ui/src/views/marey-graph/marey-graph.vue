@@ -1,101 +1,81 @@
 <template>
   <div class="marey-graph">
-    <svg-wrapper :ref="SVG_NAME">
+    <svg-wrapper :ref="SVG_NAME" id="marey-svg">
       <template v-slot:image>
         <defs>
           <clipPath id="myClip">
             <rect x="-3" y="-3" width="100%" height="100%" />
           </clipPath>
         </defs>
-        <g
-          class="marey-graph"
-          :transform="`translate(${margin.left}, ${margin.top})`"
-        >
+        <g class="marey-graph" id="polygon-g" :transform="`translate(${margin.left}, ${margin.top})`">
           <!-- gridline -->
-          <g
-            v-if="gridlineOptions !== null"
+          <g 
+            v-if="gridlineOptions!==null"
             v-axis:left="gridlineOptions"
             class="gridline"
           />
-          <g
-            :transform="`translate(0, ${yScale ? yScale.bandwidth() / 2 : 0})`"
-          >
+          <g :transform="`translate(0, ${yScale ? yScale.bandwidth()/2: 0})`">
             <g>
-              <text
-                v-for="key in Object.keys(data)"
-                :key="key"
+              <text v-for="key in Object.keys(data)" :key="key"
                 :transform="`translate(${-margin.left + 15}, ${yScale(key)})`"
                 dominant-baseline="middle"
               >
-                {{ key }}
+                {{key}}
               </text>
             </g>
 
-            <g clip-path="url(#myClip)">
-              <template v-for="(path, i) in pathArr">
-                <path :key="i" :d="path" fill="none" stroke="#ccc" />
-              </template>
-
-              <!-- <g v-for="(value, key) in data" :key="key">
-                <circle
-                  v-for="{ts, i} in value"
-                  :key="i"
-                  :cx="zoomedXScale(ts)"
-                  :cy="yScale(key)"
-                  r="3"
-                  fill="#ffcd42"
-                  opacity="0.2"
+            <g class="marey-container" clip-path="url(#myClip)">
+              <template v-for="(points, key) in polygonData" >
+                <polygon  
+                  :key="key"
+                  :points="points"
+                  fill="#92BAD7"
+                  stroke="#ccc"
+                  stroke-width="0.1"
                 />
-              </g> -->
-            </g>
+              </template>
+            </g> 
           </g>
         </g>
       </template>
     </svg-wrapper>
-
-    <!-- <canvas
-      ref="$canvas"
-      :width="width"
-      :height="height"
-    /> -->
   </div>
 </template>
 
 <script>
 import * as d3 from 'd3';
 import {debounce} from 'lodash';
-import getBound, {
-  SVG_NAME,
-} from '@/mixins/basic-operation-of-charts/get-bound';
-import {axisDirective} from '../directives/axis';
-// import RequestService from '@/services/request-service';
+import getBound, { SVG_NAME } from '@/mixins/basic-operation-of-charts/get-bound';
+import { axisDirective } from '../directives/axis';
+import RequestService from '@/services/request-service';
 import svgWrapper from '../svg-wrapper.vue';
 
-const maxTime = (dataArr) => {
+const maxTime = (dataArr => {
   let maxValue = 0;
-  dataArr.forEach((data) => {
+  dataArr.forEach(data => {
     // the last item's timestap
-    maxValue = Math.max(maxValue, data[data.length - 1].ts);
+    const {ts, dur} = data[data.length-1];
+    maxValue = Math.max(maxValue, ts + dur);
   });
 
   return maxValue;
-};
+})
 
-const minTime = (dataArr) => {
+const minTime = (dataArr => {
   let minValue = Infinity;
-  dataArr.forEach((data) => {
+  dataArr.forEach(data => {
     // the last item's timestap
     minValue = Math.min(minValue, data[0].ts);
   });
-
+  
   return minValue;
-};
+})
 
 export default {
-  mixins: [getBound],
+  mixins: [getBound], // 用来获取画布的大小
 
   directives: {
-    axis: axisDirective,
+    axis: axisDirective
   },
 
   components: {
@@ -110,275 +90,147 @@ export default {
       xScale: null,
       yScale: null,
       transform: d3.zoomIdentity,
-      dataByName: {},
       pathArr: [],
+      polygonData: [],
+      displayedData: {},
       mousePos: 70,
-      zoomedXScale: null,
+      xScale: null
     };
   },
 
-  // mounted() {
-  //   RequestService.getTimelineData()
-  //       .then(
-  //           (res) => {
-  //             if (res && res.data) {
-  //               const data = res.data.data;
+  mounted() {
+    RequestService.getTimelineData()
+      .then(
+        (res) => {
+          if(res && res.data) {
+            const minT = res.data.minT;
+            const maxT = res.data.maxT;
+            const operator_time_maps = res.data.maps; 
+            console.log(res.data)
+            const yScale = d3.scaleBand()
+              .domain(Object.keys(operator_time_maps).sort((a,b) => a < b ? -1: 1))
+              .range([0, this.heightMap]);
+            const xScale = d3.scaleLinear()
+              .domain([minT, maxT])
+              .range([0, this.widthMap])
 
-  //               const yScale = d3.scaleBand()
-  //                   .domain(Object.keys(data).sort((a, b) => a < b ? -1: 1))
-  //                   .range([0, this.heightMap]);
-  //               const xScale = d3.scaleLinear()
-  //                   .domain([minTime(Object.values(data)), maxTime(Object.values(data))])
-  //                   .range([0, this.widthMap]);
+            const stepNum = 1;
+            
+            const displayedData = {};
+            Object.keys(operator_time_maps).forEach(deviceName => {
+              const curDeviceData = operator_time_maps[deviceName];
+              Object.keys(curDeviceData).forEach(op => { // 这里op是算子名
+                if (!displayedData[op]) displayedData[op] = [];
+                const curOp = curDeviceData[op];
+                displayedData[op].push({x1: curOp.st, x2: curOp.ed, y: deviceName});
+              })
+            })
+            console.log(displayedData)
+            this.displayedData = displayedData;
+            this.xScale = xScale;
+            this.yScale = yScale;
 
-  //               this.zoomedXScale = xScale;
+            const modify = this.modifyTransfrom;
+            const that = this;
+            window.d3 = d3;
+            window.that = this;
+            this.transformToRect()
 
-  //               this.xScale = xScale;
-  //               this.yScale = yScale;
-  //               this.data = data;
-  //               this.dataByName = this.getItemsByName(data);
+            // this.$nextTick(() => {
+              
+              const svgPart = d3.select('#marey-svg');
+              const g = d3.select('#polygon-g');
 
-  //               const modify = debounce(this.modifyTransfrom, 200);
-  //               const that = this;
-
-  //               this.$nextTick(() => {
-  //                 this.transformToPath();
-
-  //                 d3.select(this.$refs[SVG_NAME].$refs.$svg)
-  //                     .call(
-  //                         d3.zoom().scaleExtent([1, 100])
-  //                             .on('zoom', function() {
-  //                               const transform = d3.event.transform;
-
-  //                               modify(transform);
-  //                               that.mousePos = d3.event.sourceEvent.offsetX;
-  //                             }),
-  //                     );
-
-  //                 // this.draw()
-  //               });
-  //             }
-  //           },
-  //           (err) => {
-  //             console.log(err);
-  //           },
-  //       );
-  // },
+              svgPart.call(
+                  d3.zoom()
+                  .on('zoom', function() {
+                    const transform = d3.event.transform;
+                    g.attr("transform", `translate(${transform.x}, 0) scale(${transform.k}, 1)`);
+                  })
+                );
+            // })
+          }
+        },
+        (err) => {
+          console.log(err);
+        },
+      )
+  },
 
   watch: {
     transform() {
-      this.transformToPath();
-      // this.draw()
-    },
+      this.transformToRect()
+    }
   },
 
   computed: {
     gridlineOptions() {
-      if (this.yScale !== null) {
+      if(this.yScale !== null) {
         return {
           scale: this.yScale,
           inner: -this.widthMap,
-          tickFormat: '',
-        };
+          tickFormat: ''
+        }
       }
       return null;
     },
-
-    // ctx() {
-    //   return this.$refs.$canvas.getContext('2d');
-    // }
   },
 
   methods: {
-    // modify transform and update xScale
-    modifyTransfrom(v) {
-      const {
-        zoomedXScale,
-        transform,
-        mousePos,
-        margin: {left},
-        xScale,
-      } = this;
-      const updateScale = v.rescaleX(xScale);
-
-      if (transform.k === v.k) {
-        this.zoomedXScale = updateScale;
-      } else {
-        const value = zoomedXScale.invert(mousePos - left);
-        const updateValue = updateScale.invert(mousePos - left);
-
-        this.zoomedXScale = d3
-            .scaleLinear()
-            .range([0, this.widthMap])
-            .domain(updateScale.domain().map((d) => d + (-updateValue + value)));
-      }
-      this.transform = v;
-    },
-    getItemsByName(data) {
-      const nameMap = {};
-      const keys = this.yScale.domain();
-
-      for (const key of keys) {
-        const value = data[key];
-
-        for (const {ts, name} of value) {
-          if (
-            name.indexOf('AllReduce') > -1 ||
-            name.indexOf('AllGather') > -1 ||
-            name.indexOf('ReduceScatter') > -1 ||
-            name.indexOf('BroadCast') > -1
-          ) {
-            if (nameMap[name]) {
-              if (nameMap[name][key]) {
-                nameMap[name][key].push({
-                  x: ts,
-                  y: key,
-                });
-              } else {
-                nameMap[name][key] = [
-                  {
-                    x: ts,
-                    y: key,
-                  },
-                ];
-              }
-            } else {
-              nameMap[name] = {
-                [key]: [
-                  {
-                    x: ts,
-                    y: key,
-                  },
-                ],
-              };
-            }
-          }
+    transformToRect() {
+      const {displayedData, xScale, yScale} = this;
+      Object.keys(displayedData).forEach(op => {
+        let points = "";
+        const curOpDeviceData = displayedData[op];
+        for (let i = 0; i < curOpDeviceData.length; i++) {
+          const dt = curOpDeviceData[i];
+          points += `${xScale(dt.x1)},${yScale(dt.y)} `;
         }
-      }
-
-      // console.log(nameMap)
-
-      const resultArr = [];
-      // eslint-disable-next-line guard-for-in
-      for (const key in nameMap) {
-        const value = nameMap[key];
-
-        if (Object.keys(value).length > 1) {
-          const valuesArr = Object.values(value);
-          const v = valuesArr.reduce(
-              (acc, cur) => Math.min(acc, cur.length),
-              Number.MAX_VALUE,
-          );
-          for (let i = 0; i < v; ++i) {
-            resultArr.push(valuesArr.map((arr) => arr[i]));
-          }
-          // console.log(valuesArr);
+        for (let i = curOpDeviceData.length - 1; i >= 0; i--) {
+          const dt = curOpDeviceData[i];
+          points += `${xScale(dt.x2)},${yScale(dt.y)} `;
         }
-      }
-      // return Object.values(nameMap).filter(valueArr => Object.keys(valueArr).length > 1);
-      return resultArr;
-    },
-
-    transformToPath() {
-      const {dataByName, zoomedXScale, yScale} = this;
-
-      this.pathArr = dataByName.map((arr) => {
-        const {x: startX, y: startY} = arr[0];
-        let path = `M ${zoomedXScale(startX)} ${yScale(startY)}`;
-
-        for (let i = 1; i < arr.length; i++) {
-          const {x, y} = arr[i];
-          path += `L ${zoomedXScale(x)} ${yScale(y)}`;
-        }
-
-        return path;
-      });
+        this.polygonData.push(points);
+      })
     },
 
     draw() {
-      this.ctx.clearRect(0, 0, this.width, this.height);
-
-      this.drawLines();
-      this.drawPoints();
+      this.ctx.clearRect(0,0,this.width, this.height);
     },
-    drawPoints() {
-      const {ctx, data, zoomedXScale, yScale, margin, width, height} = this;
-
-      ctx.save();
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-
-      // eslint-disable-next-line guard-for-in
-      for (const key in data) {
-        const value = data[key];
-
-        const y = yScale(key) + yScale.bandwidth() / 2 + margin.top - 1;
-        for (const {ts} of value) {
-          const x = zoomedXScale(ts) + margin.left - 1;
-          ctx.moveTo(x, y);
-
-          ctx.beginPath();
-          ctx.arc(x, y, 3, 0, 2 * Math.PI);
-          ctx.closePath();
-
-          ctx.fill();
-          ctx.stroke();
-        }
-      }
-      ctx.restore();
-    },
-    drawLines() {
-      const {ctx, dataByName, zoomedXScale, yScale, margin} = this;
-      ctx.strokeStyle = 'rgba(128,128,128,0.5)';
-      // ctx.translate(0.5, 0.5);
-      for (const item of dataByName) {
-        const {x: startX, y: startY} = item[0];
-        ctx.moveTo(
-            zoomedXScale(startX) + margin.left,
-            yScale(startY) + margin.top + yScale.bandwidth() / 2,
-        );
-
-        for (let i = 1; i < item.length; i++) {
-          const {x, y} = item[i];
-          ctx.lineTo(
-              zoomedXScale(x) + margin.left,
-              yScale(y) + margin.top + yScale.bandwidth() / 2,
-          );
-        }
-        ctx.stroke();
-      }
-    },
-  },
-};
+  }
+}
 </script>
 
 <style>
-.marey-graph {
-  border-top: 2px solid #ccc;
-  position: relative;
-}
+  .marey-graph {
+    border-top: 2px solid #ccc;
+    position: relative;
+  }
 
-.marey-graph svg,
-.marey-graph canvas {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  right: 0;
-}
+  .marey-graph svg, .marey-graph canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+  }
 
-.marey-graph canvas {
-  border: 1px solid;
-  pointer-events: none;
-}
+  #polygon-g {
+    width: 100%;
+    height: 100%;
+  }
 
-/* grid line */
-.marey-graph .gridline .tick line {
-  stroke: #ccc;
-}
+  .marey-graph canvas {
+    border: 1px solid;
+    pointer-events: none;
+  }
 
-.marey-graph .gridline .domain {
-  display: none;
-}
+  /* grid line */
+  .marey-graph .gridline .tick line{
+    stroke: #ccc;
+  }
+
+  .marey-graph .gridline .domain {
+    display: none;
+  }
 </style>
