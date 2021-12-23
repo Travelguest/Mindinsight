@@ -9,24 +9,8 @@
 
     <svg id="profile-graph" style="width: 100%; height: 100%">
       <defs>
-        <radialGradient id="NODE_COLOR1" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#fbb4ae"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </radialGradient>
-        <radialGradient id="NODE_COLOR2" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#b3cde3"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </radialGradient>
-        <radialGradient id="NODE_COLOR3" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#ccebc5"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </radialGradient>
-        <radialGradient id="NODE_COLOR4" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#decbe4"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </radialGradient>
-        <radialGradient id="NODE_COLOR5" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#fed9a6"/>
+        <radialGradient v-for="namespace in selectNamespaces" :id="namespace + '_gradient'" :key="namespace + '_gradient'" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" :stop-color="gradientsColorScale(namespace)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
       </defs>
@@ -46,7 +30,6 @@
       search-placeholder="Please select"
       :dropdownStyle="{ maxHeight: '300px' }"
       :maxTagCount="Number(1)"
-      @change="selectTreeNode"
     />
   </div>
 </template>
@@ -64,13 +47,7 @@ import {communicationOps} from '@/js/profile-graph/node-process.js';
 import {specialEdgesDef} from '@/js/profile-graph/edge-process.js';
 import {TreeSelect} from 'ant-design-vue';
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
-const NODE_COLORS = [
-  'NODE_COLOR1',
-  'NODE_COLOR2',
-  'NODE_COLOR3',
-  'NODE_COLOR4',
-  'NODE_COLOR5',
-];
+
 
 export default {
   data() {
@@ -107,12 +84,11 @@ export default {
         this.preOrder(selectNode, nodeGroup);
         this.nodeGroups.push(nodeGroup);
       }
-      console.log(this.nodeGroups);
       for (let i = 0; i < this.nodeGroups.length; i++) {
         this.gradients
             .selectAll('circle')
             .data(this.nodeGroups[i], (d) => d ? d.id : this.id)
-            .style('fill', `url(#${NODE_COLORS[i]})`);
+            .style('fill', `url(#${curSelectNamespaces[i]}_gradient)`);
       }
     },
 
@@ -131,6 +107,7 @@ export default {
           this.g.attr('transform', d3.event.transform);
         }),
     );
+    this.gradientsColorScale = d3.scaleOrdinal(d3.schemeAccent);
     this.initGraph();
   },
 
@@ -140,14 +117,6 @@ export default {
       nodeGroup.push(this.opNodes[this.idToIndex[tree.id]]);
       for (const child of tree.children) {
         this.preOrder(child, nodeGroup);
-      }
-    },
-
-    selectTreeNode() {
-      // limit max select num to 5
-      if (this.selectNamespaces.length > 5) {
-        this.selectNamespaces.pop();
-        return;
       }
     },
 
@@ -168,7 +137,6 @@ export default {
 
       this.nodeMap = processedGraph.nodeMap;
       this.treeData = treeData.children;
-      console.log(this.treeData, this.nodeMap);
     },
 
     initNode() {
