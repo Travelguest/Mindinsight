@@ -1,9 +1,9 @@
 <template>
   <div class="profile-graph">
     <div class="special-edge-checkbox">
-      <p v-for="item in specialEdgesDisplayStates" :key="item[0]">
-        <input type="checkbox" v-model="item[1]" />
-        <label v-html="item[0]"></label>
+      <p v-for="cls in Object.keys(specialEdges)" :key="cls">
+        <input type="checkbox" v-model="specialEdges[cls].display" />
+        <label v-html="cls"></label>
       </p>
     </div>
 
@@ -23,7 +23,7 @@
         <g id="graph-halo-container">
           <g v-for="[namespace, nodeGroup] in haloInfo" :key="namespace">
             <circle
-              v-for="node in nodeGroup.filter(v => v !== undefined)" :key="node.id"
+              v-for="node in nodeGroup.filter(v => v !== undefined)" :key="node.id+'halo'"
               :cx="node.x" :cy="node.y" r="50"
               :fill="`url(#${namespace}_halo)`"></circle>
           </g>
@@ -35,11 +35,11 @@
               :x1="edge.source.x" :y1="edge.source.y"
               :x2="edge.target.x" :y2=edge.target.y></line>
           </g>
-          <g v-for="([cls, state], i) in specialEdgesDisplayStates" :key="cls" v-show="state">
+          <g v-for="cls in Object.keys(specialEdges)" :key="cls" v-show="specialEdges[cls].display">
             <path
-              v-for="(edge, index) in specialEdges[cls]" :key="index"
+              v-for="(edge, index) in specialEdges[cls].values" :key="index"
               :class="cls"
-              :d="specialEdgesDef[i].path(edge.source, edge.target)"
+              :d="specialEdges[cls].path(edge.source, edge.target)"
              ></path>
           </g>
         </g>
@@ -85,7 +85,7 @@ import {
 } from '@/js/profile-graph/build-graph.js';
 import * as d3 from 'd3';
 import {layout} from '@/js/profile-graph/force-layout.js';
-import {specialEdgesDef} from '@/js/profile-graph/edge-process.js';
+import {extractVisNodeAndEdge} from '@/js/profile-graph/graph-process.js';
 import {TreeSelect} from 'ant-design-vue';
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
@@ -97,10 +97,8 @@ export default {
       treeData,
       SHOW_PARENT,
       nodeGroups: [],
-      specialEdgesDisplayStates: [],
       opNodes: [],
       normalEdges: [],
-      specialEdgesDef: specialEdgesDef,
       specialEdges: {},
     };
   },
@@ -145,7 +143,11 @@ export default {
 
     preOrder(tree, nodeGroup) {
       if (!tree) return;
-      nodeGroup.push(this.opNodes[this.idToIndex[tree.id]]);
+      const idToIndex = {};
+      this.opNodes.forEach((v, i) => {
+        idToIndex[v.id] = i;
+      });
+      nodeGroup.push(this.opNodes[idToIndex[tree.id]]);
       for (const child of tree.children) {
         this.preOrder(child, nodeGroup);
       }
@@ -153,8 +155,10 @@ export default {
 
     async initGraph() {
       await this.fetchData();
-      this.initNode();
-      this.tickAndUpdate(200);
+      // this.initNode();
+      const {specialEdges, normalEdges, opNodes} = extractVisNodeAndEdge(this.nodeMap);
+      [this.specialEdges, this.normalEdges, this.opNodes] = [specialEdges, normalEdges, opNodes];
+      layout(this.opNodes, this.normalEdges, this.nodeMap, 200);
     },
 
     async fetchData() {
@@ -168,65 +172,6 @@ export default {
 
       this.nodeMap = processedGraph.nodeMap;
       this.treeData = treeData.children;
-    },
-
-    initNode() {
-      this.allEdges = [];
-      this.opNodes = Object.values(this.nodeMap);
-      this.idToIndex = {};
-      this.opNodes.forEach((v, i) => {
-        this.idToIndex[v.id] = i;
-      });
-
-      this.opNodes.forEach((v, i) => {
-        v.input.forEach((preId) => {
-          if (this.nodeMap[preId]) {
-            this.allEdges.push({
-              source: this.opNodes[this.idToIndex[preId]],
-              target: this.opNodes[this.idToIndex[v.id]],
-              iterations: 5,
-            });
-          }
-        });
-        v.x = i * 15;
-        v.y = Math.random() * 20;
-        if (v.type === 'Depend') {
-          v.r = 3;
-        } else if (v.type === 'Load') {
-          v.r = 3;
-        } else {
-          v.r = 10;
-        }
-      });
-
-      const normalEdges = [];
-      const specialEdges = {};
-      specialEdgesDef.forEach((v) => (specialEdges[v.class] = []));
-
-      for (const edge of this.allEdges) {
-        const {source, target} = edge;
-        const [sNode, tNode] = [source, target];
-        const isNormalEdge = true;
-        for (const def of specialEdgesDef) {
-          if (def.condition(sNode, tNode, this.nodeMap)) {
-            isNormalEdge = false;
-            specialEdges[def.class].push(edge);
-            break;
-          }
-        }
-        if (isNormalEdge) normalEdges.push(edge);
-      }
-
-      this.normalEdges = normalEdges;
-      this.specialEdges = specialEdges;
-      this.specialEdgesDisplayStates = specialEdgesDef.map((v) => [
-        v.class,
-        v.defaultDisplay,
-      ]);
-    },
-
-    tickAndUpdate(tick) {
-      layout(this.opNodes, this.normalEdges, this.nodeMap, tick);
     },
   },
 };
