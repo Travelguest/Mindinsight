@@ -18,20 +18,22 @@
         <div class="col">
           <div class="left">scope:</div><div class="right">
             <div
-              v-for="(scope, index) in hoveredNodeInfo.node.name.split('/')" 
-              :key="scope + index" v-html="scope"></div>
+              v-for="(scope, index) in hoveredNodeInfo.node.scope.split('/')"
+              :key="scope + index" v-html="`${scope}/`"></div>
           </div>
         </div>
         <div class="col">
           <div class="left">inputs:</div>
           <div class="right">
-            <div v-for="input in hoveredNodeInfo.node.input" :key="input" v-html="input"></div>
+            <div v-for="input in hoveredNodeInfo.node.input" :key="input"
+            v-html="`${input}${nodeMap[input].type}`"></div>
           </div>
         </div>
         <div class="col">
           <div class="left">output:</div>
           <div class="right">
-            <div v-for="output in hoveredNodeInfo.node.output" :key="output" v-html="output"></div>
+            <div v-for="output in hoveredNodeInfo.node.output" :key="output"
+            v-html="`${output}${nodeMap[output].type}`"></div>
           </div>
         </div>
       </div>
