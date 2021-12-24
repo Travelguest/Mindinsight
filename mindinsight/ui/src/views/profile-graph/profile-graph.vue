@@ -6,7 +6,36 @@
         <label v-html="cls"></label>
       </p>
     </div>
-
+    <div class="profile-graph-tooltip"
+      v-if="hoveredNodeInfo !== null"
+      :style="{transform: `translate(${hoveredNodeInfo.x}px, ${hoveredNodeInfo.y}px)`}"
+      >
+      <div class="profile-graph-tooltip-title" v-html="`Node ID: ${hoveredNodeInfo.node.id}`"></div>
+      <div class="profile-graph-tooltip-content">
+        <div class="col">
+          <div class="left">type:</div><div class="right" v-html="hoveredNodeInfo.node.type"></div>
+        </div>
+        <div class="col">
+          <div class="left">scope:</div><div class="right">
+            <div
+              v-for="(scope, index) in hoveredNodeInfo.node.name.split('/')" 
+              :key="scope + index" v-html="scope"></div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="left">inputs:</div>
+          <div class="right">
+            <div v-for="input in hoveredNodeInfo.node.input" :key="input" v-html="input"></div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="left">output:</div>
+          <div class="right">
+            <div v-for="output in hoveredNodeInfo.node.output" :key="output" v-html="output"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <svg id="profile-graph" style="width: 100%; height: 100%">
       <defs>
         <radialGradient
@@ -48,7 +77,9 @@
           <g
             v-for="node in opNodes.filter(v => v.x !== undefined)"
             :key="node.id"
-            v-on:click="onNodeClick(node)"
+            @click="onNodeClick(node)"
+            @mouseover="onNodeMouseover($event, node)"
+            @mouseout="onNodeMouseout"
             >
             <circle :cx="node.x" :cy="node.y" :r="node.r" :class="node.type.toLowerCase()+ ' node'" ></circle>
             <text :x="node.x-10" :y="node.y+20" v-html="node.id + node.type"></text>
@@ -100,6 +131,7 @@ export default {
       opNodes: [],
       normalEdges: [],
       specialEdges: {},
+      hoveredNodeInfo: null,
     };
   },
 
@@ -141,6 +173,18 @@ export default {
       console.log(node);
     },
 
+    onNodeMouseover(e, node) {
+      const {right, bottom} = e.target.getBoundingClientRect();
+      this.hoveredNodeInfo = {
+        node: node,
+        x: right, y: bottom,
+      };
+    },
+
+    onNodeMouseout() {
+      this.hoveredNodeInfo = null;
+    },
+
     preOrder(tree, nodeGroup) {
       if (!tree) return;
       const idToIndex = {};
@@ -155,7 +199,6 @@ export default {
 
     async initGraph() {
       await this.fetchData();
-      // this.initNode();
       const {specialEdges, normalEdges, opNodes} = extractVisNodeAndEdge(this.nodeMap);
       [this.specialEdges, this.normalEdges, this.opNodes] = [specialEdges, normalEdges, opNodes];
       layout(this.opNodes, this.normalEdges, this.nodeMap, 200);
@@ -263,5 +306,35 @@ export default {
   stroke: rgb(27, 29, 20);
   stroke-dasharray: 4;
   opacity: 0.3;
+}
+
+.profile-graph-tooltip {
+  position: fixed;
+  border: 1px solid #d8d8d8;
+  background-color: #fff;
+  z-index: 100;
+  width: 260px;
+  left: 0;
+  top: 0;
+  padding: 8px;
+}
+
+.profile-graph-tooltip .profile-graph-tooltip-title {
+  text-align: center;
+}
+
+.profile-graph-tooltip .profile-graph-tooltip-content .col {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #999;
+}
+
+.profile-graph-tooltip .profile-graph-tooltip-content .col .left {
+  flex-grow: 1;
+}
+
+.profile-graph-tooltip .profile-graph-tooltip-content .col .right {
+  flex-grow: 2;
+  text-align: center;
 }
 </style>
