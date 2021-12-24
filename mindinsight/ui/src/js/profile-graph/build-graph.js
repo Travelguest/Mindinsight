@@ -253,6 +253,173 @@ function buildTreeData(nodes) {
   levelOrder(treeData);
 }
 
+function buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees) {
+  const graph = {};
+  for (const nodeBlock of nodeBlocks) {
+    for (let i = 0; i < nodeBlock.length - 1; i++) {
+      if (!(nodeBlock[i] in graph)) {
+        graph[nodeBlock[i]] = [];
+      }
+      if (!(nodeBlock[i + 1] in graph)) {
+        graph[nodeBlock[i + 1]] = [];
+      }
+      if (!(nodeBlock[i] in indegrees)) {
+        indegrees[nodeBlock[i]] = 0;
+      }
+      if (!(nodeBlock[i + 1] in indegrees)) {
+        indegrees[nodeBlock[i + 1]] = 0;
+      }
+      graph[nodeBlock[i]].push(nodeBlock[i + 1]);
+      indegrees[nodeBlock[i + 1]]++;
+    }
+  }
+
+  Object.keys(pipelinedStageInfo).forEach((key) => {
+    const sendRankID = key.split('-')[0];
+    const recvRankID = key.split('-')[1];
+    Object.keys(pipelinedStageInfo[key]).forEach((key1) => {
+      const sendIndex = pipelinedStageInfo[key][key1][0];
+      const recvIndex = pipelinedStageInfo[key][key1][1];
+      const sendBlock = idToBlock.get(`${sendRankID}-${sendIndex}`);
+      const recvBlock = idToBlock.get(`${recvRankID}-${recvIndex}`);
+      if (!(sendBlock in graph)) {
+        graph[sendBlock] = [];
+      }
+      if (!(sendBlock in indegrees)) {
+        indegrees[sendBlock] = 0;
+      }
+      if (!(recvBlock in graph)) {
+        graph[sendBlock] = [];
+      }
+      if (!(recvBlock in indegrees)) {
+        indegrees[recvBlock] = 0;
+      }
+      graph[sendBlock].push(recvBlock);
+      indegrees[recvBlock]++;
+    });
+  });
+
+  console.log(graph, indegrees);
+
+  return graph;
+}
+
+function dfsInBlockGraph(graph, blockPath, curBlock, isVisit, isFinish, nodeBlockOrder) {
+  if (!(curBlock in graph)) {
+    // isFinish = true;
+    // console.log(blockPath);
+    for (let i = 0; i < blockPath.length; i++) {
+      for (let j = i + 1; j < blockPath.length; j++) {
+        nodeBlockOrder.set(`${blockPath[i]}/${blockPath[j]}`, -1);
+        nodeBlockOrder.set(`${blockPath[j]}/${blockPath[i]}`, 1);
+      }
+    }
+    return;
+  }
+  for (const nextBlock of graph[curBlock]) {
+    if (!isVisit.get(nextBlock)) {
+      isVisit.set(nextBlock, true);
+      blockPath.push(nextBlock);
+      dfsInBlockGraph(graph, blockPath, nextBlock, isVisit, isFinish, nodeBlockOrder);
+      // if (isFinish) return;
+      isVisit.set(nextBlock, false);
+      blockPath.pop();
+    }
+  }
+}
+
+function getTopologicalOrder(graph, indegrees) {
+  let cnt = 0;
+  const queue = [];
+  const topOrder = [];
+
+  Object.keys(graph).forEach((node) => {
+    if (indegrees[node] === 0) {
+      queue.push(node);
+    }
+  });
+
+  while (queue.length !== 0) {
+    const top = queue[0];
+    queue.shift();
+    topOrder.push(top);
+    cnt++;
+    for (const node of graph[top]) {
+      indegrees[node]--;
+      if (indegrees[node] === 0) {
+        queue.push(node);
+      }
+    }
+  }
+
+  if (cnt < Object.keys(graph).length) {
+    console.log('Error! Not DAG!');
+  }
+
+  return topOrder;
+}
+
+function buildPipelinedStageInfo(data) {
+  const nodeBlocks = [];
+  const pipelinedStageInfo = {};
+  const idToBlock = new Map();
+  for (const rankID of Object.keys(data)) {
+    const opNodes = data[rankID]['op_nodes'];
+    const nodeBlock = [];
+    let lastBlockNodeID = 1;
+    for (const opNode of opNodes) {
+      if (opNode.type === 'Send' || opNode.type === 'Receive') {
+        const block = `${rankID}-${lastBlockNodeID}-${opNode.node_id}`;
+        nodeBlock.push(block);
+        lastBlockNodeID = Number(opNode.node_id) + 1;
+        idToBlock.set(`${rankID}-${opNode.node_id}`, block);
+        const thisStr =
+          opNode.type === 'Send'
+            ? `${rankID}-${opNode.attr.dest_rank}`
+            : `${opNode.attr.src_rank}-${rankID}`;
+        if (!(thisStr in pipelinedStageInfo)) {
+          pipelinedStageInfo[thisStr] = {};
+        }
+        if (!(opNode.attr.sr_tag in pipelinedStageInfo[thisStr])) {
+          pipelinedStageInfo[thisStr][opNode.attr.sr_tag] = [];
+        }
+        if (opNode.type === 'Send') {
+          pipelinedStageInfo[thisStr][opNode.attr.sr_tag].unshift(
+              opNode.node_id,
+          );
+        } else {
+          pipelinedStageInfo[thisStr][opNode.attr.sr_tag].push(opNode.node_id);
+        }
+      }
+    }
+    nodeBlocks.push(nodeBlock);
+  }
+  console.log(pipelinedStageInfo, nodeBlocks, idToBlock);
+
+  const indegrees = {};
+  const graph = buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees);
+  const nodeOrder = getTopologicalOrder(graph, indegrees);
+  console.log(nodeOrder);
+  // const blockPath = [];
+  // const nodeBlockOrder = new Map();
+  // const isVisit = new Map();
+  // const isFinish = false;
+  // const firstBlock = nodeBlocks[0][0];
+  // blockPath.push(firstBlock);
+  // isVisit.set(firstBlock, true);
+  // dfsInBlockGraph(graph, blockPath, firstBlock, isVisit, isFinish, nodeBlockOrder);
+  // console.log(nodeBlockOrder);
+  // nodeBlocks = nodeBlocks.flat();
+  // // console.log(nodeBlocks);
+  // nodeBlocks.sort((firstBlock, secondBlock) => {
+  //   if (nodeBlockOrder.get(`${firstBlock}/${secondBlock}`)) {
+  //     return nodeBlockOrder.get(`${firstBlock}/${secondBlock}`);
+  //   }
+  //   return 0;
+  // });
+  // console.log(nodeBlocks);
+}
+
 /**
  * Processing nodes data, statistics const and parameter nodes.
  * @param {Object} data Graph data.
@@ -346,16 +513,10 @@ function _processSourceDataOld(data) {
 }
 
 function _processSourceData(data) {
-  _processNodes(data);
-  // pruneNode()
-  // pruneNode()
-  // processUpdateStateOp();
+  _processNodes(data[0]);
+  buildPipelinedStageInfo(data);
   processOutput();
   pruneTupleGetItem();
-  // _processNameScope();
-  // _processHierarchy();
-
-  // console.log(nodeMap[processedGraph.root.children[0]].children)
 }
 
 function pruneTupleGetItem() {

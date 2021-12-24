@@ -164,7 +164,7 @@ export default {
     async fetchData() {
       let res = await fetch('static/data/resnet_pipeline_parallel.json');
       res = await res.json();
-      buildGraph(res.graphs[0]);
+      buildGraph(res.graphs);
 
       // let res = await fetch('static/data/bert_semi.json');
       // res = await res.json();
