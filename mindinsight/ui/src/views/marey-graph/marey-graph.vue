@@ -1,37 +1,74 @@
 <template>
   <div class="marey-graph">
+    <div class="marey-graph-tooltip"
+      v-if="hoveredNodeInfo !== null"
+      :style="{transform: `translate(${hoveredNodeInfo.x}px, ${hoveredNodeInfo.y}px)`}"
+      >
+      <div class="marey-graph-tooltip-title" v-html="`Node ID: ${hoveredNodeInfo.node.op}`"></div>
+      <!-- <div class="marey-graph-tooltip-content">
+        <div class="col">
+          <div class="left">type:</div><div class="right" v-html="hoveredNodeInfo.node.type"></div>
+        </div>
+        <div class="col">
+          <div class="left">scope:</div><div class="right">
+            <div
+              v-for="(scope, index) in hoveredNodeInfo.node.scope.split('/')"
+              :key="scope + index" v-html="`${scope}/`"></div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="left">inputs:</div>
+          <div class="right">
+            <div v-for="input in hoveredNodeInfo.node.input" :key="input"
+            v-html="`${input}${nodeMap[input].type}`"></div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="left">output:</div>
+          <div class="right">
+            <div v-for="output in hoveredNodeInfo.node.output" :key="output"
+            v-html="`${output}${nodeMap[output].type}`"></div>
+          </div> -->
+        <!-- </div> -->
+      <!-- </div> -->
+    </div>
     <svg-wrapper :ref="SVG_NAME" id="marey-svg">
       <template v-slot:image>
         <defs>
           <clipPath id="myClip">
-            <rect x="-3" y="-3" width="100%" height="100%" />
+            <rect x="0" y="0" :width="marey_width" height="100%" />
           </clipPath>
         </defs>
-        <g class="marey-graph" id="polygon-g" :transform="`translate(${margin.left}, ${margin.top})`">
-          <!-- gridline -->
-          <g 
-            v-if="gridlineOptions!==null"
-            v-axis:left="gridlineOptions"
-            class="gridline"
-          />
-          <g :transform="`translate(0, ${yScale ? yScale.bandwidth()/2: 0})`">
-            <g>
-              <text v-for="key in Object.keys(data)" :key="key"
-                :transform="`translate(${-margin.left + 15}, ${yScale(key)})`"
-                dominant-baseline="middle"
-              >
-                {{key}}
-              </text>
-            </g>
-
-            <g class="marey-container" clip-path="url(#myClip)">
-              <template v-for="(points, key) in polygonData" >
-                <polygon  
+        <g :transform="`translate(${marey_pos.left}, ${marey_pos.top})`">
+          <!-- 设备名 -->
+          <g>
+            <text v-for="key in Object.keys(data)" :key="key"
+              :transform="`translate(-60, ${yScale(key)})`"
+              dominant-baseline="middle"
+            >
+              {{key}}
+            </text>
+          </g>
+          <!-- 设备定位线 -->
+          <g>
+            <line v-for="key in Object.keys(data)" :key="key"
+              x1="0" :y1="yScale(key)" :x2="marey_width" :y2="yScale(key)"
+              style="stroke:#cecece; stroke-width:3px;"
+            >
+            </line>
+          </g>
+          <!-- marey图 -->
+          <g id="marey-container" clip-path="url(#myClip)">
+            <g id="polygon-g">
+              <template v-for="(data, key) in polygonData" >
+                <polygon
                   :key="key"
-                  :points="points"
+                  :points="data.data"
                   fill="#92BAD7"
                   stroke="#ccc"
                   stroke-width="0.1"
+                  @mouseover="onNodeMouseover($event, data)"
+                  @mouseout="onNodeMouseout"
                 />
               </template>
             </g> 
@@ -44,47 +81,25 @@
 
 <script>
 import * as d3 from 'd3';
-import {debounce} from 'lodash';
+import {debounce} from "lodash";
 import getBound, { SVG_NAME } from '@/mixins/basic-operation-of-charts/get-bound';
-import { axisDirective } from '../directives/axis';
 import RequestService from '@/services/request-service';
 import svgWrapper from '../svg-wrapper.vue';
-
-const maxTime = (dataArr => {
-  let maxValue = 0;
-  dataArr.forEach(data => {
-    // the last item's timestap
-    const {ts, dur} = data[data.length-1];
-    maxValue = Math.max(maxValue, ts + dur);
-  });
-
-  return maxValue;
-})
-
-const minTime = (dataArr => {
-  let minValue = Infinity;
-  dataArr.forEach(data => {
-    // the last item's timestap
-    minValue = Math.min(minValue, data[0].ts);
-  });
-  
-  return minValue;
-})
+import GetBound from '../../mixins/basic-operation-of-charts/get-bound.vue';
 
 export default {
   mixins: [getBound], // 用来获取画布的大小
 
-  directives: {
-    axis: axisDirective
-  },
-
   components: {
     svgWrapper,
+    GetBound,
   },
 
   data() {
     return {
       SVG_NAME: SVG_NAME,
+      marey_width: 1400, // marey图的宽度
+      marey_pos: {left: 90, top: 150},
       margin: {left: 70, top: 10, right: 10, bottom: 10},
       data: {},
       xScale: null,
@@ -94,7 +109,10 @@ export default {
       polygonData: [],
       displayedData: {},
       mousePos: 70,
-      xScale: null
+      xScale: null,
+      hoveredNodeInfo: null,
+      curScale: 1,
+      axis: null,
     };
   },
 
@@ -106,16 +124,15 @@ export default {
             const minT = res.data.minT;
             const maxT = res.data.maxT;
             const operator_time_maps = res.data.maps; 
-            console.log(res.data)
+            this.data = operator_time_maps;
             const yScale = d3.scaleBand()
               .domain(Object.keys(operator_time_maps).sort((a,b) => a < b ? -1: 1))
               .range([0, this.heightMap]);
             const xScale = d3.scaleLinear()
               .domain([minT, maxT])
               .range([0, this.widthMap])
-
-            const stepNum = 1;
-            
+            this.xScale = xScale;
+            this.yScale = yScale;
             const displayedData = {};
             Object.keys(operator_time_maps).forEach(deviceName => {
               const curDeviceData = operator_time_maps[deviceName];
@@ -125,29 +142,35 @@ export default {
                 displayedData[op].push({x1: curOp.st, x2: curOp.ed, y: deviceName});
               })
             })
-            console.log(displayedData)
             this.displayedData = displayedData;
-            this.xScale = xScale;
-            this.yScale = yScale;
-
-            const modify = this.modifyTransfrom;
-            const that = this;
-            window.d3 = d3;
-            window.that = this;
             this.transformToRect()
+
+            window.d3 = d3;
 
             // this.$nextTick(() => {
               
-              const svgPart = d3.select('#marey-svg');
-              const g = d3.select('#polygon-g');
+            const svgPart = d3.select('#marey-svg');
+            const g = d3.select('#polygon-g')
 
-              svgPart.call(
-                  d3.zoom()
-                  .on('zoom', function() {
-                    const transform = d3.event.transform;
-                    g.attr("transform", `translate(${transform.x}, 0) scale(${transform.k}, 1)`);
-                  })
-                );
+            const marey_g = d3.select('#marey-container');
+            let xAxis = d3.axisBottom(this.xScale)
+                        .ticks(10);
+            let axis = marey_g.append('g')
+                      .attr('id', 'xAxis')
+                      .attr('transform', `translate(0, ${this.yScale.bandwidth()})`)
+                      .call(xAxis);
+            this.axis = axis;
+
+            svgPart.call(
+              d3.zoom()
+              .on('zoom', function() {
+                const transform = d3.event.transform;
+                axis.call(xAxis.scale(transform.rescaleX(xScale)));
+                g.attr("transform", `translate(${transform.x}, 0) scale(${transform.k}, 1)`);
+              })
+            );
+
+            
             // })
           }
         },
@@ -177,8 +200,21 @@ export default {
   },
 
   methods: {
+    onNodeMouseover(e, node) {
+      const {left, bottom} = e.target.getBoundingClientRect();
+      this.hoveredNodeInfo = {
+        node: node,
+        x: left, y: bottom,
+      };
+    },
+
+    onNodeMouseout() {
+      this.hoveredNodeInfo = null;
+    },
+
     transformToRect() {
       const {displayedData, xScale, yScale} = this;
+      console.log(displayedData)
       Object.keys(displayedData).forEach(op => {
         let points = "";
         const curOpDeviceData = displayedData[op];
@@ -190,8 +226,12 @@ export default {
           const dt = curOpDeviceData[i];
           points += `${xScale(dt.x2)},${yScale(dt.y)} `;
         }
-        this.polygonData.push(points);
+        this.polygonData.push({
+          "op": op,
+          "data": points,
+        });
       })
+      console.log(this.polygonData);
     },
 
     draw() {
@@ -232,5 +272,16 @@ export default {
 
   .marey-graph .gridline .domain {
     display: none;
+  }
+
+  .marey-graph-tooltip {
+    position: fixed;
+    border: 1px solid #d8d8d8;
+    background-color: #fff;
+    z-index: 100;
+    width: 260px;
+    left: 0;
+    top: 0;
+    padding: 8px;
   }
 </style>
