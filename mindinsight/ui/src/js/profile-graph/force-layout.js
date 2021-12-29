@@ -2,7 +2,7 @@
 import * as d3 from 'd3';
 import forceLink from '@/js/profile-graph/link-force.js';
 
-export function layout(opNodes, normalEdges, nodeMap, tick=200) {
+export function layout(opNodes, normalEdges, nodeMap, tick = 200) {
   const vxs = [];
 
   const sim = d3

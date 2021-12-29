@@ -1,96 +1,149 @@
 <template>
   <div class="profile-graph">
-    <div class="special-edge-checkbox">
+    <!-- <div class="special-edge-checkbox">
       <p v-for="cls in Object.keys(specialEdges)" :key="cls">
         <input type="checkbox" v-model="specialEdges[cls].display" />
         <label v-html="cls"></label>
       </p>
-    </div>
-    <div class="profile-graph-tooltip"
+    </div> -->
+    <!-- <div
+      class="profile-graph-tooltip"
       v-if="hoveredNodeInfo !== null"
-      :style="{transform: `translate(${hoveredNodeInfo.x}px, ${hoveredNodeInfo.y}px)`}"
-      >
-      <div class="profile-graph-tooltip-title" v-html="`Node ID: ${hoveredNodeInfo.node.id}`"></div>
+      :style="{
+        transform: `translate(${hoveredNodeInfo.x}px, ${hoveredNodeInfo.y}px)`,
+      }"
+    >
+      <div
+        class="profile-graph-tooltip-title"
+        v-html="`Node ID: ${hoveredNodeInfo.node.id}`"
+      ></div>
       <div class="profile-graph-tooltip-content">
         <div class="col">
-          <div class="left">type:</div><div class="right" v-html="hoveredNodeInfo.node.type"></div>
+          <div class="left">type:</div>
+          <div class="right" v-html="hoveredNodeInfo.node.type"></div>
         </div>
         <div class="col">
-          <div class="left">scope:</div><div class="right">
+          <div class="left">scope:</div>
+          <div class="right">
             <div
               v-for="(scope, index) in hoveredNodeInfo.node.scope.split('/')"
-              :key="scope + index" v-html="`${scope}/`"></div>
+              :key="scope + index"
+              v-html="`${scope}/`"
+            ></div>
           </div>
         </div>
         <div class="col">
           <div class="left">inputs:</div>
           <div class="right">
-            <div v-for="input in hoveredNodeInfo.node.input" :key="input"
-            v-html="`${input}${nodeMap[input].type}`"></div>
+            <div
+              v-for="input in hoveredNodeInfo.node.input"
+              :key="input"
+              v-html="`${input}${nodeMap[input].type}`"
+            ></div>
           </div>
         </div>
         <div class="col">
           <div class="left">output:</div>
           <div class="right">
-            <div v-for="output in hoveredNodeInfo.node.output" :key="output"
-            v-html="`${output}${nodeMap[output].type}`"></div>
+            <div
+              v-for="output in hoveredNodeInfo.node.output"
+              :key="output"
+              v-html="`${output}${nodeMap[output].type}`"
+            ></div>
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
     <svg id="profile-graph" style="width: 100%; height: 100%">
       <defs>
         <radialGradient
           v-for="namespace in selectNamespaces"
           :id="namespace + '_halo'"
           :key="namespace + '_halo'"
-          x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" :stop-color="haloColorScale(namespace)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+          x1="0"
+          x2="0"
+          y1="0"
+          y2="1"
+        >
+          <stop offset="0%" :stop-color="haloColorScale(namespace)" />
+          <stop offset="100%" stop-color="rgba(255,255,255,0)" />
         </radialGradient>
       </defs>
 
       <g ref="graph-container">
-        <g id="graph-halo-container">
+        <!-- <g id="graph-halo-container">
           <g v-for="[namespace, nodeGroup] in haloInfo" :key="namespace">
             <circle
-              v-for="node in nodeGroup.filter(v => v !== undefined)" :key="node.id+'halo'"
-              :cx="node.x" :cy="node.y" r="50"
-              :fill="`url(#${namespace}_halo)`"></circle>
+              v-for="node in nodeGroup.filter((v) => v !== undefined)"
+              :key="node.id + 'halo'"
+              :cx="node.x"
+              :cy="node.y"
+              r="50"
+              :fill="`url(#${namespace}_halo)`"
+            ></circle>
           </g>
-        </g>
+        </g> -->
         <g id="graph-edge-container">
           <g id="normal-edge-container">
-            <line
-              v-for="(edge, index) in normalEdges" :key="index"
-              :x1="edge.source.x" :y1="edge.source.y"
-              :x2="edge.target.x" :y2=edge.target.y></line>
+            <g
+              v-for="(normalEdgesGroup, groupIndex) in normalEdges"
+              :key="groupIndex"
+            >
+              <line
+                v-for="(edge, index) in normalEdgesGroup"
+                :key="index"
+                :x1="edge.source.x"
+                :y1="edge.source.y"
+                :x2="edge.target.x"
+                :y2="edge.target.y"
+              ></line>
+            </g>
           </g>
-          <g v-for="cls in Object.keys(specialEdges)" :key="cls" v-show="specialEdges[cls].display">
-            <path
-              v-for="(edge, index) in specialEdges[cls].values" :key="index"
-              :class="cls"
-              :d="specialEdges[cls].path(edge.source, edge.target)"
-             ></path>
+          <g
+            v-for="(specialEdgesGroup, groupIndex) in specialEdges"
+            :key="groupIndex"
+          >
+            <g
+              v-for="cls in Object.keys(specialEdgesGroup)"
+              :key="cls"
+              v-show="specialEdgesGroup[cls].display"
+            >
+              <path
+                v-for="(edge, index) in specialEdgesGroup[cls].values"
+                :key="index"
+                :class="cls"
+                :d="specialEdgesGroup[cls].path(edge.source, edge.target)"
+              ></path>
+            </g>
           </g>
         </g>
 
         <g id="graph-node-container">
-          <g
-            v-for="node in opNodes.filter(v => v.x !== undefined)"
-            :key="node.id"
-            @click="onNodeClick(node)"
-            @mouseover="onNodeMouseover($event, node)"
-            @mouseout="onNodeMouseout"
+          <g v-for="(opNodesGroup, groupIndex) in opNodes" :key="groupIndex">
+            <g
+              v-for="node in opNodesGroup.filter((v) => v.x !== undefined)"
+              :key="node.id"
+              @click="onNodeClick(node)"
+              @mouseover="onNodeMouseover($event, node)"
+              @mouseout="onNodeMouseout"
             >
-            <circle :cx="node.x" :cy="node.y" :r="node.r" :class="node.type.toLowerCase()+ ' node'" ></circle>
-            <text :x="node.x-10" :y="node.y+20" v-html="node.id + node.type"></text>
+              <circle
+                :cx="node.x"
+                :cy="node.y"
+                :r="node.r"
+                :class="node.type.toLowerCase() + ' node'"
+              ></circle>
+              <text
+                :x="node.x - 10"
+                :y="node.y + 20"
+                v-html="node.id + node.type"
+              ></text>
+            </g>
           </g>
         </g>
-
       </g>
     </svg>
-    <a-tree-select
+    <!-- <a-tree-select
       v-model="selectNamespaces"
       style="
         position: absolute;
@@ -105,7 +158,7 @@
       search-placeholder="Please select"
       :dropdownStyle="{ maxHeight: '300px' }"
       :maxTagCount="Number(1)"
-    />
+    /> -->
   </div>
 </template>
 
@@ -115,6 +168,8 @@ import {
   buildGraphOld,
   processedGraph,
   treeData,
+  getPipelineBlockInfo,
+  buildPipelinedStageInfo,
 } from '@/js/profile-graph/build-graph.js';
 import * as d3 from 'd3';
 import {layout} from '@/js/profile-graph/force-layout.js';
@@ -122,17 +177,18 @@ import {extractVisNodeAndEdge} from '@/js/profile-graph/graph-process.js';
 import {TreeSelect} from 'ant-design-vue';
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
-
 export default {
   data() {
     return {
       selectNamespaces: [],
-      treeData,
+      nodeMaps: [],
+      treeDatas: [],
       SHOW_PARENT,
       nodeGroups: [],
       opNodes: [],
+      idToIndexs: [],
       normalEdges: [],
-      specialEdges: {},
+      specialEdges: [],
       hoveredNodeInfo: null,
     };
   },
@@ -179,7 +235,8 @@ export default {
       const {right, bottom} = e.target.getBoundingClientRect();
       this.hoveredNodeInfo = {
         node: node,
-        x: right, y: bottom,
+        x: right,
+        y: bottom,
       };
     },
 
@@ -199,24 +256,88 @@ export default {
       }
     },
 
+    pipelineLayout() {
+      console.log(this.nodeBlocks, this.nodeOrder);
+
+      for (const opNodes of this.opNodes) {
+        const idToIndex = {};
+        opNodes.forEach((opNode, index) => {
+          idToIndex[opNode.id] = index;
+        });
+        this.idToIndexs.push(idToIndex);
+      }
+
+      let lastX = undefined;
+      let lastNodeGroupIndex = -1;
+      let lastNodeBlockEndOriginX = undefined;
+      for (const thisNodeBlock of this.nodeOrder) {
+        const [nodeGroupIndex, startNodeID, endNodeID] =
+          thisNodeBlock.split('-');
+        const startNodeIndex = this.idToIndexs[nodeGroupIndex][startNodeID];
+        const endNodeIndex = this.idToIndexs[nodeGroupIndex][endNodeID];
+        if (lastX === undefined) {
+          lastX = this.opNodes[nodeGroupIndex][startNodeIndex].x;
+        }
+        if (nodeGroupIndex === lastNodeGroupIndex) {
+          lastX += this.opNodes[nodeGroupIndex][startNodeIndex].x - lastNodeBlockEndOriginX;
+        }
+        // let maxX = Number.MIN_VALUE;
+        lastNodeBlockEndOriginX = this.opNodes[nodeGroupIndex][endNodeIndex].x;
+        for (let i = startNodeIndex + 1; i <= endNodeIndex; i++) {
+          this.opNodes[nodeGroupIndex][i].x =
+            lastX +
+            (this.opNodes[nodeGroupIndex][i].x -
+              this.opNodes[nodeGroupIndex][startNodeIndex].x);
+          // maxX = Math.max(maxX, this.opNodes[nodeGroupIndex][i].x);
+        }
+        this.opNodes[nodeGroupIndex][startNodeIndex].x = lastX;
+        lastX = this.opNodes[nodeGroupIndex][endNodeIndex].x;
+        lastNodeGroupIndex = nodeGroupIndex;
+      }
+
+      this.$forceUpdate();
+    },
+
     async initGraph() {
       await this.fetchData();
-      const {specialEdges, normalEdges, opNodes} = extractVisNodeAndEdge(this.nodeMap);
-      [this.specialEdges, this.normalEdges, this.opNodes] = [specialEdges, normalEdges, opNodes];
-      layout(this.opNodes, this.normalEdges, this.nodeMap, 200);
+      for (let i = 0; i < this.nodeMaps.length; i++) {
+        const nodeMap = this.nodeMaps[i];
+        const {specialEdges, normalEdges, opNodes} =
+          extractVisNodeAndEdge(nodeMap);
+        this.specialEdges.push(specialEdges);
+        this.normalEdges.push(normalEdges);
+        this.opNodes.push(opNodes);
+        layout(opNodes, normalEdges, nodeMap, 200);
+        // move downwards
+        opNodes.forEach((opNode) => {
+          opNode.y += 500 * i;
+        });
+      }
+      this.pipelineLayout();
+      // console.log(this.specialEdges, this.normalEdges, this.opNodes);
     },
 
     async fetchData() {
       let res = await fetch('static/data/resnet_pipeline_parallel.json');
       res = await res.json();
-      buildGraph(res.graphs);
+
+      buildPipelinedStageInfo(res.graphs);
+      ({nodeBlocks: this.nodeBlocks, nodeOrder: this.nodeOrder} =
+        getPipelineBlockInfo());
+
+      Object.keys(res.graphs).forEach((rankID) => {
+        const thisGraph = res.graphs[rankID];
+        buildGraph(thisGraph);
+        this.nodeMaps.push(processedGraph.nodeMap);
+        // this.treeDatas.push(treeData)
+      });
 
       // let res = await fetch('static/data/bert_semi.json');
       // res = await res.json();
       // buildGraphOld(res.data);
 
-      this.nodeMap = processedGraph.nodeMap;
-      this.treeData = treeData.children;
+      // this.nodeMap = processedGraph.nodeMap;
+      // this.treeData = treeData.children;
     },
   },
 };

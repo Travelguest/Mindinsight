@@ -26,6 +26,9 @@ const COMM_LIST = new Set([
 
 export const edgeIdMap = {};
 
+let nodeBlocks = [];
+let nodeOrder = [];
+
 /**
  * Reset data.
  */
@@ -299,7 +302,7 @@ function buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees
     });
   });
 
-  console.log(graph, indegrees);
+  // console.log(graph, indegrees);
 
   return graph;
 }
@@ -360,7 +363,7 @@ function getTopologicalOrder(graph, indegrees) {
 }
 
 function buildPipelinedStageInfo(data) {
-  const nodeBlocks = [];
+  nodeBlocks = [];
   const pipelinedStageInfo = {};
   const idToBlock = new Map();
   for (const rankID of Object.keys(data)) {
@@ -392,14 +395,17 @@ function buildPipelinedStageInfo(data) {
         }
       }
     }
+    const lastBlock = `${rankID}-${lastBlockNodeID}-${opNodes[opNodes.length - 1].node_id}`;
+    nodeBlock.push(lastBlock);
+    idToBlock.set(`${rankID}-${opNodes[opNodes.length - 1].node_id}`, lastBlock);
     nodeBlocks.push(nodeBlock);
   }
-  console.log(pipelinedStageInfo, nodeBlocks, idToBlock);
+  // console.log(pipelinedStageInfo, nodeBlocks, idToBlock);
 
   const indegrees = {};
   const graph = buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees);
-  const nodeOrder = getTopologicalOrder(graph, indegrees);
-  console.log(nodeOrder);
+  nodeOrder = getTopologicalOrder(graph, indegrees);
+  // console.log(nodeOrder);
   // const blockPath = [];
   // const nodeBlockOrder = new Map();
   // const isVisit = new Map();
@@ -418,6 +424,13 @@ function buildPipelinedStageInfo(data) {
   //   return 0;
   // });
   // console.log(nodeBlocks);
+}
+
+function getPipelineBlockInfo() {
+  return {
+    nodeBlocks: nodeBlocks,
+    nodeOrder: nodeOrder,
+  };
 }
 
 /**
@@ -513,8 +526,7 @@ function _processSourceDataOld(data) {
 }
 
 function _processSourceData(data) {
-  _processNodes(data[0]);
-  buildPipelinedStageInfo(data);
+  _processNodes(data);
   processOutput();
   pruneTupleGetItem();
 }
@@ -596,4 +608,6 @@ function buildGraphOld(data) {
 export {
   buildGraph,
   buildGraphOld,
+  getPipelineBlockInfo,
+  buildPipelinedStageInfo,
 };
