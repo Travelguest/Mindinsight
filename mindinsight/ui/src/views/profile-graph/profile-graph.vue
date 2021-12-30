@@ -119,6 +119,15 @@
         </g>
 
         <g id="graph-node-container">
+          <rect
+            v-for="(bgdRectBlock, index) in bgdRectBlocks"
+            :key="`${index}_bgdRectBlock`"
+            :x="bgdRectBlock.x"
+            :y="bgdRectBlock.y"
+            :width="bgdRectBlock.width"
+            :height="bgdRectBlock.height"
+            style="stroke: #009900; fill: none"
+          ></rect>
           <g v-for="(opNodesGroup, groupIndex) in opNodes" :key="groupIndex">
             <g
               v-for="node in opNodesGroup.filter((v) => v.x !== undefined)"
@@ -184,7 +193,10 @@ export default {
       nodeMaps: [],
       treeDatas: [],
       SHOW_PARENT,
-      nodeGroups: [],
+      nodeBlocks: [],
+      nodeOrder: [],
+      dependNodes: {},
+      bgdRectBlocks: [],
       opNodes: [],
       idToIndexs: [],
       normalEdges: [],
@@ -257,7 +269,9 @@ export default {
     },
 
     pipelineLayout() {
-      console.log(this.nodeBlocks, this.nodeOrder);
+      console.log(this.nodeBlocks, this.nodeOrder, this.dependNodes);
+
+      const nodeBlockBorders = {};
 
       for (const opNodes of this.opNodes) {
         const idToIndex = {};
@@ -267,32 +281,60 @@ export default {
         this.idToIndexs.push(idToIndex);
       }
 
-      let lastX = undefined;
-      let lastNodeGroupIndex = -1;
-      let lastNodeBlockEndOriginX = undefined;
-      for (const thisNodeBlock of this.nodeOrder) {
+      let lastDependNodeBlockEndX = undefined;
+      for (let i = 0; i < this.nodeOrder.length; i++) {
+        const thisNodeBlock = this.nodeOrder[i];
         const [nodeGroupIndex, startNodeID, endNodeID] =
           thisNodeBlock.split('-');
         const startNodeIndex = this.idToIndexs[nodeGroupIndex][startNodeID];
         const endNodeIndex = this.idToIndexs[nodeGroupIndex][endNodeID];
-        if (lastX === undefined) {
-          lastX = this.opNodes[nodeGroupIndex][startNodeIndex].x;
+
+        if (lastDependNodeBlockEndX === undefined) {
+          lastDependNodeBlockEndX =
+            this.opNodes[nodeGroupIndex][startNodeIndex].x;
+        } else {
+          lastDependNodeBlockEndX = Number.MIN_VALUE;
+          for (let j = 0; j < i; j++) {
+            if (this.dependNodes[thisNodeBlock].includes(this.nodeOrder[j])) {
+              // 找到x坐标最大的依赖子图位置
+              if (
+                nodeBlockBorders[this.nodeOrder[j]].rightBorder >
+                lastDependNodeBlockEndX
+              ) {
+                lastDependNodeBlockEndX = Math.max(
+                    lastDependNodeBlockEndX,
+                    nodeBlockBorders[this.nodeOrder[j]].rightBorder,
+                );
+              }
+            }
+          }
         }
-        if (nodeGroupIndex === lastNodeGroupIndex) {
-          lastX += this.opNodes[nodeGroupIndex][startNodeIndex].x - lastNodeBlockEndOriginX;
+
+        let minX = Number.MAX_VALUE;
+        let maxX = Number.MIN_VALUE;
+        for (let j = startNodeIndex; j <= endNodeIndex; j++) {
+          minX = Math.min(minX, this.opNodes[nodeGroupIndex][j].x);
+          maxX = Math.max(maxX, this.opNodes[nodeGroupIndex][j].x);
         }
-        // let maxX = Number.MIN_VALUE;
-        lastNodeBlockEndOriginX = this.opNodes[nodeGroupIndex][endNodeIndex].x;
-        for (let i = startNodeIndex + 1; i <= endNodeIndex; i++) {
-          this.opNodes[nodeGroupIndex][i].x =
-            lastX +
-            (this.opNodes[nodeGroupIndex][i].x -
-              this.opNodes[nodeGroupIndex][startNodeIndex].x);
-          // maxX = Math.max(maxX, this.opNodes[nodeGroupIndex][i].x);
+
+        for (let j = startNodeIndex; j <= endNodeIndex; j++) {
+          this.opNodes[nodeGroupIndex][j].x =
+            lastDependNodeBlockEndX +
+            (this.opNodes[nodeGroupIndex][j].x - minX);
         }
-        this.opNodes[nodeGroupIndex][startNodeIndex].x = lastX;
-        lastX = this.opNodes[nodeGroupIndex][endNodeIndex].x;
-        lastNodeGroupIndex = nodeGroupIndex;
+
+        nodeBlockBorders[thisNodeBlock] = {
+          leftBorder: lastDependNodeBlockEndX,
+          rightBorder: lastDependNodeBlockEndX + maxX - minX,
+        };
+        this.bgdRectBlocks.push({
+          x: nodeBlockBorders[thisNodeBlock].leftBorder,
+          y: -200 + 500 * nodeGroupIndex,
+          width:
+            nodeBlockBorders[thisNodeBlock].rightBorder -
+            nodeBlockBorders[thisNodeBlock].leftBorder,
+          height: 500,
+        });
       }
 
       this.$forceUpdate();
@@ -322,8 +364,11 @@ export default {
       res = await res.json();
 
       buildPipelinedStageInfo(res.graphs);
-      ({nodeBlocks: this.nodeBlocks, nodeOrder: this.nodeOrder} =
-        getPipelineBlockInfo());
+      ({
+        nodeBlocks: this.nodeBlocks,
+        nodeOrder: this.nodeOrder,
+        dependNodes: this.dependNodes,
+      } = getPipelineBlockInfo());
 
       Object.keys(res.graphs).forEach((rankID) => {
         const thisGraph = res.graphs[rankID];

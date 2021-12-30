@@ -23,11 +23,13 @@ const COMM_LIST = new Set([
   'ReduceScatter',
 ]);
 
-
 export const edgeIdMap = {};
 
 let nodeBlocks = [];
 let nodeOrder = [];
+let pipelineGraph = {};
+let indegrees = {};
+let dependNodes = {};
 
 /**
  * Reset data.
@@ -190,11 +192,7 @@ function _insertNode(insertNode, scopeString, root) {
     if (children.length === 0) {
       const newNode = {id: insertNode.node_id, key: scopes[0], children: []};
       children.push(newNode);
-      _insertNode(
-          insertNode,
-          scopes.splice(1).join(SCOPE_SEPARATOR),
-          newNode,
-      );
+      _insertNode(insertNode, scopes.splice(1).join(SCOPE_SEPARATOR), newNode);
     } else {
       let validPosition = 0;
       for (let j = 0; j < children.length; j++) {
@@ -204,11 +202,7 @@ function _insertNode(insertNode, scopeString, root) {
       }
       const newNode = {id: insertNode.node_id, key: scopes[0], children: []};
       children.splice(validPosition, 0, newNode);
-      _insertNode(
-          insertNode,
-          scopes.splice(1).join(SCOPE_SEPARATOR),
-          newNode,
-      );
+      _insertNode(insertNode, scopes.splice(1).join(SCOPE_SEPARATOR), newNode);
     }
   }
 }
@@ -235,11 +229,7 @@ function levelOrder(tree) {
 function buildTreeDataOld(nodes) {
   treeData = {id: null, key: null, children: []};
   for (const sNode of nodes) {
-    _insertNodeOld(
-        sNode,
-        sNode.fullName,
-        treeData,
-    );
+    _insertNodeOld(sNode, sNode.fullName, treeData);
   }
   levelOrder(treeData);
 }
@@ -247,17 +237,19 @@ function buildTreeDataOld(nodes) {
 function buildTreeData(nodes) {
   treeData = {id: null, key: null, children: []};
   for (const sNode of nodes) {
-    _insertNode(
-        sNode,
-        sNode.name,
-        treeData,
-    );
+    _insertNode(sNode, sNode.name, treeData);
   }
   levelOrder(treeData);
 }
 
-function buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees) {
+function buildPipelineGraph(
+    pipelinedStageInfo,
+    nodeBlocks,
+    idToBlock,
+    indegrees,
+) {
   const graph = {};
+  const reverseGraph = {};
   for (const nodeBlock of nodeBlocks) {
     for (let i = 0; i < nodeBlock.length - 1; i++) {
       if (!(nodeBlock[i] in graph)) {
@@ -272,7 +264,14 @@ function buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees
       if (!(nodeBlock[i + 1] in indegrees)) {
         indegrees[nodeBlock[i + 1]] = 0;
       }
+      if (!(nodeBlock[i] in reverseGraph)) {
+        reverseGraph[nodeBlock[i]] = [];
+      }
+      if (!(nodeBlock[i + 1] in reverseGraph)) {
+        reverseGraph[nodeBlock[i + 1]] = [];
+      }
       graph[nodeBlock[i]].push(nodeBlock[i + 1]);
+      reverseGraph[nodeBlock[i + 1]].push(nodeBlock[i]);
       indegrees[nodeBlock[i + 1]]++;
     }
   }
@@ -297,17 +296,58 @@ function buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees
       if (!(recvBlock in indegrees)) {
         indegrees[recvBlock] = 0;
       }
+      if (!(sendBlock in reverseGraph)) {
+        reverseGraph[sendBlock] = [];
+      }
+      if (!(recvBlock in reverseGraph)) {
+        reverseGraph[recvBlock] = [];
+      }
       graph[sendBlock].push(recvBlock);
+      reverseGraph[recvBlock].push(sendBlock);
       indegrees[recvBlock]++;
     });
   });
 
   // console.log(graph, indegrees);
 
-  return graph;
+  const dependNodes = {};
+  // eslint-disable-next-line guard-for-in
+  for (const node in reverseGraph) {
+    const visitNodes = [];
+    const isVisit = new Map();
+    const isFinish = false;
+    isVisit.set(node, true);
+    dfs(reverseGraph, node, isVisit, visitNodes, false, isFinish);
+    dependNodes[node] = visitNodes;
+  }
+  // console.log(graph, dependNodes);
+
+  return {pipelineGraph: graph, dependNodes: dependNodes};
 }
 
-function dfsInBlockGraph(graph, blockPath, curBlock, isVisit, isFinish, nodeBlockOrder) {
+function dfs(graph, curNode, isVisit, visitNodes, isFinish) {
+  if (!(curNode in graph)) {
+    isFinish = true;
+    return;
+  }
+  for (const nextNode of graph[curNode]) {
+    if (!isVisit.get(nextNode)) {
+      isVisit.set(nextNode, true);
+      visitNodes.push(nextNode);
+      dfs(graph, nextNode, isVisit, visitNodes, isFinish);
+      if (isFinish) return;
+    }
+  }
+}
+
+function dfsInBlockGraph(
+    graph,
+    blockPath,
+    curBlock,
+    isVisit,
+    isFinish,
+    nodeBlockOrder,
+) {
   if (!(curBlock in graph)) {
     // isFinish = true;
     // console.log(blockPath);
@@ -323,7 +363,14 @@ function dfsInBlockGraph(graph, blockPath, curBlock, isVisit, isFinish, nodeBloc
     if (!isVisit.get(nextBlock)) {
       isVisit.set(nextBlock, true);
       blockPath.push(nextBlock);
-      dfsInBlockGraph(graph, blockPath, nextBlock, isVisit, isFinish, nodeBlockOrder);
+      dfsInBlockGraph(
+          graph,
+          blockPath,
+          nextBlock,
+          isVisit,
+          isFinish,
+          nodeBlockOrder,
+      );
       // if (isFinish) return;
       isVisit.set(nextBlock, false);
       blockPath.pop();
@@ -395,16 +442,24 @@ function buildPipelinedStageInfo(data) {
         }
       }
     }
-    const lastBlock = `${rankID}-${lastBlockNodeID}-${opNodes[opNodes.length - 1].node_id}`;
+    const lastBlock = `${rankID}-${lastBlockNodeID}-${
+      opNodes[opNodes.length - 1].node_id
+    }`;
     nodeBlock.push(lastBlock);
-    idToBlock.set(`${rankID}-${opNodes[opNodes.length - 1].node_id}`, lastBlock);
+    idToBlock.set(
+        `${rankID}-${opNodes[opNodes.length - 1].node_id}`,
+        lastBlock,
+    );
     nodeBlocks.push(nodeBlock);
   }
   // console.log(pipelinedStageInfo, nodeBlocks, idToBlock);
 
-  const indegrees = {};
-  const graph = buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees);
-  nodeOrder = getTopologicalOrder(graph, indegrees);
+  pipelineGraph = {};
+  indegrees = {};
+  dependNodes = {};
+  ({pipelineGraph: pipelineGraph, dependNodes: dependNodes} =
+    buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees));
+  nodeOrder = getTopologicalOrder(pipelineGraph, indegrees);
   // console.log(nodeOrder);
   // const blockPath = [];
   // const nodeBlockOrder = new Map();
@@ -430,6 +485,8 @@ function getPipelineBlockInfo() {
   return {
     nodeBlocks: nodeBlocks,
     nodeOrder: nodeOrder,
+    pipelineGraph: pipelineGraph,
+    dependNodes: dependNodes,
   };
 }
 
@@ -489,7 +546,7 @@ export const pruneSet = new Set([
 
 function stackOptimizer() {
   const {nodeMap} = processedGraph;
-  const maxId = (Object.keys(nodeMap))[Object.keys(nodeMap).length - 1];
+  const maxId = Object.keys(nodeMap)[Object.keys(nodeMap).length - 1];
   let curId = 1;
 
   while (curId <= maxId) {
@@ -500,14 +557,28 @@ function stackOptimizer() {
       stackedOptimizerNode.input = [];
       stackedOptimizerNode.output = [];
       stackedOptimizerNode.id = stackedOptimizerNode.name = curId + '';
-      stackedOptimizerNode.parent = stackedOptimizerNode.scope = nodeMap[curId].scope;
+      stackedOptimizerNode.parent = stackedOptimizerNode.scope =
+        nodeMap[curId].scope;
       stackedOptimizerNode.stackedIDs = [curId];
       delete nodeMap[curId];
       curId++;
-      while (curId <= maxId && nodeMap[curId] && nodeMap[curId].scope.indexOf('optimizer') !== -1) {
-        stackedOptimizerNode.input = [...stackedOptimizerNode.input, ...nodeMap[curId].input];
-        stackedOptimizerNode.output = [...stackedOptimizerNode.output, ...nodeMap[curId].output];
-        stackedOptimizerNode.stackedIDs = [...stackedOptimizerNode.stackedIDs, curId];
+      while (
+        curId <= maxId &&
+        nodeMap[curId] &&
+        nodeMap[curId].scope.indexOf('optimizer') !== -1
+      ) {
+        stackedOptimizerNode.input = [
+          ...stackedOptimizerNode.input,
+          ...nodeMap[curId].input,
+        ];
+        stackedOptimizerNode.output = [
+          ...stackedOptimizerNode.output,
+          ...nodeMap[curId].output,
+        ];
+        stackedOptimizerNode.stackedIDs = [
+          ...stackedOptimizerNode.stackedIDs,
+          curId,
+        ];
         delete nodeMap[curId];
         curId++;
       }
@@ -586,7 +657,6 @@ function processOutput() {
     });
   });
 }
-
 
 /**
  * Build graph data.
