@@ -11,7 +11,7 @@
         </el-checkbox>
       </el-checkbox-group>
     </div>
-    <!-- <div
+    <div
       class="profile-graph-tooltip"
       v-if="hoveredNodeInfo !== null"
       :style="{
@@ -43,7 +43,7 @@
             <div
               v-for="input in hoveredNodeInfo.node.input"
               :key="input"
-              v-html="`${input}${nodeMap[input].type}`"
+              v-html="`${input}${!isNaN(input) ? nodeMaps[hoveredNodeInfo.nodeGroupIndex][input].type : ''}`"
             ></div>
           </div>
         </div>
@@ -53,12 +53,12 @@
             <div
               v-for="output in hoveredNodeInfo.node.output"
               :key="output"
-              v-html="`${output}${nodeMap[output].type}`"
+              v-html="`${output}${!isNaN(output) ? nodeMaps[hoveredNodeInfo.nodeGroupIndex][output].type : ''}`"
             ></div>
           </div>
         </div>
       </div>
-    </div> -->
+    </div>
     <svg id="profile-graph" style="width: 100%; height: 100%">
       <defs>
         <radialGradient
@@ -290,6 +290,8 @@ export default {
         x: right,
         y: bottom,
       };
+      this.hoveredNodeInfo.nodeGroupIndex = Math.floor((node.y + 200) / 500);
+      console.log(this.hoveredNodeInfo, this.nodeMaps);
     },
 
     onNodeMouseout() {
