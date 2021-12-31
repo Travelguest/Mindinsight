@@ -1,11 +1,16 @@
 <template>
   <div class="profile-graph">
-    <!-- <div class="special-edge-checkbox">
-      <p v-for="cls in Object.keys(specialEdges)" :key="cls">
-        <input type="checkbox" v-model="specialEdges[cls].display" />
-        <label v-html="cls"></label>
-      </p>
-    </div> -->
+    <div class="special-edge-checkbox">
+      <el-checkbox-group v-model="showSpecialEdgeTypes">
+        <el-checkbox
+          v-for="(specialEdgeType, index) in specialEdgeTypes"
+          :key="index"
+          :label="specialEdgeType"
+          style="display: block;"
+        >
+        </el-checkbox>
+      </el-checkbox-group>
+    </div>
     <!-- <div
       class="profile-graph-tooltip"
       v-if="hoveredNodeInfo !== null"
@@ -216,13 +221,29 @@ export default {
       idToIndexs: [],
       normalEdges: [],
       specialEdges: [],
+      specialEdgeTypes: [],
+      showSpecialEdgeTypes: [],
       hoveredNodeInfo: null,
     };
   },
 
+  watch: {
+    showSpecialEdgeTypes(newVal, oldVal) {
+      for (const showSpecialEdgeType of oldVal) {
+        for (const specialEdgesGroup of this.specialEdges) {
+          specialEdgesGroup[showSpecialEdgeType].display = false;
+        }
+      }
+      for (const showSpecialEdgeType of newVal) {
+        for (const specialEdgesGroup of this.specialEdges) {
+          specialEdgesGroup[showSpecialEdgeType].display = true;
+        }
+      }
+    },
+  },
+
   computed: {
-    haloInfo: function() {
-      console.log(this.selectNamespaces);
+    haloInfo() {
       const res = [];
       for (const namespace of this.selectNamespaces) {
         const childrenIndex = namespace.split('-');
@@ -240,7 +261,6 @@ export default {
         nodeGroup = Array.from(new Set(nodeGroup));
         res.push([namespace, nodeGroup]);
       }
-      console.log(res);
       return res;
     },
   },
@@ -363,6 +383,7 @@ export default {
         const {specialEdges, normalEdges, opNodes} =
           extractVisNodeAndEdge(nodeMap);
         this.specialEdges.push(specialEdges);
+        this.specialEdgeTypes = [...this.specialEdgeTypes, ...Object.keys(specialEdges)];
         this.normalEdges.push(normalEdges);
         this.opNodes.push(opNodes);
         layout(opNodes, normalEdges, nodeMap, 200);
@@ -371,6 +392,8 @@ export default {
           opNode.y += 500 * i;
         });
       }
+      this.specialEdgeTypes = Array.from(new Set(this.specialEdgeTypes));
+
       this.pipelineLayout();
       // console.log(this.specialEdges, this.normalEdges, this.opNodes);
     },
@@ -393,7 +416,6 @@ export default {
       });
       levelOrder(getTreeData());
       this.treeData = getTreeData().children;
-      console.log(this.treeData);
 
       // let res = await fetch('static/data/bert_semi.json');
       // res = await res.json();
