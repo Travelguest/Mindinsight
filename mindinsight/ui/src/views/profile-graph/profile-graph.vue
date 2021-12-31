@@ -76,7 +76,7 @@
       </defs>
 
       <g ref="graph-container">
-        <g id="graph-title-container">
+        <g id="pipeline-extra-container" v-if="isPipelineLayout">
           <text
             v-for="(opNode, index) in opNodes"
             :key="index"
@@ -86,7 +86,17 @@
           >
             Device {{ index + 1 }}
           </text>
+          <rect
+            v-for="(bgdRectBlock, index) in bgdRectBlocks"
+            :key="`${index}_bgdRectBlock`"
+            :x="bgdRectBlock.x"
+            :y="bgdRectBlock.y"
+            :width="bgdRectBlock.width"
+            :height="bgdRectBlock.height"
+            style="stroke: #009900; fill: none"
+          ></rect>
         </g>
+
         <g id="graph-halo-container">
           <g
             v-for="([namespace, nodeGroup], index) in haloInfo"
@@ -138,15 +148,6 @@
         </g>
 
         <g id="graph-node-container">
-          <rect
-            v-for="(bgdRectBlock, index) in bgdRectBlocks"
-            :key="`${index}_bgdRectBlock`"
-            :x="bgdRectBlock.x"
-            :y="bgdRectBlock.y"
-            :width="bgdRectBlock.width"
-            :height="bgdRectBlock.height"
-            style="stroke: #009900; fill: none"
-          ></rect>
           <g v-for="(opNodesGroup, groupIndex) in opNodes" :key="groupIndex">
             <g
               v-for="node in opNodesGroup.filter((v) => v.x !== undefined)"
@@ -224,6 +225,7 @@ export default {
       specialEdgeTypes: [],
       showSpecialEdgeTypes: [],
       hoveredNodeInfo: null,
+      isPipelineLayout: false,
     };
   },
 
@@ -256,7 +258,7 @@ export default {
         }
         const nodeGroup = [];
         // iterate subtree
-        this.preOrder(selectNode, nodeGroup, rankID);
+        this.preOrder(selectNode, nodeGroup, this.isPipelineLayout ? rankID : 0);
         nodeGroup = nodeGroup.filter((v) => v !== undefined);
         nodeGroup = Array.from(new Set(nodeGroup));
         res.push([namespace, nodeGroup]);
@@ -291,7 +293,6 @@ export default {
         y: bottom,
       };
       this.hoveredNodeInfo.nodeGroupIndex = Math.floor((node.y + 200) / 500);
-      console.log(this.hoveredNodeInfo, this.nodeMaps);
     },
 
     onNodeMouseout() {
@@ -310,14 +311,6 @@ export default {
       console.log(this.nodeBlocks, this.nodeOrder, this.dependNodes);
 
       const nodeBlockBorders = {};
-
-      for (const opNodes of this.opNodes) {
-        const idToIndex = {};
-        opNodes.forEach((opNode, index) => {
-          idToIndex[opNode.id] = index;
-        });
-        this.idToIndexs.push(idToIndex);
-      }
 
       let lastDependNodeBlockEndX = undefined;
       for (let i = 0; i < this.nodeOrder.length; i++) {
@@ -380,6 +373,7 @@ export default {
 
     async initGraph() {
       await this.fetchData();
+
       for (let i = 0; i < this.nodeMaps.length; i++) {
         const nodeMap = this.nodeMaps[i];
         const {specialEdges, normalEdges, opNodes} =
@@ -396,27 +390,43 @@ export default {
       }
       this.specialEdgeTypes = Array.from(new Set(this.specialEdgeTypes));
 
-      this.pipelineLayout();
-      // console.log(this.specialEdges, this.normalEdges, this.opNodes);
+      for (const opNodes of this.opNodes) {
+        const idToIndex = {};
+        opNodes.forEach((opNode, index) => {
+          idToIndex[opNode.id] = index;
+        });
+        this.idToIndexs.push(idToIndex);
+      }
+
+      if (this.isPipelineLayout) this.pipelineLayout();
     },
 
     async fetchData() {
       let res = await fetch('static/data/resnet_pipeline_parallel.json');
+      // let res = await fetch('static/data/bert_semi.json');
       res = await res.json();
 
-      buildPipelinedStageInfo(res.graphs);
-      ({
-        nodeBlocks: this.nodeBlocks,
-        nodeOrder: this.nodeOrder,
-        dependNodes: this.dependNodes,
-      } = getPipelineBlockInfo());
+      if ('graphs' in res) {
+        this.isPipelineLayout = true;
+        buildPipelinedStageInfo(res.graphs);
+        ({
+          nodeBlocks: this.nodeBlocks,
+          nodeOrder: this.nodeOrder,
+          dependNodes: this.dependNodes,
+        } = getPipelineBlockInfo());
 
-      Object.keys(res.graphs).forEach((rankID) => {
-        const thisGraph = res.graphs[rankID];
-        buildGraph(thisGraph);
+        Object.keys(res.graphs).forEach((rankID) => {
+          const thisGraph = res.graphs[rankID];
+          buildGraph(thisGraph);
+          this.nodeMaps.push(processedGraph.nodeMap);
+        });
+
+        levelOrder(getTreeData());
+      } else {
+        this.isPipelineLayout = false;
+        buildGraphOld(res.data);
         this.nodeMaps.push(processedGraph.nodeMap);
-      });
-      levelOrder(getTreeData());
+      }
       this.treeData = getTreeData().children;
 
       // let res = await fetch('static/data/bert_semi.json');
