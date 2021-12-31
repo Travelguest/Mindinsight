@@ -71,18 +71,32 @@
       </defs>
 
       <g ref="graph-container">
-        <!-- <g id="graph-halo-container">
-          <g v-for="[namespace, nodeGroup] in haloInfo" :key="namespace">
+        <g id="graph-title-container">
+          <text
+            v-for="(opNode, index) in opNodes"
+            :key="index"
+            :x="bgdRectBlocks[0].x - 200"
+            :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
+            style="font-size: 40; font-weight: bold"
+          >
+            Device {{ index + 1 }}
+          </text>
+        </g>
+        <g id="graph-halo-container">
+          <g
+            v-for="([namespace, nodeGroup], index) in haloInfo"
+            :key="namespace + index"
+          >
             <circle
               v-for="node in nodeGroup.filter((v) => v !== undefined)"
-              :key="node.id + 'halo'"
+              :key="node.id + 'halo' + index"
               :cx="node.x"
               :cy="node.y"
               r="50"
               :fill="`url(#${namespace}_halo)`"
             ></circle>
           </g>
-        </g> -->
+        </g>
         <g id="graph-edge-container">
           <g id="normal-edge-container">
             <g
@@ -152,7 +166,7 @@
         </g>
       </g>
     </svg>
-    <!-- <a-tree-select
+    <a-tree-select
       v-model="selectNamespaces"
       style="
         position: absolute;
@@ -167,7 +181,7 @@
       search-placeholder="Please select"
       :dropdownStyle="{ maxHeight: '300px' }"
       :maxTagCount="Number(1)"
-    /> -->
+    />
   </div>
 </template>
 
@@ -176,9 +190,10 @@ import {
   buildGraph,
   buildGraphOld,
   processedGraph,
-  treeData,
   getPipelineBlockInfo,
   buildPipelinedStageInfo,
+  getTreeData,
+  levelOrder,
 } from '@/js/profile-graph/build-graph.js';
 import * as d3 from 'd3';
 import {layout} from '@/js/profile-graph/force-layout.js';
@@ -191,7 +206,7 @@ export default {
     return {
       selectNamespaces: [],
       nodeMaps: [],
-      treeDatas: [],
+      treeData: [],
       SHOW_PARENT,
       nodeBlocks: [],
       nodeOrder: [],
@@ -207,20 +222,25 @@ export default {
 
   computed: {
     haloInfo: function() {
+      console.log(this.selectNamespaces);
       const res = [];
       for (const namespace of this.selectNamespaces) {
         const childrenIndex = namespace.split('-');
         childrenIndex.shift();
         let selectNode = this.treeData[Number(childrenIndex[0])];
+        const rankID = childrenIndex[0];
         childrenIndex.shift();
         for (const childIndex of childrenIndex) {
           selectNode = selectNode.children[Number(childIndex)];
         }
         const nodeGroup = [];
         // iterate subtree
-        this.preOrder(selectNode, nodeGroup);
+        this.preOrder(selectNode, nodeGroup, rankID);
+        nodeGroup = nodeGroup.filter((v) => v !== undefined);
+        nodeGroup = Array.from(new Set(nodeGroup));
         res.push([namespace, nodeGroup]);
       }
+      console.log(res);
       return res;
     },
   },
@@ -256,15 +276,11 @@ export default {
       this.hoveredNodeInfo = null;
     },
 
-    preOrder(tree, nodeGroup) {
+    preOrder(tree, nodeGroup, rankID) {
       if (!tree) return;
-      const idToIndex = {};
-      this.opNodes.forEach((v, i) => {
-        idToIndex[v.id] = i;
-      });
-      nodeGroup.push(this.opNodes[idToIndex[tree.id]]);
+      nodeGroup.push(this.opNodes[rankID][this.idToIndexs[rankID][tree.id]]);
       for (const child of tree.children) {
-        this.preOrder(child, nodeGroup);
+        this.preOrder(child, nodeGroup, rankID);
       }
     },
 
@@ -374,8 +390,10 @@ export default {
         const thisGraph = res.graphs[rankID];
         buildGraph(thisGraph);
         this.nodeMaps.push(processedGraph.nodeMap);
-        // this.treeDatas.push(treeData)
       });
+      levelOrder(getTreeData());
+      this.treeData = getTreeData().children;
+      console.log(this.treeData);
 
       // let res = await fetch('static/data/bert_semi.json');
       // res = await res.json();

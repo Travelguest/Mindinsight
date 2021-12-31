@@ -121,7 +121,11 @@ function _createConst(con) {
   };
 }
 
-export let treeData = null;
+let treeData = {id: null, key: null, children: []};
+
+function getTreeData() {
+  return treeData;
+}
 
 function _insertNodeOld(insertNode, scopeString, root) {
   if (scopeString === '' || !scopeString) return;
@@ -235,11 +239,16 @@ function buildTreeDataOld(nodes) {
 }
 
 function buildTreeData(nodes) {
-  treeData = {id: null, key: null, children: []};
+  const thisTreeData = {
+    id: null,
+    key: `Device ${treeData.children.length + 1}`,
+    children: [],
+  };
   for (const sNode of nodes) {
-    _insertNode(sNode, sNode.name, treeData);
+    _insertNode(sNode, sNode.name, thisTreeData);
   }
-  levelOrder(treeData);
+  treeData.children.push(thisTreeData);
+  // levelOrder(treeData);
 }
 
 function buildPipelineGraph(
@@ -680,4 +689,6 @@ export {
   buildGraphOld,
   getPipelineBlockInfo,
   buildPipelinedStageInfo,
+  getTreeData,
+  levelOrder,
 };
