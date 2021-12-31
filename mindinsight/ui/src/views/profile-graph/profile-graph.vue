@@ -308,8 +308,6 @@ export default {
     },
 
     pipelineLayout() {
-      console.log(this.nodeBlocks, this.nodeOrder, this.dependNodes);
-
       const nodeBlockBorders = {};
 
       let lastDependNodeBlockEndX = undefined;
@@ -428,13 +426,6 @@ export default {
         this.nodeMaps.push(processedGraph.nodeMap);
       }
       this.treeData = getTreeData().children;
-
-      // let res = await fetch('static/data/bert_semi.json');
-      // res = await res.json();
-      // buildGraphOld(res.data);
-
-      // this.nodeMap = processedGraph.nodeMap;
-      // this.treeData = treeData.children;
     },
   },
 };
