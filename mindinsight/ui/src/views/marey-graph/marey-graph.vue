@@ -64,10 +64,10 @@
                 <polygon
                   :key="key"
                   :points="data.data"
-                  fill="#92BAD7"
-                  stroke="#ccc"
-                  stroke-width="0.1"
-                  @mouseover="onNodeMouseover($event, data)"
+                  :fill="getFilledColor(data.op)"
+                  fill-opacity=".8"
+                  stroke-width="1"
+                  @mousemove="onNodeMouseover($event, data)"
                   @mouseout="onNodeMouseout"
                 />
               </template>
@@ -81,11 +81,14 @@
 
 <script>
 import * as d3 from 'd3';
-import {debounce} from "lodash";
+import {debounce} from 'lodash';
 import getBound, { SVG_NAME } from '@/mixins/basic-operation-of-charts/get-bound';
 import RequestService from '@/services/request-service';
 import svgWrapper from '../svg-wrapper.vue';
 import GetBound from '../../mixins/basic-operation-of-charts/get-bound.vue';
+import {
+  COMM_LIST
+} from '@/js/const.js';
 
 export default {
   mixins: [getBound], // 用来获取画布的大小
@@ -99,8 +102,7 @@ export default {
     return {
       SVG_NAME: SVG_NAME,
       marey_width: 1400, // marey图的宽度
-      marey_pos: {left: 90, top: 150},
-      margin: {left: 70, top: 10, right: 10, bottom: 10},
+      marey_pos: {left: 90, top: 130},
       data: {},
       xScale: null,
       yScale: null,
@@ -113,6 +115,7 @@ export default {
       hoveredNodeInfo: null,
       curScale: 1,
       axis: null,
+      func: null,
     };
   },
 
@@ -134,6 +137,7 @@ export default {
             this.xScale = xScale;
             this.yScale = yScale;
             const displayedData = {};
+            const k = Object.keys(operator_time_maps).length; // k个设备
             Object.keys(operator_time_maps).forEach(deviceName => {
               const curDeviceData = operator_time_maps[deviceName];
               Object.keys(curDeviceData).forEach(op => { // 这里op是算子名
@@ -157,7 +161,7 @@ export default {
                         .ticks(10);
             let axis = marey_g.append('g')
                       .attr('id', 'xAxis')
-                      .attr('transform', `translate(0, ${this.yScale.bandwidth()})`)
+                      .attr('transform', `translate(0, ${this.yScale.bandwidth() * (k - 1)})`)
                       .call(xAxis);
             this.axis = axis;
 
@@ -200,11 +204,22 @@ export default {
   },
 
   methods: {
-    onNodeMouseover(e, node) {
-      const {left, bottom} = e.target.getBoundingClientRect();
+    getFilledColor(op) {
+      let type = op.split('/').pop().split('-')[0];
+      type = type.split('_').pop();
+      if (COMM_LIST.has(type)) {
+        return '#F7B79B';
+      } else {
+        return '#368DBF';
+      }
+    },
+
+    onNodeMouseover: function(e, node) {
+      const {left, bottom, top} = e.target.getBoundingClientRect();
+      const {clientX, clientY} = e;
       this.hoveredNodeInfo = {
         node: node,
-        x: left, y: bottom,
+        x: clientX + 5, y: clientY + 5,
       };
     },
 
@@ -214,24 +229,36 @@ export default {
 
     transformToRect() {
       const {displayedData, xScale, yScale} = this;
-      console.log(displayedData)
+      console.log(displayedData);
       Object.keys(displayedData).forEach(op => {
         let points = "";
         const curOpDeviceData = displayedData[op];
-        for (let i = 0; i < curOpDeviceData.length; i++) {
-          const dt = curOpDeviceData[i];
-          points += `${xScale(dt.x1)},${yScale(dt.y)} `;
+        if (curOpDeviceData.length == 1) { // 只有1个算子，画个矩形框
+          const dt = curOpDeviceData[0];
+          points += `${xScale(dt.x1)},${yScale(dt.y) - 10} `;
+          points += `${xScale(dt.x2)},${yScale(dt.y) - 10} `;
+          points += `${xScale(dt.x2)},${yScale(dt.y) + 10} `;
+
+          points += `${xScale(dt.x1)},${yScale(dt.y) + 10} `;
+        } else {
+          for (let i = 0; i < curOpDeviceData.length; i++) {
+            const dt = curOpDeviceData[i];
+            points += `${xScale(dt.x1)},${yScale(dt.y)} `;
+          }
+          for (let i = curOpDeviceData.length - 1; i >= 0; i--) {
+            const dt = curOpDeviceData[i];
+            points += `${xScale(dt.x2)},${yScale(dt.y)} `;
+          }
         }
-        for (let i = curOpDeviceData.length - 1; i >= 0; i--) {
-          const dt = curOpDeviceData[i];
-          points += `${xScale(dt.x2)},${yScale(dt.y)} `;
-        }
+        // let type = op.split('/').pop().split('-')[0];
+        // type = type.split('_').pop();
+
+        // if (COMM_LIST.has(type)) return;
         this.polygonData.push({
           "op": op,
           "data": points,
         });
       })
-      console.log(this.polygonData);
     },
 
     draw() {

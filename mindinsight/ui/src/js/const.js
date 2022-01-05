@@ -51,6 +51,15 @@ export const COLOR = {
   unexpanded: '#ffffff',
 };
 
+export const COMM_LIST = new Set([
+  'AllReduce',
+  'AllGather',
+  'AllToAll',
+  'ReduceScatter',
+  'Receive',
+  'Send',
+]);
+
 export const GRAPH_STYLE = `.no-fill {fill: none;}
 .graph-action {height: 40px;width: 100%;display: flex;align-items: center;}
 .graph-container {height: calc(100% - 40px);width: 100%;position: relative;}

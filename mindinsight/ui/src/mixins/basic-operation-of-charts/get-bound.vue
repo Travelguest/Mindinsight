@@ -7,8 +7,8 @@ export default {
       width: 0,
       height: 0,
       margin: {
-        left: 10,
-        top: 10,
+        left: 70,
+        top: 130,
         right: 10,
         bottom: 10,
       },
