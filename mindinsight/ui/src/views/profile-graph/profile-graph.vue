@@ -40,21 +40,15 @@
         <div class="col">
           <div class="left">inputs:</div>
           <div class="right">
-            <div
-              v-for="input in hoveredNodeInfo.node.input"
-              :key="input"
-              v-html="`${input}${!isNaN(input) ? nodeMaps[hoveredNodeInfo.nodeGroupIndex][input].type : ''}`"
-            ></div>
+            <div v-for="input in hoveredNodeInfo.node.input" :key="input"
+            v-html="`${input}${nodeMap[input] ? nodeMap[input].type : ''}`"></div>
           </div>
         </div>
         <div class="col">
           <div class="left">output:</div>
           <div class="right">
-            <div
-              v-for="output in hoveredNodeInfo.node.output"
-              :key="output"
-              v-html="`${output}${!isNaN(output) ? nodeMaps[hoveredNodeInfo.nodeGroupIndex][output].type : ''}`"
-            ></div>
+            <div v-for="output in hoveredNodeInfo.node.output" :key="output"
+            v-html="`${output}${nodeMap[output] ? nodeMap[output].type : ''}`"></div>
           </div>
         </div>
       </div>
@@ -156,17 +150,13 @@
               @mouseover="onNodeMouseover($event, node)"
               @mouseout="onNodeMouseout"
             >
-              <circle
-                :cx="node.x"
-                :cy="node.y"
-                :r="node.r"
-                :class="node.type.toLowerCase() + ' node'"
-              ></circle>
-              <text
-                :x="node.x - 10"
-                :y="node.y + 20"
-                v-html="node.id + node.type"
-              ></text>
+              <circle :cx="node.x" :cy="node.y" :r="node.r"
+                :class="`${node.type.toLowerCase()} node${node.isAggreNode ? ' aggre-node' : ''}`" ></circle>
+              <circle v-if="node.isAggreNode" :cx="node.x+2" :cy="node.y+2" :r="node.r"
+                :class="`${node.type.toLowerCase()} node${node.isAggreNode ? ' aggre-node' : ''}`" ></circle>
+              <circle v-if="node.isAggreNode" :cx="node.x+4" :cy="node.y+4" :r="node.r"
+                :class="`${node.type.toLowerCase()} node${node.isAggreNode ? ' aggre-node' : ''}`" ></circle>
+              <text :x="node.x-10" :y="node.y+20" v-html="`${node.id} ${node.type}`"></text>
             </g>
           </g>
         </g>

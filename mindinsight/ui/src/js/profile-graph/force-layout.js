@@ -5,6 +5,20 @@ import forceLink from '@/js/profile-graph/link-force.js';
 export function layout(opNodes, normalEdges, nodeMap, tick = 200) {
   const vxs = [];
 
+  // init node position
+  opNodes.forEach((v, i) => {
+    v.x = i * 15;
+    v.y = Math.random() * 20;
+    if (v.type === 'Depend') {
+      v.r = 3;
+    } else if (v.type === 'Load') {
+      v.r = 3;
+    } else {
+      v.r = 10;
+    }
+    v.order = i;
+  });
+
   const sim = d3
       .forceSimulation(opNodes)
       .force('link', forceLink(normalEdges))

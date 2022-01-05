@@ -35,7 +35,7 @@ export default function(links) {
         x = target.x + target.vx - source.x - source.vx;
         y = target.y + target.vy - source.y - source.vy;
         let xdiff = x - distances[i];
-        const timeDiff = Number(target.id) - Number(source.id);
+        const timeDiff = Number(target.order) - Number(source.order);
         if (xdiff > 0) {
           // x = 0
           x = (xdiff * alpha * strengths[i]) / Math.pow(timeDiff, 2);
