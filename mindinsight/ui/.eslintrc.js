@@ -23,6 +23,7 @@ module.exports = {
   extends: ['plugin:vue/essential', 'google'],
   rules: {
     'max-len': [2, 120, 4, { ignoreUrls: true}],
+    "linebreak-style": 0,
   },
   parserOptions: {
     parser: 'babel-eslint',
