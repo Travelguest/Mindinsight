@@ -124,6 +124,7 @@
             ></circle>
           </g>
         </g>
+
         <g id="graph-edge-container">
           <g id="normal-edge-container">
             <g
@@ -156,6 +157,19 @@
                 :d="specialEdgesGroup[cls].path(edge.source, edge.target)"
               ></path>
             </g>
+          </g>
+        </g>
+
+        <g id="graph-extra-edge-container">
+          <g v-for="(value, key) in extraEdges" :key="key">
+            <line
+              v-for="(edge, index) in value"
+              :key="index"
+              :x1="edge[0]"
+              :y1="edge[1]"
+              :x2="edge[2]"
+              :y2="edge[3]"
+            ></line>
           </g>
         </g>
 
@@ -202,6 +216,38 @@
             </g>
           </g>
         </g>
+
+        <g id="parallel-strategy-container">
+          <g
+            v-for="(value, key) in parallelStrategyParas"
+            :key="`${key}_strategy_group`"
+          >
+            <g v-for="(item, index) in value" :key="`${key}_${index}_strategy`">
+              <g
+                v-for="(rect, index1) in item.rects"
+                :key="`${key}_${index}_${index1}_rect`"
+                :transform="`rotate(${item.theta},${item.rotateCenter[0]},${item.rotateCenter[1]})`"
+              >
+                <rect
+                  :x="rect[0]"
+                  :y="rect[1]"
+                  :width="rect[2]"
+                  :height="rect[3]"
+                  :fill="item.colors[index1]"
+                  stroke="white"
+                  stroke-width="0.1px"
+                ></rect>
+                <text
+                  dx="-1"
+                  dy="1.5"
+                  :transform="`matrix(0.5 0 0 0.5 ${item.textsPos[index1][0]} ${item.textsPos[index1][1]})`"
+                >
+                  {{ item.texts[index1] }}
+                </text>
+              </g>
+            </g>
+          </g>
+        </g>
       </g>
     </svg>
     <a-tree-select
@@ -232,6 +278,7 @@ import {
   buildPipelinedStageInfo,
   getTreeData,
   levelOrder,
+  getStrategyInfo,
 } from '@/js/profile-graph/build-graph.js';
 import * as d3 from 'd3';
 import {layout} from '@/js/profile-graph/force-layout.js';
@@ -258,6 +305,10 @@ export default {
       showSpecialEdgeTypes: [],
       hoveredNodeInfo: null,
       isPipelineLayout: false,
+      parallelStrategyRawData: null,
+      parallelStrategyParas: null,
+      normalEdgesBackup: [],
+      extraEdges: {},
     };
   },
 
@@ -410,8 +461,9 @@ export default {
 
       for (let i = 0; i < this.nodeMaps.length; i++) {
         const nodeMap = this.nodeMaps[i];
-        const {specialEdges, normalEdges, opNodes} =
+        const [normalEdgesBackup, {specialEdges, normalEdges, opNodes}] =
           extractVisNodeAndEdge(nodeMap);
+        this.normalEdgesBackup.push(normalEdgesBackup);
         this.specialEdges.push(specialEdges);
         this.specialEdgeTypes = [
           ...this.specialEdgeTypes,
@@ -435,7 +487,90 @@ export default {
         this.idToIndexs.push(idToIndex);
       }
 
-      if (this.isPipelineLayout) this.pipelineLayout();
+      if (this.isPipelineLayout) {
+        this.pipelineLayout();
+        this.calcStrategyPara();
+      }
+    },
+
+    calcStrategyPara() {
+      this.parallelStrategyParas = {};
+      const reds = d3.schemeReds[9];
+      Object.keys(this.parallelStrategyRawData).forEach((key) => {
+        const [nodeGroupIndex, sourceID, targetID] = key.split('-');
+        const [sourceNode, targetNode] = [
+          this.nodeMaps[nodeGroupIndex][sourceID],
+          this.nodeMaps[nodeGroupIndex][targetID],
+        ];
+        if (!sourceNode || !targetNode) return;
+        if (sourceNode.type === 'Load' || targetNode.type === 'Load') return;
+
+        if (
+          !this.normalEdgesBackup[nodeGroupIndex].includes(
+              `${sourceID}-${targetID}`,
+          )
+        ) {
+          if (!(nodeGroupIndex in this.extraEdges)) {
+            this.extraEdges[nodeGroupIndex] = [];
+          }
+          this.extraEdges[nodeGroupIndex].push([
+            sourceNode.x,
+            sourceNode.y,
+            targetNode.x,
+            targetNode.y,
+          ]);
+        }
+
+        // 计算小矩形的各种坐标
+        const centerDist = Math.hypot(
+            targetNode.x - sourceNode.x,
+            targetNode.y - sourceNode.y,
+        );
+        const theta = Math.asin(
+            Math.abs(targetNode.y - sourceNode.y) / centerDist,
+        );
+        const offset = 2;
+        const [sourceRadius, targetRadius] = [sourceNode.r, targetNode.r];
+        const rectWidth = 6;
+        const rectHeight = 4;
+        const rects = [];
+        const colors = [];
+        const textsPos = [];
+        const isTargetLower = targetNode.y >= sourceNode.y;
+        const isTargetRight = targetNode.x >= sourceNode.x;
+        for (let i = 0; i < this.parallelStrategyRawData[key].length; i++) {
+          const topLeftX =
+            targetNode.x -
+            targetRadius -
+            offset -
+            (this.parallelStrategyRawData[key].length - i) * rectWidth;
+          const topLeftY = targetNode.y - rectHeight / 2;
+          const textPosX = topLeftX + rectWidth / 2;
+          const textPosY = targetNode.y;
+          rects.push([topLeftX, topLeftY, rectWidth, rectHeight]);
+          colors.push(reds[this.parallelStrategyRawData[key][i]]);
+          textsPos.push([textPosX, textPosY]);
+        }
+
+        if (!(nodeGroupIndex in this.parallelStrategyParas)) {
+          this.parallelStrategyParas[nodeGroupIndex] = [];
+        }
+        this.parallelStrategyParas[nodeGroupIndex].push({
+          rects: rects,
+          texts: this.parallelStrategyRawData[key],
+          textsPos: textsPos,
+          colors: colors,
+          theta: isTargetLower
+            ? isTargetRight
+              ? (theta * 180) / Math.PI
+              : (Math.PI - theta) * 180 / Math.PI
+            : isTargetRight
+            ? (-theta * 180) / Math.PI
+            : -(Math.PI - theta) * 180 / Math.PI,
+          rotateCenter: [targetNode.x, targetNode.y],
+        });
+      });
+      console.log(this.extraEdges);
     },
 
     async fetchData() {
@@ -451,6 +586,8 @@ export default {
           nodeOrder: this.nodeOrder,
           dependNodes: this.dependNodes,
         } = getPipelineBlockInfo());
+
+        this.parallelStrategyRawData = getStrategyInfo(res.graphs);
 
         Object.keys(res.graphs).forEach((rankID) => {
           const thisGraph = res.graphs[rankID];
@@ -482,7 +619,7 @@ export default {
 
 #profile-graph line {
   stroke-width: 1;
-  stroke: rgb(42, 77, 233);
+  stroke: grey;
 }
 
 #profile-graph text {

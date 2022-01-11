@@ -5,11 +5,11 @@ const BIG_PRIMITIVE = 10000019;
 
 export function extractVisNodeAndEdge(nodeMap) {
   const {allEdges, opNodes} = _getNodeAndEdgeFromNodeMap(nodeMap);
-  const {specialEdges, normalEdges} = _getNormalEdgeAndSpecialEdge(allEdges, nodeMap);
+  const {specialEdges, normalEdges, normalEdgesBackup} = _getNormalEdgeAndSpecialEdge(allEdges, nodeMap);
 
   const newData = _stackIsomorphicSubgraph(specialEdges, normalEdges, opNodes, nodeMap);
 
-  return newData;
+  return [normalEdgesBackup, newData];
 }
 
 function _getNodeAndEdgeFromNodeMap(nodeMap) {
@@ -36,6 +36,7 @@ function _getNodeAndEdgeFromNodeMap(nodeMap) {
 
 function _getNormalEdgeAndSpecialEdge(allEdges, nodeMap) {
   const normalEdges = [];
+  const normalEdgesBackup = [];
   const specialEdges = {};
   specialEdgesDef.forEach((v) => {
     specialEdges[v.class] = {
@@ -56,9 +57,12 @@ function _getNormalEdgeAndSpecialEdge(allEdges, nodeMap) {
         break;
       }
     }
-    if (isNormalEdge) normalEdges.push(edge);
+    if (isNormalEdge) {
+      normalEdges.push(edge);
+      normalEdgesBackup.push(`${edge.source.id}-${edge.target.id}`);
+    }
   }
-  return {normalEdges, specialEdges};
+  return {normalEdges, normalEdgesBackup, specialEdges};
 }
 
 

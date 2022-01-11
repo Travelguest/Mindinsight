@@ -667,6 +667,24 @@ function processOutput() {
   });
 }
 
+function getStrategyInfo(data) {
+  const strategyInfo = {};
+  Object.keys(data).forEach((rankID) => {
+    const graph = data[rankID];
+    const nodes = [...graph.op_nodes, ...graph.const_nodes, ...graph.parameter_nodes];
+    for (const node of nodes) {
+      const strategy = node.parallel_shard;
+      if (strategy.length !== 0) {
+        strategy = JSON.parse(strategy);
+        for (let i = 0; i < strategy.length; i++) {
+          strategyInfo[`${rankID}-${node.input[i]}-${node.node_id}`] = strategy[i];
+        }
+      }
+    }
+  });
+  return strategyInfo;
+}
+
 /**
  * Build graph data.
  * @param {Object} data All graph data
@@ -691,4 +709,5 @@ export {
   buildPipelinedStageInfo,
   getTreeData,
   levelOrder,
+  getStrategyInfo,
 };
