@@ -46,6 +46,6 @@ export default {
 
   .strategy-view {
     display: grid;
-    grid-template-rows: 40% auto;
+    grid-template-rows: 50% auto;
   }
 </style>

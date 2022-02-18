@@ -229,7 +229,6 @@ export default {
 
     transformToRect() {
       const {displayedData, xScale, yScale} = this;
-      console.log(displayedData);
       Object.keys(displayedData).forEach(op => {
         let points = "";
         const curOpDeviceData = displayedData[op];

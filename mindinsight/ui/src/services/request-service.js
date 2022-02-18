@@ -591,7 +591,13 @@ export default {
   getTimelineData() {
     return axios({
       method: 'get',
-      url: 'mock/timeline'
-    })
-  }
+      url: 'mock/timeline',
+    });
+  },
+  getGraphs() {
+    return axios({
+      method: 'get',
+      url: 'mock/getGraphs',
+    });
+  },
 };

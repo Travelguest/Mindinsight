@@ -284,6 +284,7 @@ import * as d3 from 'd3';
 import {layout} from '@/js/profile-graph/force-layout.js';
 import {extractVisNodeAndEdge} from '@/js/profile-graph/graph-process.js';
 import {TreeSelect} from 'ant-design-vue';
+import RequestService from '@/services/request-service';
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
 export default {
@@ -574,10 +575,7 @@ export default {
     },
 
     async fetchData() {
-      let res = await fetch('static/data/resnet_pipeline_parallel.json');
-      // let res = await fetch('static/data/bert_semi.json');
-      res = await res.json();
-
+      const res = (await RequestService.getGraphs()).data;
       if ('graphs' in res) {
         this.isPipelineLayout = true;
         buildPipelinedStageInfo(res.graphs);
