@@ -11,17 +11,21 @@
       search-placeholder="Please select"
       :dropdownStyle="{ maxHeight: '300px' }"
       :maxTagCount="Number(1)"
+      @change="handleTreeChange"
     />
-    <div class="special-edge-checkbox">
-      <el-checkbox-group v-model="showSpecialEdgeTypes">
-        <el-checkbox
-          v-for="(specialEdgeType, index) in specialEdgeTypes"
-          :key="index"
-          :label="specialEdgeType"
-          style="display: block"
-        >
-        </el-checkbox>
-      </el-checkbox-group>
+    <div>
+      <div>Hidden Edge</div>
+      <div class="special-edge-checkbox">
+        <el-checkbox-group v-model="showSpecialEdgeTypes">
+          <el-checkbox
+            v-for="(specialEdgeType, index) in specialEdgeTypes"
+            :key="index"
+            :label="specialEdgeType"
+            style="display: block"
+          >
+          </el-checkbox>
+        </el-checkbox-group>
+      </div>
     </div>
   </div>
 </template>
@@ -30,6 +34,7 @@
 import { getTreeData, levelOrder } from "@/js/profile-graph/build-graph.js";
 import { TreeSelect } from "ant-design-vue";
 import RequestService from "@/services/request-service";
+
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
 export default {
@@ -43,25 +48,33 @@ export default {
     };
   },
 
-  watch: {
-    showSpecialEdgeTypes(newVal, oldVal) {},
-  },
-
   mounted() {
     this.initView();
   },
 
+  watch: {
+    "$store.state.profileSpecialEdgeTypes": function (val) {
+      this.specialEdgeTypes = val;
+    },
+    showSpecialEdgeTypes(newVal, oldVal) {
+      this.$store.commit("setProfileShowSpecialEdgeTypes", [oldVal, newVal]);
+    },
+  },
+
   methods: {
     async fetchData() {
-      console.log("fetching");
       const res = (await RequestService.getGraphs()).data;
       if ("graphs" in res) {
         levelOrder(getTreeData());
       }
       this.treeData = getTreeData().children;
+      this.$store.commit("setProfileTreeData", this.treeData);
     },
     async initView() {
       await this.fetchData();
+    },
+    handleTreeChange() {
+      this.$store.commit("setProfileNamespaces", this.selectNamespaces);
     },
   },
 };

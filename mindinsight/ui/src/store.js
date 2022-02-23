@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Vue from 'vue';
-import Vuex from 'vuex';
+import Vue from "vue";
+import Vuex from "vuex";
 
 Vue.use(Vuex);
 
@@ -25,7 +25,7 @@ export default new Vuex.Store({
     // reload flag
     isReload: false,
     // Scheduled reload flag
-    isTimeReload: localStorage.isTimeReload === 'false' ? false : true,
+    isTimeReload: localStorage.isTimeReload === "false" ? false : true,
     // reload time
     timeReloadValue: localStorage.timeReloadValue
       ? localStorage.timeReloadValue
@@ -41,9 +41,15 @@ export default new Vuex.Store({
     selectedBarList: [],
     customizedColumnOptions: [],
     // Current language
-    language: 'en-us',
+    language: "en-us",
     // Theme index
-    themeIndex: '0',
+    themeIndex: "0",
+
+    profileNamespaces: [],
+    profileTreeData: [],
+    profileSpecialEdgeTypes: [],
+    // profileShowSpecialEdgeTypes: { newVal: [], oldVal: [] },
+    profileShowSpecialEdgeTypes: [],
   },
   mutations: {
     // set cancelTokenArr
@@ -53,7 +59,7 @@ export default new Vuex.Store({
     // clear cancelTokenArr
     clearToken: (state) => {
       state.cancelTokenArr.forEach((item) => {
-        item('routeJump');
+        item("routeJump");
       });
       state.cancelTokenArr = [];
     },
@@ -96,7 +102,21 @@ export default new Vuex.Store({
     },
     setThemeIndex(state, val) {
       state.themeIndex = val;
-      localStorage.setItem('miTheme', val);
+      localStorage.setItem("miTheme", val);
+    },
+    setProfileNamespaces(state, val) {
+      state.profileNamespaces = val;
+    },
+    setProfileTreeData(state, val) {
+      state.profileTreeData = val;
+    },
+    setProfileSpecialEdgeTypes(state, val) {
+      state.profileSpecialEdgeTypes = val;
+    },
+    setProfileShowSpecialEdgeTypes(state, val) {
+      // state.profileShowSpecialEdgeTypes["newVal"] = val["newVal"];
+      // state.profileShowSpecialEdgeTypes["oldVal"] = val["oldVal"];
+      state.profileShowSpecialEdgeTypes = val;
     },
   },
   actions: {},

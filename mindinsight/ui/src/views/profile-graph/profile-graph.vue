@@ -1,16 +1,5 @@
 <template>
   <div class="profile-graph">
-    <div class="special-edge-checkbox">
-      <el-checkbox-group v-model="showSpecialEdgeTypes">
-        <el-checkbox
-          v-for="(specialEdgeType, index) in specialEdgeTypes"
-          :key="index"
-          :label="specialEdgeType"
-          style="display: block"
-        >
-        </el-checkbox>
-      </el-checkbox-group>
-    </div>
     <div
       class="profile-graph-tooltip"
       v-if="hoveredNodeInfo !== null"
@@ -250,23 +239,6 @@
         </g>
       </g>
     </svg>
-    <a-tree-select
-      class="configure-select"
-      v-model="selectNamespaces"
-      style="
-        position: absolute;
-        left: 200px;
-        top: 5px;
-        width: 200px;
-        z-index: 99;
-      "
-      :tree-data="treeData"
-      tree-checkable
-      :show-checked-strategy="SHOW_PARENT"
-      search-placeholder="Please select"
-      :dropdownStyle="{ maxHeight: '300px' }"
-      :maxTagCount="Number(1)"
-    />
   </div>
 </template>
 
@@ -322,6 +294,24 @@ export default {
         }
       }
       for (const showSpecialEdgeType of newVal) {
+        for (const specialEdgesGroup of this.specialEdges) {
+          specialEdgesGroup[showSpecialEdgeType].display = true;
+        }
+      }
+    },
+    "$store.state.profileNamespaces": function (val) {
+      this.selectNamespaces = val;
+    },
+    "$store.state.profileTreeData": function (val) {
+      this.treeData = val;
+    },
+    "$store.state.profileShowSpecialEdgeTypes": function (val) {
+      for (const showSpecialEdgeType of val[0]) {
+        for (const specialEdgesGroup of this.specialEdges) {
+          specialEdgesGroup[showSpecialEdgeType].display = false;
+        }
+      }
+      for (const showSpecialEdgeType of val[1]) {
         for (const specialEdgesGroup of this.specialEdges) {
           specialEdgesGroup[showSpecialEdgeType].display = true;
         }
@@ -480,6 +470,8 @@ export default {
         });
       }
       this.specialEdgeTypes = Array.from(new Set(this.specialEdgeTypes));
+      console.log(this.specialEdgeTypes);
+      this.$store.commit("setProfileSpecialEdgeTypes", this.specialEdgeTypes);
 
       for (const opNodes of this.opNodes) {
         const idToIndex = {};
@@ -600,7 +592,7 @@ export default {
         buildGraphOld(res.data);
         this.nodeMaps.push(processedGraph.nodeMap);
       }
-      this.treeData = getTreeData().children;
+      // this.treeData = getTreeData().children;
     },
   },
 };
