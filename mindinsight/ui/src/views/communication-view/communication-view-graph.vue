@@ -1,73 +1,69 @@
 <template>
   <div class="communication-view">
     <div>Communication View</div>
-    <div class="communication-graph-box" @mousedown="handleMouseDown">
-      <div
-        class="communication-graph-mask"
-        v-show="is_show_mask"
-        :style="
-          'width:' +
-          mask_width +
-          'left:' +
-          mask_left +
-          'height:' +
-          mask_height +
-          'top:' +
-          mask_top
-        "
-      ></div>
-      <svg id="communication-node-graph" style="width: 100%; height: 100%">
-        <defs>
-          <marker
-            id="arrow"
-            markerUnits="strokeWidth"
-            markerWidth="12"
-            markerHeight="12"
-            viewBox="0 0 12 12"
-            refX="6"
-            refY="6"
-            orient="auto"
-          >
-            <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style="fill: #000000" />
-          </marker>
-        </defs>
-        <g ref="communication-graph-container" v-if="showSvgContainer">
-          <path
-            v-for="edge in linksData"
-            :key="edge.index"
-            :d="
-              createCPath(
-                edge.source.x,
-                edge.source.y,
-                edge.target.x,
-                edge.target.y
-              )
-            "
-            stroke="#0f0"
-            stroke-width="1.5px"
-            fill="none"
-            style="marker-end: url(#arrow)"
-          ></path>
-          <circle
-            v-for="node in nodesData"
-            :key="node.name"
-            :cx="node.x"
-            :cy="node.y"
-            :r="5"
-            fill="red"
-            class="communication-graph-circle"
-          ></circle>
-          <text
-            v-for="node in nodesData"
-            :key="'text' + node.name"
-            :x="node.x"
-            :y="node.y"
-          >
-            {{ node.name }}
-          </text>
-        </g>
-      </svg>
-    </div>
+
+    <svg
+      id="communication-node-graph"
+      style="width: 100%; height: 100%"
+      @mousedown="handleMouseDown"
+    >
+      <defs>
+        <marker
+          id="arrow"
+          markerUnits="strokeWidth"
+          markerWidth="12"
+          markerHeight="12"
+          viewBox="0 0 12 12"
+          refX="6"
+          refY="6"
+          orient="auto"
+        >
+          <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style="fill: #000000" />
+        </marker>
+      </defs>
+      <g>
+        <polygon
+          v-if="isShowMask"
+          :points="maskPath"
+          style="fill: grey; fill-opacity=0.1 "
+        />
+      </g>
+      <g ref="communication-graph-container" v-if="showSvgContainer">
+        <path
+          v-for="edge in linksData"
+          :key="edge.index"
+          :d="
+            createCPath(
+              edge.source.x,
+              edge.source.y,
+              edge.target.x,
+              edge.target.y
+            )
+          "
+          stroke="#0f0"
+          stroke-width="1.5px"
+          fill="none"
+          style="marker-end: url(#arrow)"
+        ></path>
+        <circle
+          v-for="node in nodesData"
+          :key="node.name"
+          :cx="node.x"
+          :cy="node.y"
+          :r="5"
+          fill="red"
+          class="communication-graph-circle"
+        ></circle>
+        <text
+          v-for="node in nodesData"
+          :key="'text' + node.name"
+          :x="node.x"
+          :y="node.y"
+        >
+          {{ node.name }}
+        </text>
+      </g>
+    </svg>
   </div>
 </template>
 
@@ -106,42 +102,20 @@ export default {
       nodesData: {},
       linksData: {},
       showSvgContainer: true,
-      start_x: 0,
-      start_y: 0,
-      end_x: 0,
-      end_y: 0,
-      is_show_mask: false,
-      box_screen_left: 0,
-      box_screen_top: 0,
+
+      isShowMask: true,
+      maskPath: "",
+      maskPathList: [],
       selectDevice: [],
     };
   },
   mounted() {
     this.initGraph();
   },
-
-  computed: {
-    mask_width() {
-      return `${Math.abs(this.end_x - this.start_x)}px;`;
-    },
-    mask_height() {
-      return `${Math.abs(this.end_y - this.start_y)}px;`;
-    },
-    mask_left() {
-      return `${Math.min(this.start_x, this.end_x) - this.box_screen_left}px;`;
-    },
-    mask_top() {
-      return `${Math.min(this.start_y, this.end_y) - this.box_screen_top}px;`;
-    },
-  },
-
   methods: {
     async initGraph() {
       await this.fetchData();
       this.generateGraph();
-      const dom_box = document.querySelector(".communication-graph-box");
-      this.box_screen_left = dom_box.getBoundingClientRect().left;
-      this.box_screen_top = dom_box.getBoundingClientRect().top;
     },
 
     async fetchData() {
@@ -214,7 +188,6 @@ export default {
       this.nodesData = tmpnodesData;
 
       this.linksData = tmplinksData;
-      console.log(this.nodesData);
     },
 
     createCPath(x1, y1, x2, y2) {
@@ -230,65 +203,82 @@ export default {
         "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 0 1 " + x2 + "," + y2
       );
     },
-
+    updateMask() {
+      this.maskPath = this.maskPathList.join(" ");
+      // console.log(this.maskPathList);
+      this.isShowMask = true;
+    },
     handleMouseDown(event) {
-      if (event.target.tagName === "SPAN") return false;
-      this.is_show_mask = true;
-      this.start_x = event.clientX;
-      this.start_y = event.clientY;
-      this.end_x = event.clientX;
-      this.end_y = event.clientY;
-      // console.log(this.start_x);
+      var pointStr = event.offsetX + "," + event.offsetY;
+      this.maskPathList.push(pointStr);
+      this.updateMask();
+
+      // console.log(event);
       document.body.addEventListener("mousemove", this.handleMouseMove);
       document.body.addEventListener("mouseup", this.handleMouseUp);
     },
     handleMouseMove(event) {
-      this.end_x = event.clientX;
-      this.end_y = event.clientY;
+      //   this.end_x = event.clientX;
+      //   this.end_y = event.clientY;
     },
     handleMouseUp() {
-      document.body.removeEventListener("mousemove", this.handleMouseMove);
-      document.body.removeEventListener("mouseup", this.handleMouseUp);
-      // console.log(this.end_x);
-      this.is_show_mask = false;
-      this.handleDeviceSelect();
-      this.resSetXY();
-    },
-    resSetXY() {
-      this.start_x = 0;
-      this.start_y = 0;
-      this.end_x = 0;
-      this.end_y = 0;
       this.selectDevice = [];
-    },
-    handleDeviceSelect() {
-      const dom_mask = window.document.querySelector(
-        ".communication-graph-mask"
-      );
-      const rect_select = dom_mask.getClientRects()[0];
-      document
-        .querySelectorAll(".communication-graph-circle")
-        .forEach((node, index) => {
-          const rects = node.getClientRects()[0];
-          if (this.collide(rects, rect_select) === true) {
-            // console.log(this.nodesData[index].name);
-            this.selectDevice.push(index);
-          }
-        });
-    },
-    collide(rect1, rect2) {
-      const maxX = Math.max(rect1.x + rect1.width, rect2.x + rect2.width);
-      const maxY = Math.max(rect1.y + rect1.height, rect2.y + rect2.height);
-      const minX = Math.min(rect1.x, rect2.x);
-      const minY = Math.min(rect1.y, rect2.y);
-      if (
-        maxX - minX <= rect1.width + rect2.width &&
-        maxY - minY <= rect1.height + rect2.height
-      ) {
-        return true;
-      } else {
-        return false;
+      for (var i in this.nodesData) {
+        // console.log(this.nodesData[i]);
+        if (this.checkMaskCollide(this.nodesData[i].x, this.nodesData[i].y)) {
+          this.selectDevice.push(this.nodesData[i].name);
+        }
       }
+      console.log(this.selectDevice);
+      //   document.body.removeEventListener("mousemove", this.handleMouseMove);
+      //   document.body.removeEventListener("mouseup", this.handleMouseUp);
+    },
+
+    checkMaskCollide(x, y) {
+      var p1 = { x: x, y: y };
+      var p2 = { x: 100000000, y: y };
+      var polygon = this.maskPathList;
+      var count = 0;
+      var p3, p4;
+      for (var i = 0; i < polygon.length - 1; i++) {
+        var point = polygon[i].split(",");
+        p3 = { x: point[0], y: point[1] };
+        point = polygon[i + 1].split(",");
+        p4 = { x: point[0], y: point[1] };
+        if (this.checkCross(p1, p2, p3, p4) == true) {
+          count++;
+        }
+      }
+      var point = polygon[polygon.length - 1].split(",");
+      p3 = {
+        x: point[0],
+        y: point[1],
+      };
+      var point = polygon[0].split(",");
+      p4 = { x: point[0], y: point[1] };
+      if (this.checkCross(p1, p2, p3, p4) == true) {
+        count++;
+      }
+      return count % 2 == 0 ? false : true;
+    },
+    checkCross(p1, p2, p3, p4) {
+      var v1 = { x: p1.x - p3.x, y: p1.y - p3.y },
+        v2 = { x: p2.x - p3.x, y: p2.y - p3.y },
+        v3 = { x: p4.x - p3.x, y: p4.y - p3.y },
+        v = this.crossMul(v1, v3) * this.crossMul(v2, v3);
+
+      v1 = { x: p3.x - p1.x, y: p3.y - p1.y };
+      v2 = { x: p4.x - p1.x, y: p4.y - p1.y };
+
+      v3 = { x: p2.x - p1.x, y: p2.y - p1.y };
+      return v <= 0 && this.crossMul(v1, v3) * this.crossMul(v2, v3) <= 0
+        ? true
+        : false;
+    },
+
+    //计算向量叉乘
+    crossMul(v1, v2) {
+      return v1.x * v2.y - v1.y * v2.x;
     },
   },
 };
