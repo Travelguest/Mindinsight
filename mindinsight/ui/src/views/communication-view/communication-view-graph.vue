@@ -1,88 +1,88 @@
 <template>
   <div class="communication-view">
     <div>Communication View</div>
-
-    <svg
-      id="communication-node-graph"
-      style="width: 100%; height: 100%"
-      @mousedown="handleMouseDown"
-    >
-      <defs>
-        <marker
-          id="arrow"
-          markerUnits="strokeWidth"
-          markerWidth="12"
-          markerHeight="12"
-          viewBox="0 0 12 12"
-          refX="6"
-          refY="6"
-          orient="auto"
-        >
-          <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style="fill: #000000" />
-        </marker>
-      </defs>
-      <g>
-        <polygon
-          v-if="isShowMask"
-          :points="maskPath"
-          style="fill: grey; fill-opacity=0.1 "
-        />
-      </g>
-      <g ref="communication-graph-container" v-if="showSvgContainer">
-        <path
-          v-for="edge in linksData"
-          :key="edge.index"
-          :d="
-            createCPath(
-              edge.source.x,
-              edge.source.y,
-              edge.target.x,
-              edge.target.y
-            )
-          "
-          stroke="#0f0"
-          stroke-width="1.5px"
-          fill="none"
-          style="marker-end: url(#arrow)"
-        ></path>
-        <circle
-          v-for="node in nodesData"
-          :key="node.name"
-          :cx="node.x"
-          :cy="node.y"
-          :r="5"
-          fill="red"
-          class="communication-graph-circle"
-        ></circle>
-        <text
-          v-for="node in nodesData"
-          :key="'text' + node.name"
-          :x="node.x"
-          :y="node.y"
-        >
-          {{ node.name }}
-        </text>
-      </g>
-    </svg>
+    <div class="communication-graph-box">
+      <i
+        class="el-icon-magic-stick"
+        id="lassoSelect"
+        @click="lassoSelectClick()"
+        style="color: grey"
+      ></i>
+      <svg
+        id="communication-node-graph"
+        style="width: 100%; height: 100%"
+        @mousedown="handleMouseDown"
+      >
+        <defs>
+          <marker
+            id="arrow"
+            markerUnits="strokeWidth"
+            markerWidth="12"
+            markerHeight="12"
+            viewBox="0 0 12 12"
+            refX="6"
+            refY="6"
+            orient="auto"
+          >
+            <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style="fill: #000000" />
+          </marker>
+        </defs>
+        <g>
+          <polygon
+            v-if="isShowMask && isLassoState"
+            :points="maskPath"
+            style="fill:#409eff; fill-opacity=0.4 "
+          />
+        </g>
+        <g ref="communication-graph-container" v-if="showSvgContainer">
+          <path
+            v-for="edge in linksData"
+            :key="edge.index"
+            :d="
+              createCPath(
+                edge.source.x,
+                edge.source.y,
+                edge.target.x,
+                edge.target.y
+              )
+            "
+            @click="linkOnClick(edge.index)"
+            stroke="#0f0"
+            stroke-width="1.5px"
+            fill="none"
+            style="marker-end: url(#arrow)"
+          ></path>
+          <circle
+            v-for="node in nodesData"
+            :key="node.name"
+            :cx="node.x"
+            :cy="node.y"
+            :r="5"
+            fill="red"
+            class="communication-graph-circle"
+          ></circle>
+          <text
+            v-for="node in nodesData"
+            :key="'text' + node.name"
+            :x="node.x"
+            :y="node.y"
+          >
+            {{ node.name }}
+          </text>
+        </g>
+      </svg>
+    </div>
   </div>
 </template>
 
 <style>
 .communication-graph-box {
-  width: 100%;
-  height: 80%;
   position: relative;
-  overflow: hidden;
-  user-select: none;
 }
-.communication-graph-mask {
+.el-icon-magic-stick {
   position: absolute;
-  background: #409eff;
-  opacity: 0.4;
-  z-index: 999;
-}
-.communication-graph-box svg {
-  overflow: auto;
+  top: 0;
+  right: 5%;
 }
 </style>
 <script>
@@ -103,10 +103,12 @@ export default {
       linksData: {},
       showSvgContainer: true,
 
-      isShowMask: true,
+      isShowMask: false,
       maskPath: "",
       maskPathList: [],
       selectDevice: [],
+
+      isLassoState: false,
     };
   },
   mounted() {
@@ -195,9 +197,12 @@ export default {
         dy = y2 - y1,
         dr = Math.sqrt(dx * dx + dy * dy);
       if (dr == 0) {
-        x1 = x1 - 1;
-        y1 = y1 - 1;
-        dr = 20;
+        x2 = x2 - 5;
+        y2 = y2 - 5;
+        dr = 10;
+        return (
+          "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 1 1 " + x2 + "," + y2
+        );
       }
       return (
         "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 0 1 " + x2 + "," + y2
@@ -209,13 +214,13 @@ export default {
       this.isShowMask = true;
     },
     handleMouseDown(event) {
-      var pointStr = event.offsetX + "," + event.offsetY;
-      this.maskPathList.push(pointStr);
-      this.updateMask();
-
-      // console.log(event);
-      document.body.addEventListener("mousemove", this.handleMouseMove);
-      document.body.addEventListener("mouseup", this.handleMouseUp);
+      if (this.isLassoState) {
+        var pointStr = event.offsetX + "," + event.offsetY;
+        this.maskPathList.push(pointStr);
+        this.updateMask();
+        document.body.addEventListener("mousemove", this.handleMouseMove);
+        document.body.addEventListener("mouseup", this.handleMouseUp);
+      }
     },
     handleMouseMove(event) {
       //   this.end_x = event.clientX;
@@ -229,7 +234,7 @@ export default {
           this.selectDevice.push(this.nodesData[i].name);
         }
       }
-      console.log(this.selectDevice);
+      // console.log(this.selectDevice);
       //   document.body.removeEventListener("mousemove", this.handleMouseMove);
       //   document.body.removeEventListener("mouseup", this.handleMouseUp);
     },
@@ -279,6 +284,21 @@ export default {
     //计算向量叉乘
     crossMul(v1, v2) {
       return v1.x * v2.y - v1.y * v2.x;
+    },
+
+    linkOnClick(edgeIndex) {
+      console.log(this.linksData[edgeIndex]);
+    },
+    lassoSelectClick() {
+      if (this.isLassoState) {
+        this.isLassoState = false;
+        document.getElementById("lassoSelect").style.color = "grey";
+      } else {
+        this.maskPathList = [];
+        this.updateMask();
+        this.isLassoState = true;
+        document.getElementById("lassoSelect").style.color = "red";
+      }
     },
   },
 };
