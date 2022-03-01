@@ -2,24 +2,21 @@
   <div class="communication-view">
     <div>Communication View</div>
     <svg id="communication-node-graph" style="width: 100%; height: 80%">
-      <defs></defs>
+      <defs>
+        <marker
+          id="arrow"
+          markerUnits="strokeWidth"
+          markerWidth="12"
+          markerHeight="12"
+          viewBox="0 0 12 12"
+          refX="6"
+          refY="6"
+          orient="auto"
+        >
+          <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style="fill: #000000" />
+        </marker>
+      </defs>
       <g ref="communication-graph-container" v-if="showSvgContainer">
-        <circle
-          v-for="node in nodesData"
-          :key="node.name"
-          :cx="node.x"
-          :cy="node.y"
-          :r="2"
-        ></circle>
-        <!-- <line
-          v-for="edge in linksData"
-          :key="edge.index"
-          :x1="edge.source.x"
-          :y1="edge.source.y"
-          :x2="edge.target.x"
-          :y2="edge.target.y"
-          style="stroke-width: 1; stroke: grey"
-        ></line> -->
         <path
           v-for="edge in linksData"
           :key="edge.index"
@@ -34,13 +31,26 @@
           stroke="#0f0"
           stroke-width="1.5px"
           fill="none"
+          style="marker-end: url(#arrow)"
         ></path>
+        <circle
+          v-for="node in nodesData"
+          :key="node.name"
+          :cx="node.x"
+          :cy="node.y"
+          :r="5"
+          fill="red"
+        ></circle>
       </g>
     </svg>
   </div>
 </template>
 
-<style></style>
+<style>
+.communication-view circle {
+  z-index: 100;
+}
+</style>
 <script>
 import {
   device_node,
@@ -117,16 +127,24 @@ export default {
       let tmpnodesData = this.communicateNodes[this.stepNum];
       let tmplinksData = this.communicateEdges[this.stepNum];
 
-      let simulation = d3.forceSimulation().nodes(tmpnodesData);
-      simulation
-        .force("charge_force", d3.forceManyBody())
-        .force("center_force", d3.forceCenter(width / 2, height / 2));
-
-      let linkForce = d3.forceLink(tmplinksData).id((d) => {
-        return d.name;
-      });
-
-      simulation.force("links", linkForce);
+      var simulation = d3
+        .forceSimulation(tmpnodesData)
+        .force(
+          "collide",
+          d3
+            .forceCollide()
+            .radius(() => 30)
+            .iterations(2)
+        )
+        .force("charge", d3.forceManyBody().strength(-200))
+        .force(
+          "link",
+          d3
+            .forceLink(tmplinksData)
+            .id((d) => d.name)
+            .distance(75)
+        )
+        .force("center", d3.forceCenter(width / 2, height / 2));
 
       this.nodesData = tmpnodesData;
 
@@ -134,25 +152,28 @@ export default {
     },
 
     createCPath(x1, y1, x2, y2) {
-      var path = "M" + x1 + " " + y1 + " ";
-      // var rx = 20;
-      // var ry = 5;
-      // var c = "A" + rx + "," + ry + " 1 0,1";
-      // path = path + c + x2 + " " + y2;
-      // console.log(path);
-      // return path;
-      var angle = 30;
-      var PI = Math.PI;
-      var xAngle = Math.atan2(y2 - y1, x2 - x1);
-      xAngle = (360 * xAngle) / (2 * PI);
-      var L = Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
-      var L2 = L / 2 / Math.cos((angle * 2 * PI) / 360);
-      var x0 =
-        x1 + Math.round(L2 * Math.cos(((xAngle + angle) * 2 * PI) / 360));
-      var y0 =
-        y1 + Math.round(L2 * Math.sin(((xAngle + angle) * 2 * PI) / 360));
-      path = path + "Q" + x0 + " " + y0 + " " + x2 + " " + y2;
-      return path;
+      var dx = x2 - x1, //增量
+        dy = y2 - y1,
+        dr = Math.sqrt(dx * dx + dy * dy);
+      if (dr == 0) {
+        return (
+          "M" +
+          (x1 - 1) +
+          "," +
+          (y1 - 1) +
+          "A" +
+          10 +
+          "," +
+          10 +
+          " 0 1 1 " +
+          x2 +
+          "," +
+          y2
+        );
+      }
+      return (
+        "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 0 1 " + x2 + "," + y2
+      );
     },
   },
 };
