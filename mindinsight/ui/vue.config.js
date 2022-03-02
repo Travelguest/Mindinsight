@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const path = require('path');
+const path = require("path");
 
 /**
  * @param {String} dir
@@ -24,34 +24,34 @@ function resolve(dir) {
 }
 
 module.exports = {
-  publicPath: process.env.NODE_ENV === 'production' ? './' : '/',
-  outputDir: 'dist',
-  assetsDir: 'static',
+  publicPath: process.env.NODE_ENV === "production" ? "./" : "/",
+  outputDir: "dist",
+  assetsDir: "static",
 
   // map
   productionSourceMap: false,
 
   configureWebpack: {
-    devtool: 'source-map',
+    devtool: "source-map",
   },
 
   chainWebpack: (config) => {
-    config.resolve.alias.set('@', resolve('src'));
+    config.resolve.alias.set("@", resolve("src"));
 
-    config.plugins.delete('preload');
-    config.plugins.delete('prefetch');
+    config.plugins.delete("preload");
+    config.plugins.delete("prefetch");
     config.module
-        .rule('element-ui')
-        .test(/element-ui.src.*?js$/)
-        .use('babel')
-        .loader('babel-loader')
-        .end();
+      .rule("element-ui")
+      .test(/element-ui.src.*?js$/)
+      .use("babel")
+      .loader("babel-loader")
+      .end();
 
-    const svgRule = config.module.rule('svg');
+    const svgRule = config.module.rule("svg");
 
     svgRule.uses.clear();
 
-    svgRule.use('vue-svg-loader').loader('vue-svg-loader');
+    svgRule.use("vue-svg-loader").loader("vue-svg-loader");
   },
 
   devServer: {
@@ -63,7 +63,7 @@ module.exports = {
         ws: true,
         changeOrigin: true,
         pathRewrite: {
-          '^/mock': '',
+          "^/mock": "",
         },
       },
     },
@@ -81,9 +81,9 @@ module.exports = {
 
   pluginOptions: {
     i18n: {
-      locale: 'zh-cn',
-      fallbackLocale: 'zh-cn',
-      localeDir: 'locales',
+      locale: "zh-cn",
+      fallbackLocale: "zh-cn",
+      localeDir: "locales",
       enableInSFC: true,
     },
   },

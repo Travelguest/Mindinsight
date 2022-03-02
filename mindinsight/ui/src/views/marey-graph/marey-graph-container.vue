@@ -1,6 +1,9 @@
 <template>
   <div class="parallel-page">
-    <div></div>
+    <div class="left-configure-view">
+      <communication-view-graph />
+      <configure-view />
+    </div>
     <div class="strategy-view">
       <!-- push前改回来！ -->
       <!-- <profile-graph />  -->
@@ -18,6 +21,8 @@
 import MareyGraphContainer from "./marey-graph.vue";
 import ProfileGraph from "../profile-graph/profile-graph.vue";
 import PerformanceView from "../PerformanceView/PerformanceViewContainder.vue";
+import CommunicationViewGraph from "../communication-view/communication-view-graph.vue";
+import ConfigureView from "../configure-view/configure-view.vue";
 
 export default {
   components: {
@@ -25,6 +30,8 @@ export default {
     MareyGraphContainer,
     ProfileGraph,
     PerformanceView,
+    CommunicationViewGraph,
+    ConfigureView,
   },
 
   data() {
@@ -40,7 +47,7 @@ export default {
   display: grid;
   grid-template-rows: 80% auto;
   grid-template-columns: 20% auto;
-  grid-gap: 4px;
+  grid-gap: 7px;
   width: 100%;
   height: 100%;
 }
@@ -52,5 +59,10 @@ export default {
 .strategy-view {
   display: grid;
   grid-template-rows: 50% auto;
+}
+
+.left-configure-view {
+  display: grid;
+  grid-template-rows: 30% auto;
 }
 </style>
