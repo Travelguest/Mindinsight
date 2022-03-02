@@ -15,16 +15,28 @@
       >
         <defs>
           <marker
-            id="arrow"
+            id="arrow-SDMA"
             markerUnits="strokeWidth"
-            markerWidth="12"
-            markerHeight="12"
+            markerWidth="6"
+            markerHeight="6"
             viewBox="0 0 12 12"
             refX="6"
             refY="6"
             orient="auto"
           >
-            <path d="M2,2 L10,6 L2,10 L6,6 L2,2" style="fill: #000000" />
+            <path d="M2,2 L10,6 L2,10 L4,6 L2,2" style="fill: #a1a1a1" />
+          </marker>
+          <marker
+            id="arrow-SDMA"
+            markerUnits="strokeWidth"
+            markerWidth="6"
+            markerHeight="6"
+            viewBox="0 0 12 12"
+            refX="6"
+            refY="6"
+            orient="auto"
+          >
+            <path d="M2,2 L10,6 L2,10 L4,6 L2,2" style="fill: #cecfd1" />
           </marker>
         </defs>
         <g>
@@ -35,39 +47,53 @@
           />
         </g>
         <g ref="communication-graph-container" v-if="showSvgContainer">
-          <path
-            v-for="edge in linksData"
-            :key="edge.index"
-            :d="
-              createCPath(
-                edge.source.x,
-                edge.source.y,
-                edge.target.x,
-                edge.target.y
-              )
-            "
-            @click="linkOnClick(edge.index)"
-            stroke="#0f0"
-            stroke-width="1.5px"
-            fill="none"
-            style="marker-end: url(#arrow)"
-          ></path>
           <circle
             v-for="node in nodesData"
-            :key="node.name"
+            :key="'big-circle-' + node.name"
             :cx="node.x"
             :cy="node.y"
-            :r="5"
-            fill="red"
-            class="communication-graph-circle"
+            :r="node.cr"
+            :fill="node.color"
           ></circle>
-          <text
+          <g v-for="edge in linksData" :key="'glink' + edge.index">
+            <path
+              v-if="edge.type == 'SDMA'"
+              :d="createCPath(edge.source, edge.target)"
+              :class="'link-' + edge.type"
+              :stroke-width="Math.log(edge.communication_duration * 10)"
+              @click="linkOnClick(edge.index)"
+              stroke="#a1a1a1"
+              fill="none"
+              style="marker-end: url(#arrow-SDMA)"
+            ></path>
+            <path
+              v-if="edge.type != 'SDMA'"
+              :d="createCPath(edge.source, edge.target)"
+              :class="'link-' + edge.type"
+              :stroke-width="Math.log(edge.communication_duration * 10)"
+              @click="linkOnClick(edge.index)"
+              stroke="#cecfd1"
+              fill="none"
+              style="marker-end: url(#arrow-DEFAULT)"
+            ></path>
+          </g>
+
+          <!-- <circle
             v-for="node in nodesData"
+            :key="'small-circle-' + node.name"
+            :cx="node.x"
+            :cy="node.y"
+            :r="Math.log(node.communication_cost)"
+            fill="white"
+            class="communication-graph-circle"
+          ></circle> -->
+          <text
+            v-for="(node, index) in nodesData"
             :key="'text' + node.name"
-            :x="node.x"
-            :y="node.y"
+            :x="node.x + node.cr"
+            :y="node.y + node.cr"
           >
-            {{ node.name }}
+            {{ index }}
           </text>
         </g>
       </svg>
@@ -90,6 +116,7 @@ import {
   device_node,
   communicate_link,
 } from "@/js/communicate-view/build-graph.js";
+import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
 import requestService from "@/services/request-service";
 import * as d3 from "d3";
 export default {
@@ -109,6 +136,9 @@ export default {
       selectDevice: [],
 
       isLassoState: false,
+
+      min_communicate_ratio: 0,
+      max_communicate_ratio: 0,
     };
   },
   mounted() {
@@ -151,7 +181,7 @@ export default {
               new_link.source = "device" + node_pair[0];
               new_link.target = "device" + node_pair[1];
               new_link.type = type;
-              new_link.value = link_info[link][type][0];
+              new_link.communication_duration = link_info[link][type][0];
               this.communicateEdges[step_info["step_num"]].push(new_link);
             }
           }
@@ -187,26 +217,65 @@ export default {
         )
         .force("center", d3.forceCenter(width / 2, height / 2));
 
-      this.nodesData = tmpnodesData;
+      for (var i = 0; i < tmpnodesData.length; i++) {
+        var tot_node_cost =
+          tmpnodesData[i].communication_cost + tmpnodesData[i].wait_cost;
 
+        tmpnodesData[i].cr = Math.log(10 * tot_node_cost);
+        tmpnodesData[i].communicate_ratio =
+          tmpnodesData[i].communication_cost / tot_node_cost;
+        this.min_communicate_ratio = Math.min(
+          this.min_communicate_ratio,
+          tmpnodesData[i].communicate_ratio
+        );
+        this.max_communicate_ratio = Math.max(
+          this.max_communicate_ratio,
+          tmpnodesData[i].communicate_ratio
+        );
+      }
+      for (var i = 0; i < tmpnodesData.length; i++) {
+        tmpnodesData[i].color = gradientColor(
+          "#fbe7d5",
+          "#e6882e",
+          this.min_communicate_ratio,
+          this.max_communicate_ratio,
+          tmpnodesData[i].communicate_ratio
+        );
+      }
+
+      this.nodesData = tmpnodesData;
       this.linksData = tmplinksData;
+      console.log(this.linksData);
+      console.log(this.nodesData);
     },
 
-    createCPath(x1, y1, x2, y2) {
-      var dx = x2 - x1, //增量
-        dy = y2 - y1,
-        dr = Math.sqrt(dx * dx + dy * dy);
-      if (dr == 0) {
-        x2 = x2 - 5;
-        y2 = y2 - 5;
-        dr = 10;
+    createCPath(source, target) {
+      // if (source == target) {
+      //   console.log("same");
+      // }
+      var x1 = source.x,
+        y1 = source.y,
+        x2 = target.x,
+        y2 = target.y;
+      var r1 = source.cr,
+        r2 = target.cr;
+
+      var dx = x2 - x1,
+        dy = y2 - y1;
+      var dr = Math.sqrt(dx * dx + dy * dy);
+
+      if (source == target) {
+        x2 = x2 + r1 * 1.1;
+        y1 = y1 - r1 * 1.1;
+        dr = 1.5 * r1;
         return (
           "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 1 1 " + x2 + "," + y2
         );
+      } else {
+        return (
+          "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 0 1 " + x2 + "," + y2
+        );
       }
-      return (
-        "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 0 1 " + x2 + "," + y2
-      );
     },
     updateMask() {
       this.maskPath = this.maskPathList.join(" ");
@@ -234,6 +303,7 @@ export default {
           this.selectDevice.push(this.nodesData[i].name);
         }
       }
+      console.log(this.selectDevice);
       // console.log(this.selectDevice);
       //   document.body.removeEventListener("mousemove", this.handleMouseMove);
       //   document.body.removeEventListener("mouseup", this.handleMouseUp);
