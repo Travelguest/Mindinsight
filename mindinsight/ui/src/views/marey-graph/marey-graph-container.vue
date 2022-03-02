@@ -1,16 +1,14 @@
 <template>
   <div class="parallel-page">
-    <div class="left-configure-view">
+    <div class="communication-view">
       <communication-view-graph />
-      <configure-view />
     </div>
     <div class="strategy-view">
-      <!-- push前改回来！ -->
-      <!-- <profile-graph />  -->
-      <!-- <marey-graph-container /> -->
+      <profile-graph />
     </div>
-    <div>111</div>
-    <div>
+    <div class="configuration-view"><configure-view /></div>
+    <div class="performance-view">
+      <!-- <marey-graph-container /> -->
       <PerformanceView />
     </div>
   </div>
@@ -44,25 +42,32 @@ export default {
 
 <style scoped>
 .parallel-page {
-  display: grid;
-  grid-template-rows: 80% auto;
-  grid-template-columns: 20% auto;
-  grid-gap: 7px;
   width: 100%;
   height: 100%;
+  display: grid;
+  grid-template:
+    "communication parallel-strategy" 1fr
+    "configuration parallel-strategy" 1fr
+    "configuration performance" 1fr
+    "configuration performance" 1fr
+    /20% 80%;
+  grid-gap: 3px;
 }
 
-.parallel-page div {
+.communication-view {
   background: #fff;
+  grid-area: communication;
 }
-
 .strategy-view {
-  display: grid;
-  grid-template-rows: 50% auto;
+  background: #fff;
+  grid-area: parallel-strategy;
 }
-
-.left-configure-view {
-  display: grid;
-  grid-template-rows: 30% auto;
+.configuration-view {
+  background: #fff;
+  grid-area: configuration;
+}
+.performance-view {
+  background: #fff;
+  grid-area: performance;
 }
 </style>
