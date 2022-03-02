@@ -571,7 +571,7 @@ export default {
           rotateCenter: [targetNode.x, targetNode.y],
         });
       });
-      console.log(this.extraEdges);
+      // console.log(this.extraEdges);
     },
 
     async fetchData() {
