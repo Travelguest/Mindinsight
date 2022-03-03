@@ -1,13 +1,13 @@
 <template>
   <div class="parallel-page">
     <div class="communication-view">
-      <!-- <communication-view-graph /> -->
+      <communication-view-graph />
     </div>
     <div class="strategy-view">
-      <!-- <profile-graph /> -->
+      <profile-graph />
     </div>
     <div class="configuration-view">
-      <!-- <configure-view /> -->
+      <configure-view />
     </div>
     <div class="performance-view">
       <PerformanceView />
