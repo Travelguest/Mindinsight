@@ -72,6 +72,7 @@ export default {
       maskPath: "",
       maskPointList: [],
       showMask: true,
+      network: "",
     };
   },
   mounted() {
@@ -194,12 +195,12 @@ export default {
         height: "100%",
         width: "100%",
         interaction: {
-          dragNodes: false,
+          dragNodes: this.ableToDrag,
           dragView: this.ableToDrag,
           zoomView: this.ableToDrag,
         },
       };
-      var network = new vis.Network(container, data, options);
+      this.network = new vis.Network(container, data, options);
       // this.position = network.canvasToDOM(network.getPositions(1)[1]);
       // console.log(network.getPositions(1)[1]);
       // var canvasPosition = network.getPositions();
@@ -208,7 +209,7 @@ export default {
       //   console.log(network.canvasToDOM(network.getPositions(i)[i]));
       // }
       // console.log(network.getBoundingBox(1));
-      network.on("click", function (properties) {
+      this.network.on("click", function (properties) {
         console.log(properties.pointer.DOM);
       });
       // network.on("zoom", function (properties) {
@@ -247,7 +248,64 @@ export default {
       document.body.addEventListener("mouseup", this.handleMaskMouseUp);
     },
     handleMaskMouseUp(event) {
-      console.log(this.maskPath);
+      // console.log(this.maskPath);
+      var selectDevice = [];
+      var canvasPosition = this.network.getPositions();
+      for (var edgeId in canvasPosition) {
+        var domPosition = this.network.canvasToDOM(canvasPosition[edgeId]);
+        if (this.checkMaskCollide(domPosition.x, domPosition.y)) {
+          // console.log(edgeId);
+          selectDevice.push(edgeId);
+        }
+      }
+      console.log(selectDevice);
+    },
+
+    checkMaskCollide(x, y) {
+      var p1 = { x: x, y: y };
+      var p2 = { x: 100000000, y: y };
+      var polygon = this.maskPointList;
+      var count = 0;
+      var p3, p4;
+      for (var i = 0; i < polygon.length - 1; i++) {
+        var point = polygon[i].split(",");
+        p3 = { x: point[0], y: point[1] };
+        point = polygon[i + 1].split(",");
+        p4 = { x: point[0], y: point[1] };
+        if (this.checkCross(p1, p2, p3, p4) == true) {
+          count++;
+        }
+      }
+      var point = polygon[polygon.length - 1].split(",");
+      p3 = {
+        x: point[0],
+        y: point[1],
+      };
+      var point = polygon[0].split(",");
+      p4 = { x: point[0], y: point[1] };
+      if (this.checkCross(p1, p2, p3, p4) == true) {
+        count++;
+      }
+      return count % 2 == 0 ? false : true;
+    },
+    checkCross(p1, p2, p3, p4) {
+      var v1 = { x: p1.x - p3.x, y: p1.y - p3.y },
+        v2 = { x: p2.x - p3.x, y: p2.y - p3.y },
+        v3 = { x: p4.x - p3.x, y: p4.y - p3.y },
+        v = this.crossMul(v1, v3) * this.crossMul(v2, v3);
+
+      v1 = { x: p3.x - p1.x, y: p3.y - p1.y };
+      v2 = { x: p4.x - p1.x, y: p4.y - p1.y };
+
+      v3 = { x: p2.x - p1.x, y: p2.y - p1.y };
+      return v <= 0 && this.crossMul(v1, v3) * this.crossMul(v2, v3) <= 0
+        ? true
+        : false;
+    },
+
+    //计算向量叉乘
+    crossMul(v1, v2) {
+      return v1.x * v2.y - v1.y * v2.x;
     },
   },
 };
