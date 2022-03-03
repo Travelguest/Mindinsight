@@ -104,6 +104,7 @@ import GetBound from "../../mixins/basic-operation-of-charts/get-bound.vue";
 import { COMM_LIST } from "@/js/const.js";
 
 export default {
+  name:'MareyGraph',
   mixins: [getBound], // 用来获取画布的大小
 
   components: {
@@ -135,7 +136,7 @@ export default {
   mounted() {
     RequestService.getTimelineData().then(
       ({ data }) => {
-        console.log("data:", data);
+        // console.log("data:", data);
         const { maps: operator_time_maps } = data || {};
         this.data = operator_time_maps;
         const devices = Object.keys(operator_time_maps).sort((a, b) => a - b);
@@ -160,8 +161,8 @@ export default {
           });
         });
         this.displayedData = displayedData;
-        console.log('x:',minT,maxT)
-        console.log("displayedData", displayedData);
+        // console.log('x:',minT,maxT)
+        // console.log("displayedData", displayedData);
 
         const yScale = d3
           .scaleBand()
@@ -293,6 +294,8 @@ export default {
 
 <style>
 .marey-graph {
+  height: 100%;
+  width: 1200px;
   border-top: 2px solid #ccc;
   position: relative;
 }

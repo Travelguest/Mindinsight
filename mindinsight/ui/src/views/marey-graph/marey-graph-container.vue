@@ -6,9 +6,10 @@
     <div class="strategy-view">
       <profile-graph />
     </div>
-    <div class="configuration-view"><configure-view /></div>
+    <div class="configuration-view">
+      <configure-view />
+    </div>
     <div class="performance-view">
-      <!-- <marey-graph-container /> -->
       <PerformanceView />
     </div>
   </div>
@@ -16,7 +17,6 @@
 
 <script>
 // import GraphContainer from './ELKGraph/graph-container.vue';
-import MareyGraphContainer from "./marey-graph.vue";
 import ProfileGraph from "../profile-graph/profile-graph.vue";
 import PerformanceView from "../PerformanceView/PerformanceViewContainder.vue";
 import CommunicationViewGraph from "../communication-view/communication-view-graph.vue";
@@ -25,7 +25,6 @@ import ConfigureView from "../configure-view/configure-view.vue";
 export default {
   components: {
     // GraphContainer,
-    MareyGraphContainer,
     ProfileGraph,
     PerformanceView,
     CommunicationViewGraph,
