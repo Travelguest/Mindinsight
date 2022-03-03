@@ -590,10 +590,11 @@ export default {
     return data;
   },
 
-  getTimelineData() {
+  getTimelineData(params) {
     return axios({
-      method: "get",
-      url: "mock/timeline",
+      method: 'get',
+      params: params,
+      url: 'mock/timeline',
     });
   },
   getGraphs() {
@@ -608,4 +609,10 @@ export default {
       url: "mock/getCommunicationData",
     });
   },
+  getOverviewTime() {
+    return axios({
+      method: 'get',
+      url: 'mock/getOverviewTime',
+    });
+  }
 };
