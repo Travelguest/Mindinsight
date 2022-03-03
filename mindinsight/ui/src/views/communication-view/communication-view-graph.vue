@@ -1,114 +1,53 @@
 <template>
   <div class="communication-view">
-    <div>Communication View</div>
+    <div style="width: 100%; height: 10%">Communication View</div>
     <div class="communication-graph-box">
       <i
         class="el-icon-magic-stick"
         id="lassoSelect"
-        @click="lassoSelectClick()"
         style="color: grey"
+        @click="lassoSelectClick"
       ></i>
+      <div
+        id="communication-network"
+        style="position: absolute; width: 100%; height: 100%"
+      ></div>
       <svg
-        id="communication-node-graph"
-        style="width: 100%; height: 100%"
-        @mousedown="handleMouseDown"
+        v-if="!ableToDrag"
+        class="communication-canvas"
+        id="communication-canvas"
+        @mousedown="handleMaskMouseDown"
       >
-        <defs>
-          <marker
-            id="arrow-SDMA"
-            markerUnits="strokeWidth"
-            markerWidth="6"
-            markerHeight="6"
-            viewBox="0 0 12 12"
-            refX="6"
-            refY="6"
-            orient="auto"
-          >
-            <path d="M2,2 L10,6 L2,10 L4,6 L2,2" style="fill: #a1a1a1" />
-          </marker>
-          <marker
-            id="arrow-SDMA"
-            markerUnits="strokeWidth"
-            markerWidth="6"
-            markerHeight="6"
-            viewBox="0 0 12 12"
-            refX="6"
-            refY="6"
-            orient="auto"
-          >
-            <path d="M2,2 L10,6 L2,10 L4,6 L2,2" style="fill: #cecfd1" />
-          </marker>
-        </defs>
-        <g>
-          <polygon
-            v-if="isShowMask && isLassoState"
-            :points="maskPath"
-            style="fill:#409eff; fill-opacity=0.4 "
-          />
-        </g>
-        <g ref="communication-graph-container" v-if="showSvgContainer">
-          <circle
-            v-for="node in nodesData"
-            :key="'big-circle-' + node.name"
-            :cx="node.x"
-            :cy="node.y"
-            :r="node.cr"
-            :fill="node.color"
-          ></circle>
-          <g v-for="edge in linksData" :key="'glink' + edge.index">
-            <path
-              v-if="edge.type == 'SDMA'"
-              :d="createCPath(edge.source, edge.target)"
-              :class="'link-' + edge.type"
-              :stroke-width="Math.log(edge.communication_duration * 10)"
-              @click="linkOnClick(edge.index)"
-              stroke="#a1a1a1"
-              fill="none"
-              style="marker-end: url(#arrow-SDMA)"
-            ></path>
-            <path
-              v-if="edge.type != 'SDMA'"
-              :d="createCPath(edge.source, edge.target)"
-              :class="'link-' + edge.type"
-              :stroke-width="Math.log(edge.communication_duration * 10)"
-              @click="linkOnClick(edge.index)"
-              stroke="#cecfd1"
-              fill="none"
-              style="marker-end: url(#arrow-DEFAULT)"
-            ></path>
-          </g>
-
-          <!-- <circle
-            v-for="node in nodesData"
-            :key="'small-circle-' + node.name"
-            :cx="node.x"
-            :cy="node.y"
-            :r="Math.log(node.communication_cost)"
-            fill="white"
-            class="communication-graph-circle"
-          ></circle> -->
-          <text
-            v-for="(node, index) in nodesData"
-            :key="'text' + node.name"
-            :x="node.x + node.cr"
-            :y="node.y + node.cr"
-          >
-            {{ index }}
-          </text>
-        </g>
+        <polygon
+          v-if="showMask"
+          :points="maskPath"
+          style="fill: #409eff; opacity: 0.4"
+        ></polygon>
       </svg>
     </div>
   </div>
 </template>
 
 <style>
+.communication-view {
+  height: 100%;
+}
 .communication-graph-box {
   position: relative;
+  width: 100%;
+  height: 90%;
 }
 .el-icon-magic-stick {
   position: absolute;
   top: 0;
   right: 5%;
+  z-index: 999;
+}
+.communication-canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* z-index: -1; */
 }
 </style>
 <script>
@@ -116,9 +55,9 @@ import {
   device_node,
   communicate_link,
 } from "@/js/communicate-view/build-graph.js";
-import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
 import requestService from "@/services/request-service";
-import * as d3 from "d3";
+import * as vis from "vis";
+import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
 export default {
   data() {
     return {
@@ -128,17 +67,12 @@ export default {
       communicateGraphData: {},
       nodesData: {},
       linksData: {},
-      showSvgContainer: true,
-
-      isShowMask: false,
+      ableToDrag: true,
+      position: { x: 0, y: 0 },
       maskPath: "",
-      maskPathList: [],
-      selectDevice: [],
-
-      isLassoState: false,
-
-      min_communicate_ratio: 0,
-      max_communicate_ratio: 0,
+      maskPointList: [],
+      showMask: true,
+      network: "",
     };
   },
   mounted() {
@@ -148,18 +82,16 @@ export default {
     async initGraph() {
       await this.fetchData();
       this.generateGraph();
+      // this.generateCanvas();
     },
-
     async fetchData() {
       const res = (await requestService.getCommunicationGraph()).data;
       this.communicateGraphData = res;
-
       for (var device in this.communicateGraphData) {
         // var new_node=Object.create(device_node)
         // console.log(this.communicateGraphData[device]);
         for (var i in this.communicateGraphData[device]) {
           var step_info = this.communicateGraphData[device][i];
-
           var new_node = Object.create(device_node);
           new_node.name = device;
           new_node.communication_cost = step_info["communication_cost"];
@@ -168,7 +100,6 @@ export default {
             this.communicateNodes[step_info["step_num"]] = [];
           }
           this.communicateNodes[step_info["step_num"]].push(new_node);
-
           var link_info = step_info["link_info"];
           if (!this.communicateEdges.hasOwnProperty(step_info["step_num"])) {
             this.communicateEdges[step_info["step_num"]] = [];
@@ -178,141 +109,162 @@ export default {
             for (var type in link_info[link]) {
               var new_link = Object.create(communicate_link);
               var node_pair = link.split("-");
-              new_link.source = "device" + node_pair[0];
-              new_link.target = "device" + node_pair[1];
+              new_link.source = node_pair[0];
+              new_link.target = node_pair[1];
               new_link.type = type;
-              new_link.communication_duration = link_info[link][type][0];
+              new_link.value = link_info[link][type][0];
               this.communicateEdges[step_info["step_num"]].push(new_link);
             }
           }
         }
       }
     },
-
     generateGraph() {
-      this.selectDevice = [];
-      let svgContainer = document.getElementById("communication-node-graph");
-      let width = svgContainer.getBoundingClientRect().width;
-      let height = svgContainer.getBoundingClientRect().height;
-      // let svg = d3.select("svg");
-      let tmpnodesData = this.communicateNodes[this.stepNum];
-      let tmplinksData = this.communicateEdges[this.stepNum];
-
-      var simulation = d3
-        .forceSimulation(tmpnodesData)
-        .force(
-          "collide",
-          d3
-            .forceCollide()
-            .radius(() => 30)
-            .iterations(2)
-        )
-        .force("charge", d3.forceManyBody().strength(-200))
-        .force(
-          "link",
-          d3
-            .forceLink(tmplinksData)
-            .id((d) => d.name)
-            .distance(75)
-        )
-        .force("center", d3.forceCenter(width / 2, height / 2));
-
-      for (var i = 0; i < tmpnodesData.length; i++) {
-        var tot_node_cost =
-          tmpnodesData[i].communication_cost + tmpnodesData[i].wait_cost;
-
-        tmpnodesData[i].cr = Math.log(10 * tot_node_cost);
-        tmpnodesData[i].communicate_ratio =
-          tmpnodesData[i].communication_cost / tot_node_cost;
-        this.min_communicate_ratio = Math.min(
-          this.min_communicate_ratio,
-          tmpnodesData[i].communicate_ratio
-        );
-        this.max_communicate_ratio = Math.max(
-          this.max_communicate_ratio,
-          tmpnodesData[i].communicate_ratio
-        );
+      // console.log(this.communicateNodes[this.stepNum]);
+      var nodeList = [];
+      var maxRadio = 0,
+        minRadio = 1;
+      for (var i = 0; i < this.communicateNodes[this.stepNum].length; i++) {
+        var nodeInfo = this.communicateNodes[this.stepNum][i];
+        var tmpRatio =
+          nodeInfo.communication_cost /
+          (nodeInfo.communication_cost + nodeInfo.wait_cost);
+        maxRadio = Math.max(maxRadio, tmpRatio);
+        minRadio = Math.min(minRadio, tmpRatio);
       }
-      for (var i = 0; i < tmpnodesData.length; i++) {
-        tmpnodesData[i].color = gradientColor(
-          "#fbe7d5",
-          "#e6882e",
-          this.min_communicate_ratio,
-          this.max_communicate_ratio,
-          tmpnodesData[i].communicate_ratio
-        );
+      for (var i = 0; i < this.communicateNodes[this.stepNum].length; i++) {
+        var nodeInfo = this.communicateNodes[this.stepNum][i];
+        var tmpRatio =
+          nodeInfo.communication_cost /
+          (nodeInfo.communication_cost + nodeInfo.wait_cost);
+        var newnode = {
+          id: parseInt(nodeInfo.name.replace("device", "")),
+          name: nodeInfo.name,
+          label: nodeInfo.name.replace("device", ""),
+          value: Math.log(nodeInfo.communication_cost + nodeInfo.wait_cost),
+          borderWidth: 1,
+          color: {
+            background: gradientColor(
+              "#fbe7d5",
+              "#e6882e",
+              minRadio,
+              maxRadio,
+              tmpRatio
+            ),
+            border: "white",
+          },
+        };
+        // newnode.id = nodeInfo.name;
+        // newnode.name = parseInt(newnode.name.replace("device", ""));
+        nodeList.push(newnode);
       }
-
-      this.nodesData = tmpnodesData;
-      this.linksData = tmplinksData;
-      console.log(this.linksData);
-      console.log(this.nodesData);
-    },
-
-    createCPath(source, target) {
-      // if (source == target) {
-      //   console.log("same");
+      var edgeList = [];
+      for (var i = 0; i < this.communicateEdges[this.stepNum].length; i++) {
+        var edgeInfo = this.communicateEdges[this.stepNum][i];
+        // console.log(edgeInfo);
+        var newedge = {
+          from: parseInt(edgeInfo.source),
+          to: parseInt(edgeInfo.target),
+          // arrows: "curve",
+          value: 0.5 * Math.log(edgeInfo.value),
+          color: { color: "#cecfd1" },
+        };
+        edgeList.push(newedge);
+      }
+      var nodes = new vis.DataSet(nodeList);
+      var edges = new vis.DataSet(edgeList);
+      var container = document.getElementById("communication-network");
+      var data = {
+        nodes: nodes,
+        edges: edges,
+      };
+      var options = {
+        nodes: {
+          shape: "dot",
+        },
+        edges: {
+          arrows: {
+            to: {
+              enabled: true,
+              type: "arrow",
+            },
+          },
+          arrowStrikethrough: true,
+        },
+        autoResize: true,
+        height: "100%",
+        width: "100%",
+        interaction: {
+          dragNodes: this.ableToDrag,
+          dragView: this.ableToDrag,
+          zoomView: this.ableToDrag,
+        },
+      };
+      this.network = new vis.Network(container, data, options);
+      // this.position = network.canvasToDOM(network.getPositions(1)[1]);
+      // console.log(network.getPositions(1)[1]);
+      // var canvasPosition = network.getPositions();
+      // console.log(canvasPosition);
+      // for (i = 0; i <= 3; i++) {
+      //   console.log(network.canvasToDOM(network.getPositions(i)[i]));
       // }
-      var x1 = source.x,
-        y1 = source.y,
-        x2 = target.x,
-        y2 = target.y;
-      var r1 = source.cr,
-        r2 = target.cr;
-
-      var dx = x2 - x1,
-        dy = y2 - y1;
-      var dr = Math.sqrt(dx * dx + dy * dy);
-
-      if (source == target) {
-        x2 = x2 + r1 * 1.1;
-        y1 = y1 - r1 * 1.1;
-        dr = 1.5 * r1;
-        return (
-          "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 1 1 " + x2 + "," + y2
-        );
+      // console.log(network.getBoundingBox(1));
+      this.network.on("click", function (properties) {
+        console.log(properties.pointer.DOM);
+      });
+      // network.on("zoom", function (properties) {
+      //   console.log(properties);
+      // });
+    },
+    lassoSelectClick() {
+      if (this.ableToDrag) {
+        this.ableToDrag = false;
+        document.getElementById("lassoSelect").style.color = "red";
+        this.maskPath = "";
+        this.maskPointList = [];
       } else {
-        return (
-          "M" + x1 + "," + y1 + "A" + dr + "," + dr + " 0 0 1 " + x2 + "," + y2
-        );
+        // this.maskPathList = [];
+        // this.updateMask();
+        this.ableToDrag = true;
+        document.getElementById("lassoSelect").style.color = "gray";
       }
     },
+    // generateCanvas() {
+    //   var canvas = document.getElementById("communication-canvas");
+    //   var context = canvas.getContext("2d");
+    //   context.fillStyle = "#FF0000"; //填充颜色
+    //   context.fillRect(0, 0, 10, 100);
+    //   console.log(this.position);
+    //   context.stroke();
+    // },
     updateMask() {
-      this.maskPath = this.maskPathList.join(" ");
-      // console.log(this.maskPathList);
-      this.isShowMask = true;
+      this.maskPath = this.maskPointList.join(" ");
+      this.showMask = true;
     },
-    handleMouseDown(event) {
-      if (this.isLassoState) {
-        var pointStr = event.offsetX + "," + event.offsetY;
-        this.maskPathList.push(pointStr);
-        this.updateMask();
-        document.body.addEventListener("mousemove", this.handleMouseMove);
-        document.body.addEventListener("mouseup", this.handleMouseUp);
-      }
+    handleMaskMouseDown(event) {
+      var pointStr = event.offsetX + "," + event.offsetY;
+      this.maskPointList.push(pointStr);
+      this.updateMask();
+      document.body.addEventListener("mouseup", this.handleMaskMouseUp);
     },
-    handleMouseMove(event) {
-      //   this.end_x = event.clientX;
-      //   this.end_y = event.clientY;
-    },
-    handleMouseUp() {
-      this.selectDevice = [];
-      for (var i in this.nodesData) {
-        // console.log(this.nodesData[i]);
-        if (this.checkMaskCollide(this.nodesData[i].x, this.nodesData[i].y)) {
-          this.selectDevice.push(this.nodesData[i].name);
+    handleMaskMouseUp(event) {
+      // console.log(this.maskPath);
+      var selectDevice = [];
+      var canvasPosition = this.network.getPositions();
+      for (var edgeId in canvasPosition) {
+        var domPosition = this.network.canvasToDOM(canvasPosition[edgeId]);
+        if (this.checkMaskCollide(domPosition.x, domPosition.y)) {
+          // console.log(edgeId);
+          selectDevice.push(edgeId);
         }
       }
-      console.log(this.selectDevice);
-      // console.log(this.selectDevice);
-      //   document.body.removeEventListener("mousemove", this.handleMouseMove);
-      //   document.body.removeEventListener("mouseup", this.handleMouseUp);
+      console.log(selectDevice);
     },
 
     checkMaskCollide(x, y) {
       var p1 = { x: x, y: y };
       var p2 = { x: 100000000, y: y };
-      var polygon = this.maskPathList;
+      var polygon = this.maskPointList;
       var count = 0;
       var p3, p4;
       for (var i = 0; i < polygon.length - 1; i++) {
@@ -354,21 +306,6 @@ export default {
     //计算向量叉乘
     crossMul(v1, v2) {
       return v1.x * v2.y - v1.y * v2.x;
-    },
-
-    linkOnClick(edgeIndex) {
-      console.log(this.linksData[edgeIndex]);
-    },
-    lassoSelectClick() {
-      if (this.isLassoState) {
-        this.isLassoState = false;
-        document.getElementById("lassoSelect").style.color = "grey";
-      } else {
-        this.maskPathList = [];
-        this.updateMask();
-        this.isLassoState = true;
-        document.getElementById("lassoSelect").style.color = "red";
-      }
     },
   },
 };
