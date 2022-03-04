@@ -1,6 +1,6 @@
 <template>
   <div class="communication-view">
-    <div style="width: 100%; height: 10%">Communication View</div>
+    <div style="width: 100%; height: 5%">Communication View</div>
     <div class="communication-graph-box">
       <i
         class="el-icon-magic-stick"
@@ -25,6 +25,9 @@
         ></polygon>
       </svg>
     </div>
+    <div id="communication-line-chart-container">
+      <div id="communication-line-chart"></div>
+    </div>
   </div>
 </template>
 
@@ -35,7 +38,7 @@
 .communication-graph-box {
   position: relative;
   width: 100%;
-  height: 90%;
+  height: 65%;
 }
 .el-icon-magic-stick {
   position: absolute;
@@ -49,6 +52,14 @@
   height: 100%;
   /* z-index: -1; */
 }
+#communication-line-chart-container {
+  height: 30%;
+  width: 100%;
+}
+#communication-line-chart {
+  height: 100%;
+  width: 100%;
+}
 </style>
 <script>
 import {
@@ -58,6 +69,7 @@ import {
 import requestService from "@/services/request-service";
 import * as vis from "vis";
 import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
+import * as echarts from "echarts/core";
 export default {
   data() {
     return {
@@ -72,16 +84,22 @@ export default {
       maskPath: "",
       maskPointList: [],
       showMask: true,
-      network: "",
+      network: null,
+
+      linecharOption: null,
+      linechart: null,
     };
   },
   mounted() {
     this.initGraph();
   },
+
   methods: {
     async initGraph() {
       await this.fetchData();
       this.generateGraph();
+
+      this.renderLineChartInit();
       // this.generateCanvas();
     },
     async fetchData() {
@@ -229,14 +247,7 @@ export default {
         document.getElementById("lassoSelect").style.color = "gray";
       }
     },
-    // generateCanvas() {
-    //   var canvas = document.getElementById("communication-canvas");
-    //   var context = canvas.getContext("2d");
-    //   context.fillStyle = "#FF0000"; //填充颜色
-    //   context.fillRect(0, 0, 10, 100);
-    //   console.log(this.position);
-    //   context.stroke();
-    // },
+
     updateMask() {
       this.maskPath = this.maskPointList.join(" ");
       this.showMask = true;
@@ -306,6 +317,112 @@ export default {
     //计算向量叉乘
     crossMul(v1, v2) {
       return v1.x * v2.y - v1.y * v2.x;
+    },
+
+    renderLineChartInit() {
+      const chartDom = document.getElementById("communication-line-chart");
+      const myChart = echarts.init(chartDom);
+      var stepList = [];
+      var communicationList = [],
+        waitingList = [];
+      for (var i in this.communicateNodes) {
+        stepList.push(i);
+        var totCommunication = 0,
+          totWaiting = 0;
+        for (var j in this.communicateNodes[i]) {
+          // console.log(this.communicateNodes[i][j]);
+          totCommunication += this.communicateNodes[i][j].communication_cost;
+          totWaiting += this.communicateNodes[i][j].wait_cost;
+        }
+        communicationList.push(
+          totCommunication / this.communicateNodes[i].length
+        );
+        waitingList.push(totWaiting / this.communicateNodes[i].length);
+      }
+      const option = {
+        tooltip: {
+          trigger: "axis",
+          position: function (point, params, dom, rect, size) {
+            // 固定在右侧
+            return [point[0], "10%"];
+          },
+          formatter: function (params) {
+            console.log(params);
+            var res =
+              "<h1>step" +
+              params[0].axisValue +
+              "</h1>" +
+              "<div>" +
+              params[0].seriesName +
+              ": " +
+              params[0].data +
+              "ms</div>" +
+              "<div>" +
+              params[1].seriesName +
+              ": " +
+              params[1].data +
+              "ms</div>";
+            return res;
+          },
+        },
+
+        grid: {
+          top: "5%",
+          left: "10%",
+          right: "20%",
+          bottom: "5%",
+          containLabel: true,
+        },
+
+        xAxis: {
+          type: "category",
+          name: "step",
+          boundaryGap: false,
+          data: stepList,
+          axisLine: {
+            symbol: ["none", "arrow"],
+            show: true,
+            symbolSize: [5, 5],
+          },
+        },
+        yAxis: {
+          type: "value",
+          name: "time(ms)",
+          nameTextStyle: {
+            padding: [0, 0, -25, 80],
+          },
+          axisLine: {
+            symbol: ["none", "arrow"],
+            show: true,
+            symbolSize: [5, 5],
+          },
+          splitLine: {
+            show: false,
+          },
+          axisLabel: {
+            show: false,
+          },
+        },
+        series: [
+          {
+            name: "communication cost",
+            type: "line",
+            stack: "Total",
+            color: "#cecfd1",
+            showSymbol: false,
+            data: communicationList,
+          },
+          {
+            name: "waiting cost",
+            type: "line",
+            stack: "Total",
+            color: "#cecfd1",
+            showSymbol: false,
+            data: waitingList,
+          },
+        ],
+      };
+      myChart.setOption(option);
     },
   },
 };
