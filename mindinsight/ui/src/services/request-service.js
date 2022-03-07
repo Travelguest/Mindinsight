@@ -590,12 +590,13 @@ export default {
     return data;
   },
 
-  getTimelineData(params) {
-    return axios({
-      method: 'get',
-      params: params,
-      url: 'mock/timeline',
-    });
+  getTimeLineData(params) {
+    // return axios({
+    //   method: 'get',
+    //   params: `step=${params}`,
+    //   url: 'mock/timeline',
+    // });
+    return axios(`mock/timeline?step=${params}`);
   },
   getGraphs() {
     return axios({
@@ -611,8 +612,20 @@ export default {
   },
   getOverviewTime() {
     return axios({
-      method: 'get',
-      url: 'mock/getOverviewTime',
+      method: "get",
+      url: "mock/getOverviewTime",
     });
-  }
+  },
+  getFlopsData() {
+    return axios({
+      method: "get",
+      url: "mock/getFlopsData",
+    });
+  },
+  getMemoryData() {
+    return axios({
+      method: "get",
+      url: "mock/getMemoryData",
+    });
+  },
 };

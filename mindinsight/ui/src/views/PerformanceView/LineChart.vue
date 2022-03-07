@@ -13,6 +13,7 @@ import {
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
+import { DataZoomComponent } from "echarts/components";
 
 // Echarts注册组件
 echarts.use([
@@ -23,6 +24,7 @@ echarts.use([
   LineChart,
   CanvasRenderer,
   UniversalTransition,
+  DataZoomComponent,
 ]);
 
 export default {
@@ -90,10 +92,11 @@ export default {
           top: "21%",
           left: "5%",
           right: "10%",
-          bottom: "5%",
+          bottom: "30%",
           containLabel: true,
         },
         xAxis: {
+          name: "step",
           type: "category",
           boundaryGap: true,
           axisTick: {
@@ -109,7 +112,7 @@ export default {
         yAxis: {
           type: "value",
           name: "time(ms)",
-          min:5000000,
+          // min: 5000000,
           axisLine: {
             symbol: ["none", "arrow"],
             show: true,
@@ -121,12 +124,31 @@ export default {
             show: false,
           },
         },
+        dataZoom: [
+          {
+            type: "inside",
+            start: 0,
+            end: 100,
+          },
+          {
+            type: "slider",
+            start: 0,
+            end: 100,
+            moveHandleSize: 1,
+          },
+        ],
         series: null,
       };
       this.option = option;
     },
     renderUpdate() {
-      this.option.series && this.lineChart.setOption(this.option);
+      if (!this.option.series) return;
+
+      this.lineChart.setOption(this.option);
+      this.lineChart.on("click", (params) => {
+        console.log("点击step", params);
+        this.$emit("getStepNumber", parseInt(params.name, 10));
+      });
     },
   },
 };

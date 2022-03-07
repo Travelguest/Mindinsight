@@ -1,14 +1,20 @@
 <template>
   <div class="performance-view-container">
     <div class="top">
-      <!-- <MareyGraph /> -->
+      <MareyGraph :stepNumber="stepNumber" :timeLineData="timeLineData" />
     </div>
     <div class="bottom">
       <div class="left">
-        <LineChart :overViewData="overViewData" />
+        <LineChart
+          :overViewData="overViewData"
+          @getStepNumber="getStepNumber"
+        />
       </div>
       <div class="right">
-        <StackedColumnChart :overViewData="overViewData" />
+        <StackedColumnChart
+          :overViewData="overViewData"
+          :stepNumber="stepNumber"
+        />
       </div>
     </div>
   </div>
@@ -17,7 +23,7 @@
 import RequestService from "@/services/request-service";
 import LineChart from "./LineChart.vue";
 import StackedColumnChart from "./StackedColumnChart.vue";
-import MareyGraph from "./MareyGraph.vue";
+import MareyGraph from "./NewMareyGraph.vue";
 
 export default {
   name: "PerformanceView",
@@ -29,21 +35,52 @@ export default {
   data() {
     return {
       overViewData: null,
+      stepNumber: 1,
+      timeLineData: null,
     };
   },
   mounted() {
     this.getOverviewTimeData();
+    this.getTimeLineData();
+    // this.getFlopsData();
+    // this.getMemoryData();
   },
   methods: {
     getOverviewTimeData() {
       RequestService.getOverviewTime()
         .then(({ data }) => {
-          // console.log("OverviewTime:", data);
           this.overViewData = data;
         })
         .catch((err) => {
           console.error(err);
         });
+    },
+    getStepNumber(stepNumber) {
+      // console.log("获取step", stepNumber);
+      this.stepNumber = stepNumber;
+      this.getTimeLineData();
+    },
+    getTimeLineData() {
+      RequestService.getTimeLineData(this.stepNumber)
+        .then(({ data }) => {
+          console.log("data", this.stepNumber, data);
+          this.timeLineData = data;
+        })
+        .catch(console.error);
+    },
+    getFlopsData() {
+      RequestService.getFlopsData()
+        .then(({ data }) => {
+          console.log("FlopData", data);
+        })
+        .catch(console.error);
+    },
+    getMemoryData() {
+      RequestService.getMemoryData()
+        .then(({ data }) => {
+          console.log("MemoryData", data);
+        })
+        .catch(console.error);
     },
   },
 };
@@ -56,7 +93,7 @@ export default {
   flex-direction: column;
 }
 .performance-view-container .top {
-  /* flex-grow: 1; */
+  flex-grow: 1;
 }
 .performance-view-container .bottom {
   display: flex;
