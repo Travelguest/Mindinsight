@@ -283,6 +283,7 @@ export default {
       parallelStrategyParas: null,
       normalEdgesBackup: [],
       extraEdges: {},
+      graphData: {},
     };
   },
 
@@ -316,6 +317,10 @@ export default {
           specialEdgesGroup[showSpecialEdgeType].display = true;
         }
       }
+    },
+    "$store.state.graphData": function (val) {
+      this.graphData = val;
+      this.initGraph();
     },
   },
 
@@ -354,7 +359,7 @@ export default {
         this.g.attr("transform", d3.event.transform);
       })
     );
-    this.initGraph();
+    // this.initGraph();
   },
 
   methods: {
@@ -448,8 +453,8 @@ export default {
       this.$forceUpdate();
     },
 
-    async initGraph() {
-      await this.fetchData();
+    initGraph() {
+      this.fetchData();
 
       for (let i = 0; i < this.nodeMaps.length; i++) {
         const nodeMap = this.nodeMaps[i];
@@ -567,8 +572,38 @@ export default {
       // console.log(this.extraEdges);
     },
 
-    async fetchData() {
-      const res = (await RequestService.getGraphs()).data;
+
+
+    // async fetchData() {
+    //   const res = (await RequestService.getGraphs()).data;
+    //   if ("graphs" in res) {
+    //     this.isPipelineLayout = true;
+    //     buildPipelinedStageInfo(res.graphs);
+    //     ({
+    //       nodeBlocks: this.nodeBlocks,
+    //       nodeOrder: this.nodeOrder,
+    //       dependNodes: this.dependNodes,
+    //     } = getPipelineBlockInfo());
+
+    //     this.parallelStrategyRawData = getStrategyInfo(res.graphs);
+
+    //     Object.keys(res.graphs).forEach((rankID) => {
+    //       const thisGraph = res.graphs[rankID];
+    //       buildGraph(thisGraph);
+    //       this.nodeMaps.push(processedGraph.nodeMap);
+    //     });
+
+    //     levelOrder(getTreeData());
+    //   } else {
+    //     this.isPipelineLayout = false;
+    //     buildGraphOld(res.data);
+    //     this.nodeMaps.push(processedGraph.nodeMap);
+    //   }
+    //   // this.treeData = getTreeData().children;
+    // },
+
+    fetchData() {
+      const res = this.graphData;
       if ("graphs" in res) {
         this.isPipelineLayout = true;
         buildPipelinedStageInfo(res.graphs);

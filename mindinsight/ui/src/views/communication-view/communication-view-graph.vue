@@ -1,6 +1,7 @@
 <template>
-  <div class="communication-view">
-    <div style="width: 100%; height: 10%">Communication View</div>
+  <!-- <div class="communication-view"> -->
+    
+    
     <div class="communication-graph-box">
       <i
         class="el-icon-magic-stick"
@@ -10,7 +11,7 @@
       ></i>
       <div
         id="communication-network"
-        style="position: absolute; width: 100%; height: 100%"
+        style="position: absolute; width: 100%; height: 70%"
       ></div>
       <svg
         v-if="!ableToDrag"
@@ -25,17 +26,15 @@
         ></polygon>
       </svg>
     </div>
-  </div>
+  <!-- </div> -->
 </template>
 
 <style>
-.communication-view {
-  height: 100%;
-}
+
 .communication-graph-box {
   position: relative;
   width: 100%;
-  height: 90%;
+  height: 305px;
 }
 .el-icon-magic-stick {
   position: absolute;
