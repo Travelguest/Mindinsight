@@ -321,9 +321,6 @@
               <g
                 v-for="node in opNodesGroup.filter((v) => v.x !== undefined)"
                 :key="node.id"
-                @click="onNodeClick(node)"
-                @mouseover="onNodeMouseover($event, node)"
-                @mouseout="onNodeMouseout"
               >
                 <circle
                   :cx="node.x"
@@ -475,14 +472,6 @@ export default {
         }
       }
     },
-    // isPipelineLayout(newVal, oldVal) {
-    //   console.log("isPipeLine");
-    //   this.initMiniMap();
-    // },
-    // "document.getElementById('minimap-container').getBoundingClientRect()":
-    //   function () {
-    //     console.log("hello");
-    //   },
   },
 
   computed: {
@@ -539,16 +528,24 @@ export default {
       var svgBox = document
         .getElementById("minimap-container")
         .getBoundingClientRect();
-      console.log(mapHeight, mapWidth);
-      console.log("svg", svgBox);
       var widthScale = mapHeight / svgBox.height;
       var heightScale = mapWidth / svgBox.width;
-      console.log(widthScale, heightScale);
-      minig.attr("transform", "scale(" + heightScale + "," + widthScale + ")");
-      // minig.attr(
-      //   "transform",
-      //   "scale(" + widthScale + "," + heightScale + ")"
-      // );
+      console.log(
+        document.getElementById("minimap-profile").getBoundingClientRect
+      );
+      console.log(svgBox);
+      minig.attr(
+        "transform",
+        "scale(" +
+          heightScale +
+          "," +
+          widthScale +
+          ")translate(" +
+          svgBox.left +
+          "," +
+          svgBox.top +
+          ")"
+      );
     },
 
     haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
