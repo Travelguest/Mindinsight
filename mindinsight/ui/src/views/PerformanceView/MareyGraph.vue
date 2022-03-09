@@ -145,81 +145,81 @@ export default {
   },
   mounted() {
     console.log("看看", this.stepNumber, this.timeLineData);
-    // RequestService.getTimeLineData().then(
-    //   ({ data }) => {
-    //     // console.log("data:", data);
-    //     const { maps: operator_time_maps } = data || {};
-    //     this.data = operator_time_maps;
-    //     const devices = Object.keys(operator_time_maps).sort((a, b) => a - b);
-    //     this.deviceName = devices;
-    //     let minT = Infinity,
-    //       maxT = -Infinity;
-    //     const displayedData = {};
-    //     const k = devices.length; // k个设备
-    //     devices.forEach((deviceName) => {
-    //       const curDeviceData = operator_time_maps[deviceName];
-    //       Object.keys(curDeviceData).forEach((op) => {
-    //         // 这里op是算子名
-    //         if (!displayedData[op]) displayedData[op] = [];
-    //         const curOp = curDeviceData[op];
-    //         minT = Math.min(curOp.st, minT);
-    //         maxT = Math.max(curOp.ed, maxT);
-    //         displayedData[op].push({
-    //           x1: curOp.st,
-    //           x2: curOp.ed,
-    //           y: deviceName,
-    //         });
-    //       });
-    //     });
-    //     this.displayedData = displayedData;
-    //     // console.log('x:',minT,maxT)
-    //     // console.log("displayedData", displayedData);
+    RequestService.getTimeLineData().then(
+      ({ data }) => {
+        // console.log("data:", data);
+        const { maps: operator_time_maps } = data || {};
+        this.data = operator_time_maps;
+        const devices = Object.keys(operator_time_maps).sort((a, b) => a - b);
+        this.deviceName = devices;
+        let minT = Infinity,
+          maxT = -Infinity;
+        const displayedData = {};
+        const k = devices.length; // k个设备
+        devices.forEach((deviceName) => {
+          const curDeviceData = operator_time_maps[deviceName];
+          Object.keys(curDeviceData).forEach((op) => {
+            // 这里op是算子名
+            if (!displayedData[op]) displayedData[op] = [];
+            const curOp = curDeviceData[op];
+            minT = Math.min(curOp.st, minT);
+            maxT = Math.max(curOp.ed, maxT);
+            displayedData[op].push({
+              x1: curOp.st,
+              x2: curOp.ed,
+              y: deviceName,
+            });
+          });
+        });
+        this.displayedData = displayedData;
+        // console.log('x:',minT,maxT)
+        // console.log("displayedData", displayedData);
 
-    //     const yScale = d3
-    //       .scaleBand()
-    //       .domain(devices)
-    //       .range([0, this.heightMap]);
-    //     const xScale = d3
-    //       .scaleLinear()
-    //       .domain([minT, maxT])
-    //       .range([0, this.widthMap]);
-    //     this.yScale = yScale;
-    //     this.xScale = xScale;
+        const yScale = d3
+          .scaleBand()
+          .domain(devices)
+          .range([0, this.heightMap]);
+        const xScale = d3
+          .scaleLinear()
+          .domain([minT, maxT])
+          .range([0, this.widthMap]);
+        this.yScale = yScale;
+        this.xScale = xScale;
 
-    //     this.transformToRect();
+        this.transformToRect();
 
-    //     const mareyContainer = d3.select("#marey-container");
-    //     const xAxis = d3.axisBottom(this.xScale).ticks(10);
-    //     const axis = mareyContainer
-    //       .append("g")
-    //       .attr("id", "xAxis")
-    //       .attr(
-    //         "transform",
-    //         `translate(0, ${this.yScale.bandwidth() * (k - 1)})`
-    //       )
-    //       .call(xAxis);
-    //     this.axis = axis;
+        const mareyContainer = d3.select("#marey-container");
+        const xAxis = d3.axisBottom(this.xScale).ticks(10);
+        const axis = mareyContainer
+          .append("g")
+          .attr("id", "xAxis")
+          .attr(
+            "transform",
+            `translate(0, ${this.yScale.bandwidth() * (k - 1)})`
+          )
+          .call(xAxis);
+        this.axis = axis;
 
-    //     const zoom = d3
-    //       .zoom()
-    //       .scaleExtent([1, 6879])
-    //       .on("zoom", () => {
-    //         const transform = d3.event.transform;
-    //         const newX = transform.rescaleX(xScale);
-    //         axis.call(d3.axisBottom(newX));
-    //         g.attr(
-    //           "transform",
-    //           `translate(${transform.x}, 0) scale(${transform.k}, 1)`
-    //         );
-    //       });
-    //     const svgPart = d3.select("#marey-svg");
-    //     const g = d3.select("#polygon-g");
-    //     svgPart.call(zoom);
-    //   },
-    //   (err) => {
-    //     console.log(err);
-    //   }
-    // );
+        const zoom = d3
+          .zoom()
+          .scaleExtent([1, 6879])
+          .on("zoom", () => {
+            const transform = d3.event.transform;
+            const newX = transform.rescaleX(xScale);
+            axis.call(d3.axisBottom(newX));
+            g.attr(
+              "transform",
+              `translate(${transform.x}, 0) scale(${transform.k}, 1)`
+            );
+          });
+        const svgPart = d3.select("#marey-svg");
+        const g = d3.select("#polygon-g");
+        svgPart.call(zoom);
+      },
+      (err) => {
+        console.log(err);
+      }
+    );
   },
 
   watch: {},

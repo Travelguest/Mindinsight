@@ -29,6 +29,7 @@
             style="stroke: #cecece; stroke-width: 1px; fill: none"
           ></rect>
         </g>
+        <!-- marey-graph -->
         <g class="marey-graph">
           <template v-for="data in polygonData">
             <polygon
@@ -39,6 +40,26 @@
               stroke-width="3"
             />
           </template>
+        </g>
+        <g class="flops-chart">
+          <path
+            v-for="(d, i) in MFLOPsData"
+            :key="`FLOPs-Chart-${i}`"
+            :d="MFLOPsLinePath(d)"
+            fill="none"
+            stroke="#00AEA6"
+            stroke-width="1"
+          />
+        </g>
+        <g class="memory-chart">
+          <path
+            v-for="(d, i) in MemoryData"
+            :key="`Memory-Chart-${i}`"
+            :d="MemoryLinePath(d)"
+            fill="none"
+            stroke="#DB0047"
+            stroke-width="1"
+          />
         </g>
       </g>
     </svg>
@@ -57,10 +78,19 @@ export default {
   props: {
     timeLineData: Object,
     stepNumber: Number,
+    FLOPsData: Object,
+    MemoryDataProps: Object,
   },
   watch: {
     timeLineData: function () {
-      this.dataProcessing();
+      this.timeLineDataProcessing();
+      // this.FLOPsData && this.FLOPsDataProcessing();
+    },
+    FLOPsData: function () {
+      this.timeLineData && this.FLOPsDataProcessing();
+    },
+    MemoryDataProps: function () {
+      this.MemoryDataProcessing();
     },
   },
   data() {
@@ -69,12 +99,15 @@ export default {
       deviceName: null,
       minT: 0,
       maxT: 0,
-      displayedData: null, //展示的数据
-      svg: null,
-      margin: { top: 30, right: 30, bottom: 30, left: 50 },
+      displayedData: null, //算子op与[{x1,x2,y}]的映射
+      margin: { top: 50, right: 50, bottom: 10, left: 50 },
       width: 0,
       height: 0,
       polygonData: [],
+      MFLOPsData: null,
+      MFLOPs: { min: 0, max: 0 },
+      MemoryData: null,
+      Memory: { min: 0, max: 0 },
     };
   },
   computed: {
@@ -96,14 +129,43 @@ export default {
         .domain([this.minT, this.maxT])
         .range([0, this.innerWidth]);
     },
+    MFLOPsScale() {
+      return d3
+        .scaleLinear()
+        .domain([this.MFLOPs.min, this.MFLOPs.max])
+        .range([15, -15]);
+    },
+    MemoryScale() {
+      return d3
+        .scaleLinear()
+        .domain([this.Memory.min, this.Memory.max])
+        .range([15, -15]);
+    },
+    MFLOPsLinePath() {
+      //MFLOPsLinePath(curDeviceMFIPsData)
+      return d3
+        .line()
+        .curve(d3.curveCatmullRom)
+        .x((d) => this.xScale(d.x))
+        .y((d) => this.yScale(d.device) + this.MFLOPsScale(d.y));
+    },
+    MemoryLinePath() {
+      //MemoryLinePath(curDeviceMemoryData)
+      return d3
+        .line()
+        .curve(d3.curveCatmullRom)
+        .x((d) => this.xScale(d.x))
+        .y((d) => this.yScale(d.device) + this.MemoryScale(d.y));
+    },
   },
   mounted() {
     const { width, height } = this.$refs.container.getBoundingClientRect();
     this.width = Math.floor(width);
     this.height = Math.floor(height);
+    this.initZoom();
   },
   methods: {
-    dataProcessing() {
+    timeLineDataProcessing() {
       const { maps } = this.timeLineData || {};
       this.data = maps;
 
@@ -117,7 +179,7 @@ export default {
         const curDeviceData = maps[deviceName];
         Object.keys(curDeviceData).forEach((op) => {
           // 这里op是算子名
-          if (!op.startsWith("StreamSend")) {
+          if (!op.startsWith("Stream")) {
             //过滤掉StreamSend
             if (!displayedData[op]) displayedData[op] = [];
             const curOp = curDeviceData[op];
@@ -134,9 +196,7 @@ export default {
       this.minT = minT;
       this.maxT = maxT;
       this.displayedData = displayedData;
-      console.log("displayedData:", displayedData);
 
-      //   const { displayedData, xScale, yScale } = this;
       Object.keys(displayedData).forEach((op) => {
         let points = "";
         const curOpDeviceData = displayedData[op];
@@ -166,13 +226,77 @@ export default {
     getOperatorColor(op) {
       if (op.startsWith("All")) {
         //集合算子-黄色
-        return "rgb(237,183,135)";
+        return "#EB5C36";
       } else if (op.startsWith("Send") || op.startsWith("Receive")) {
         //点对点通信算子-紫色
-        return "red";
+        return "#2965A7";
       } else {
-        return "green";
+        return "#F28F00";
       }
+    },
+    FLOPsDataProcessing() {
+      const MFLOPsData = [];
+      let min = Infinity;
+      let max = -Infinity;
+      Object.keys(this.FLOPsData).forEach((device) => {
+        const curDeviceMFIPsData = [];
+        const arr = this.FLOPsData[device]["details"];
+        arr.forEach((opInfo) => {
+          const opName = opInfo["op_full_name"].split("/").pop();
+          const opData = this.data[device][opName];
+          const x = opData ? opData.ed : NaN; //取的结束点
+          const y = opInfo[" MFLOPs(10^6)"];
+          if (!isNaN(x)) {
+            min = Math.min(min, y);
+            max = Math.max(max, y);
+            curDeviceMFIPsData.push({ x, y, device });
+          }
+        });
+        MFLOPsData.push(curDeviceMFIPsData);
+      });
+      this.MFLOPsData = MFLOPsData; //保存每个device的FLOPs折线图数据
+      this.MFLOPs.min = min;
+      this.MFLOPs.max = max;
+    },
+    MemoryDataProcessing() {
+      const MemoryData = [];
+      let min = Infinity;
+      let max = -Infinity;
+      Object.keys(this.MemoryDataProps).forEach((device) => {
+        const curDeviceMemoryData = [];
+        const { lines, nodes } =
+          this.MemoryDataProps[device]["details"]["1"] || {};
+        for (let i = 0; i < nodes.length; i++) {
+          const opName = nodes[i].name;
+          const opData = this.data[device][opName];
+          const x = opData ? opData.st : NaN; //取的开始点
+          const y = lines[i];
+          if (!isNaN(x) && y) {
+            min = Math.min(min, y);
+            max = Math.max(max, y);
+            curDeviceMemoryData.push({ x, y, device });
+          }
+        }
+        MemoryData.push(curDeviceMemoryData);
+      });
+      this.MemoryData = MemoryData;
+      this.Memory.min = min;
+      this.Memory.max = max;
+    },
+    initZoom() {
+      const zoom = d3
+        .zoom()
+        .scaleExtent([1, 50])
+         .translateExtent([
+          [-this.margin.left, -this.margin.top],
+          [this.width, this.height],
+        ])
+        .on("zoom", () => {
+          console.log("event", d3.event);
+          d3.select("svg g").attr("transform", d3.event.transform);
+        });
+      // function handleZoom(e) {}
+      d3.select("svg").call(zoom);
     },
   },
 };

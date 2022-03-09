@@ -1,7 +1,12 @@
 <template>
   <div class="performance-view-container">
     <div class="top">
-      <MareyGraph :stepNumber="stepNumber" :timeLineData="timeLineData" />
+      <MareyGraph
+        :stepNumber="stepNumber"
+        :timeLineData="timeLineData"
+        :FLOPsData="FLOPsData"
+        :MemoryDataProps="MemoryData"
+      />
     </div>
     <div class="bottom">
       <div class="left">
@@ -37,13 +42,15 @@ export default {
       overViewData: null,
       stepNumber: 1,
       timeLineData: null,
+      FLOPsData: null,
+      MemoryData: null,
     };
   },
   mounted() {
     this.getOverviewTimeData();
     this.getTimeLineData();
-    // this.getFlopsData();
-    // this.getMemoryData();
+    this.getFLOPsData();
+    this.getMemoryData();
   },
   methods: {
     getOverviewTimeData() {
@@ -63,22 +70,21 @@ export default {
     getTimeLineData() {
       RequestService.getTimeLineData(this.stepNumber)
         .then(({ data }) => {
-          console.log("data", this.stepNumber, data);
           this.timeLineData = data;
         })
         .catch(console.error);
     },
-    getFlopsData() {
-      RequestService.getFlopsData()
+    getFLOPsData() {
+      RequestService.getFLOPsData()
         .then(({ data }) => {
-          console.log("FlopData", data);
+          this.FLOPsData = data;
         })
         .catch(console.error);
     },
     getMemoryData() {
       RequestService.getMemoryData()
         .then(({ data }) => {
-          console.log("MemoryData", data);
+          this.MemoryData = data;
         })
         .catch(console.error);
     },
@@ -98,5 +104,11 @@ export default {
 .performance-view-container .bottom {
   display: flex;
   flex-direction: row;
+}
+.performance-view-container .bottom .left {
+  flex: 1;
+}
+.performance-view-container .bottom .right {
+  flex: 1;
 }
 </style>

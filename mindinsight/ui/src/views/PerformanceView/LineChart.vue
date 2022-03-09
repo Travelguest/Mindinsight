@@ -156,8 +156,8 @@ export default {
 
 <style scoped>
 #line-chart-container {
-  height: 150px;
-  width: 600px;
+  height: 200px;
+  width: 100%;
   /* background: rebeccapurple; */
   /* border: 1px solid red; */
 }

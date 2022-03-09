@@ -616,7 +616,7 @@ export default {
       url: "mock/getOverviewTime",
     });
   },
-  getFlopsData() {
+  getFLOPsData() {
     return axios({
       method: "get",
       url: "mock/getFlopsData",
