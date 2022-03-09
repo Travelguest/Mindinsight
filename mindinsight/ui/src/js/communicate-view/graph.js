@@ -1,4 +1,6 @@
 import * as d3 from "d3";
+import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
+
 export function Graph(w, h) {
   this.w = w;
   this.h = h;
@@ -11,12 +13,33 @@ export function Graph(w, h) {
 Graph.prototype.create = function (links, nodes) {
   d3.selectAll("#networklayer").remove();
   this.layer = d3.select("#force");
-  this.svg = d3.select("mainsvg");
+  this.svg = d3.select("#mainsvg");
+
+  this.defs = this.svg.append("defs");
+  var arrowMarker = this.defs
+    .append("marker")
+    .attr("id", "arrow")
+    .attr("markerUnits", "strokeWidth")
+    .attr("markerWidth", "8")
+    .attr("markerHeight", "8")
+    .attr("viewBox", "0 0 12 12")
+    .attr("refX", "13")
+    .attr("refY", "6")
+    .attr("orient", "auto");
+  var arrow_path = "M2,2 L10,6 L2,10 L4,6 L2,2";
+  arrowMarker.append("path").attr("d", arrow_path).attr("fill", "#bbb");
+
   this.nodes = nodes;
   this.links = links;
   //   this.weights = weights;
   var _this = this;
+
+  var min_ratio = 1,
+    max_ratio = 0;
   nodes.forEach(function (d) {
+    d.time_ratio = d.c_cost / (d.c_cost + d.w_cost);
+    min_ratio = Math.min(d.time_ratio, min_ratio);
+    max_ratio = Math.max(d.time_ratio, max_ratio);
     _this.currNodes.push(d);
   });
   links.forEach(function (d) {
@@ -33,7 +56,10 @@ Graph.prototype.create = function (links, nodes) {
     .enter()
     .append("path")
     .style("fill", "none")
-    .attr("stroke-width", 2);
+    .attr("stroke-width", function (d) {
+      return d.weight;
+    })
+    .attr("marker-end", "url(#arrow)");
 
   var node = network
     .append("g")
@@ -42,11 +68,48 @@ Graph.prototype.create = function (links, nodes) {
     .data(nodes)
     .enter()
     .append("circle")
-    .attr("r", 5)
-    .attr("id", function (d) {
-      return "n" + d.id;
+    .attr("r", function (d) {
+      return Math.log(d.c_cost + d.w_cost);
     })
-    .style("fill", "#bbb");
+    .attr("id", function (d) {
+      return d.id;
+    })
+    .style("fill", function (d) {
+      return gradientColor(
+        "#fbe7d5",
+        "#e6882e",
+        min_ratio,
+        max_ratio,
+        d.time_ratio
+      );
+      //   return "#bbb";
+    })
+    .attr("pointer-events", "all")
+    .on("mouseover", function (d) {
+      //   highlight(d, true);
+      d3.select(this).attr("stroke", "red");
+    })
+    .on("mouseout", function (d) {
+      d3.select(this).attr("stroke", "none");
+    })
+    .call(
+      d3
+        .drag()
+        .on("start", function (d) {
+          if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        })
+        .on("drag", function (d) {
+          d.fx = d3.event.x;
+          d.fy = d3.event.y;
+        })
+        .on("end", function (d) {
+          if (!d3.event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        })
+    );
 
   var label = network
     .append("g")
@@ -73,7 +136,7 @@ Graph.prototype.create = function (links, nodes) {
           return d.id;
         })
         .distance(function (d) {
-          return 60;
+          return 80;
         })
     )
     .force("charge", d3.forceManyBody())
@@ -83,19 +146,6 @@ Graph.prototype.create = function (links, nodes) {
   simulation.nodes(nodes).on("tick", ticked);
   simulation.force("link").links(links);
   function ticked() {
-    // link
-    //   .attr("x1", function (d) {
-    //     return d.source.x;
-    //   })
-    //   .attr("y1", function (d) {
-    //     return d.source.y;
-    //   })
-    //   .attr("x2", function (d) {
-    //     return d.target.x;
-    //   })
-    //   .attr("y2", function (d) {
-    //     return d.target.y;
-    //   });
     link.attr("d", function (d) {
       var x1 = d.source.x,
         y1 = d.source.y,

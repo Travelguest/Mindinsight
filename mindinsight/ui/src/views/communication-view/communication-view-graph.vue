@@ -28,7 +28,25 @@
 }
 .links path {
   stroke: #bbb;
-  stroke-opacity: 0.6;
+  /* stroke-opacity: 0.6; */
+}
+.lasso path {
+  stroke: rgb(80, 80, 80);
+  stroke-width: 2px;
+}
+
+.lasso .drawn {
+  fill-opacity: 0.05;
+}
+
+.lasso .loop_close {
+  fill: none;
+  stroke-dasharray: 4, 4;
+}
+
+.lasso .origin {
+  fill: #3399ff;
+  fill-opacity: 0.5;
 }
 </style>
 <script>
@@ -38,11 +56,11 @@ import {
 } from "@/js/communicate-view/build-graph.js";
 import requestService from "@/services/request-service";
 import * as vis from "vis";
-import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
 import * as echarts from "echarts/core";
 import * as d3 from "d3";
 import { Graph } from "@/js/communicate-view/graph.js";
 import { Paths } from "@/js/communicate-view/path.js";
+import { Lasso } from "@/js/communicate-view/lasso.js";
 export default {
   data() {
     return {
@@ -114,6 +132,7 @@ export default {
           w_cost: d.wait_cost,
         });
       });
+
       // console.log(this.communicateEdges[this.stepNum]);
       this.communicateEdges[this.stepNum].forEach(function (d) {
         dataLink.push({
@@ -150,6 +169,9 @@ export default {
       var originData = dataLink;
 
       graph.create(dataLink, dataNode);
+
+      var l = new Lasso();
+      l.bind();
     },
 
     //折线图
