@@ -2,17 +2,30 @@
   <div class="configuration-view-box">
     <div class="scope-search">
     <a-tree-select
+      ref="configure-select"
       class="configure-select"
       v-model="selectNamespaces"
-      style="width: 90%; z-index: 99; padding: 10px 0;"
-      :tree-data="treeData"
+      style="width: 90%; z-index: 99; padding: 10px 0; aria-expanded: true;"
+      :tree-data="showTreeData"
       tree-checkable
       :show-checked-strategy="SHOW_PARENT"
       search-placeholder="Please select"
-      :dropdownStyle="{ maxHeight: '300px' }"
+      :dropdownStyle="{ maxHeight: '230px' }"
       :maxTagCount="Number(1)"
+      :treeExpandedKeys="expandedKeys"
+      dropdownMatchSelectWidth
+      open
       @change="handleTreeChange"
-    />
+    >
+      <template slot="title" slot-scope="item">
+        <span>
+          <svg viewBox="0 0 15 10" width="15" height="10" v-if="selectNamespaces.includes(item.key)">
+            <rect x="0" y="0" width="15" height="10" rx="3" ry="3" :fill="haloColorScale(item.key)"></rect>
+          </svg>
+          {{item.titleText}}
+        </span>
+      </template>
+    </a-tree-select>
     <div class="scope-tree"></div>
     <div class="dashed-line"></div>
     </div>
@@ -37,16 +50,17 @@
         <h2>Stage</h2>
       </div>
       <PipelineStageGraph />
-      
+
     </div>
   </div>
 </template>
 
 
 <script>
-import { getTreeData, levelOrder } from "@/js/profile-graph/build-graph.js";
-import { TreeSelect } from "ant-design-vue";
-import PipelineStageGraph from "./PiplineStageGraph.vue";
+import * as d3 from 'd3';
+import {getTreeData, levelOrder} from '@/js/profile-graph/build-graph.js';
+import {TreeSelect} from 'ant-design-vue';
+import PipelineStageGraph from './PiplineStageGraph.vue';
 // import RequestService from "@/services/request-service";
 
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
@@ -60,10 +74,12 @@ export default {
     return {
       selectNamespaces: [],
       treeData: [],
+      showTreeData: [],
       SHOW_PARENT,
       showSpecialEdgeTypes: [],
       specialEdgeTypes: [],
       graphData: {},
+      expandedKeys: [],
     };
   },
 
@@ -72,13 +88,13 @@ export default {
   },
 
   watch: {
-    "$store.state.profileSpecialEdgeTypes": function (val) {
+    '$store.state.profileSpecialEdgeTypes': function(val) {
       this.specialEdgeTypes = val;
     },
     showSpecialEdgeTypes(newVal, oldVal) {
-      this.$store.commit("setProfileShowSpecialEdgeTypes", [oldVal, newVal]);
+      this.$store.commit('setProfileShowSpecialEdgeTypes', [oldVal, newVal]);
     },
-    "$store.state.graphData": function (val) {
+    '$store.state.graphData': function(val) {
       this.graphData = val;
       this.initView();
     },
@@ -93,20 +109,47 @@ export default {
     //   this.treeData = getTreeData().children;
     //   this.$store.commit("setProfileTreeData", this.treeData);
     // },
+    haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
+    modifyTreeData(node) {
+      if (!node) return;
+      const newChildren = [];
+      for (const child of node.children) {
+        if (child.children.length !== 0) {
+          newChildren.push(child);
+        }
+      }
+      node.children = newChildren;
+      for (const child of node.children) {
+        child.scopedSlots = {title: 'title'};
+        child.titleText = child.title;
+        child.title = null;
+        this.expandedKeys.push(child.key);
+        this.modifyTreeData(child);
+      }
+    },
     fetchData() {
       const res = this.graphData;
-      if ("graphs" in res) {
+      if ('graphs' in res) {
         levelOrder(getTreeData());
       }
       this.treeData = getTreeData().children;
-      console.log("Treedata: " , this.treeData)
-      this.$store.commit("setProfileTreeData", this.treeData);
+      this.$store.commit('setProfileTreeData', this.treeData);
+      this.showTreeData = JSON.parse(JSON.stringify(this.treeData));
+      for (const child of this.showTreeData) {
+        child.scopedSlots = {title: 'title'};
+        child.titleText = child.title;
+        child.title = null;
+        this.expandedKeys.push(child.key);
+        this.modifyTreeData(child);
+      }
+      console.log('showTreedata: ', this.showTreeData);
     },
     initView() {
       this.fetchData();
+      console.log(this.$refs['configure-select']);
     },
-    handleTreeChange() {
-      this.$store.commit("setProfileNamespaces", this.selectNamespaces);
+    handleTreeChange(value, label) {
+      this.$store.commit('setProfileNamespaces', this.selectNamespaces);
     },
   },
 };
