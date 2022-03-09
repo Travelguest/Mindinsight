@@ -2,7 +2,30 @@
   <div class="attribute-panel-container" id="attribute-collapse">
     <LeeCollapse v-model="expname" @change="handleChange" >
       <LeeCollapseItem title="Special operator statiatics" name="1" >
-        <div>ECMAScri</div>
+        <div class="graph-strategy-info">
+          <div class="second-title" style="font-size: 10px;">
+            {{ this.$t("profiling.hasStrategy") }}:
+            <span style="font-weight: normal;">{{
+              specialNodesMap["hasStrategy"] ? specialNodesMap["hasStrategy"] : 0
+            }}</span>
+          </div>
+          <div class="second-title" style="font-size: 10px;">
+            {{ this.$t("profiling.redistribution") }}:
+            <span style="font-weight: normal;">{{
+              specialNodesMap["Redistribution"]
+                ? specialNodesMap["Redistribution"]
+                : 0
+            }}</span>
+          </div>
+          <div class="second-title" style="font-size: 10px;">
+            {{ this.$t("profiling.gradientAggregate") }}:
+            <span style="font-weight: normal;">{{
+              specialNodesMap["GradientAggregation"]
+                ? specialNodesMap["GradientAggregation"]
+                : 0
+            }}</span>
+          </div>
+        </div>
       </LeeCollapseItem>
       <LeeCollapseItem title="Node attributes" name="2">
         <div
@@ -82,6 +105,9 @@
   height: 30px;
   border-radius: 4px;
 }
+#attribute-collapse .lee-collapse-item .itemcontent {
+  padding-bottom: 10px;
+}
 #attribute-collapse .lee-collapse-item .itemcontentw {
   padding: 0 10px;
   border: none;
@@ -89,7 +115,7 @@
   overflow-y: scroll;
 }
 #attribute-collapse .lee-collapse-item:first-child .itemcontentw {
-  max-height: 120px;
+  max-height: 100px;
 }
 #attribute-collapse .lee-collapse {
   border-radius: 4px;
@@ -98,18 +124,22 @@
   border-bottom: 1px solid #fff;
 }
 .second-title {
-    height: 24px;
-    line-height: 24px;
-    font-size: 14px;
-    font-weight: 600;
-    -ms-flex-negative: 0;
-    flex-shrink: 0;
+  height: 24px;
+  line-height: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
+.graph-strategy-info {
+  padding-top: 5px;
 }
 
 </style>
 
 <script>
 import {LeeCollapse,LeeCollapseItem} from 'leevueplugin';
+import { getSpecialNodesMap } from '@/js/profile-graph/build-graph.js';
 
 export default {
   components: {
@@ -122,6 +152,7 @@ export default {
         selectedNode: null,
         nodeMaps: [],
         nodeGroupIndex: '',
+        specialNodesMap: {},
       };
   },
   watch: {
@@ -130,14 +161,19 @@ export default {
       this.nodeGroupIndex = Math.floor((this.selectedNode.y + 200) / 500);
       this.expname = ['1','2'];
       console.log(this.selectedNode)
+      console.log(getSpecialNodesMap()) 
     },
     "$store.state.nodeMaps": function (val) {
       this.nodeMaps = val;
+      this.specialNodesMap = getSpecialNodesMap();
     },
   },
   methods: {
     handleChange(val) {
       console.log(val);
+    },
+    getSpecialNodesMap() {
+      return getSpecialNodesMap();
     },
   },
 }
