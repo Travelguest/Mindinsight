@@ -14,6 +14,7 @@
         <LegendStrategy />
       </div>
       <profile-graph />
+      <AttributePanel />
     </div>
     <div class="configuration-view">
       <div class="view-title-bg">
@@ -36,6 +37,7 @@
 <script>
 // import GraphContainer from './ELKGraph/graph-container.vue';
 import ProfileGraph from "../profile-graph/profile-graph.vue";
+import AttributePanel from "../profile-graph/attribute-panel.vue";
 import PerformanceView from "../PerformanceView/PerformanceViewContainder.vue";
 import CommunicationViewGraph from "../communication-view/communication-view-graph.vue";
 import ConfigureView from "../configure-view/configure-view.vue";
@@ -51,6 +53,7 @@ export default {
     ConfigureView,
     LegendStrategy,
     LegendPerformance,
+    AttributePanel,
   },
 
   data() {

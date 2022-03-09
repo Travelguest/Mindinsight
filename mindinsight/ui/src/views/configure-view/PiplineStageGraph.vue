@@ -200,34 +200,6 @@ export default {
       this.pipelineEdgeInfo = pipelineEdgeInfo;
       console.log(pipelinedStageInfo);
 
-      // 卡选择器
-      // this.showRankIdOptions = Object.keys(res).map((key) => {
-      //   const ranks = res[key];
-      //   return {
-      //     value: key,
-      //     label: ranks.rank_ids.join('-'),
-      //   };
-      // });
-      // if (!showRankId) showRankId = 0;
-      // if (edgeTypesArray) {
-      //   setEdgeTypesOrder(edgeTypesArray);
-      // }
-      // const visGraph = buildGraph(
-      //     res[showRankId],
-      //     this.conceptual,
-      //     this.bipartite,
-      // );
-      // const topScopeSet = getTopScopeSet();
-      // this.showNodeTypeOptions = [];
-      // for (const topScope of topScopeSet) {
-      //   this.showNodeTypeOptions.push({
-      //     value: topScope,
-      //     label: topScope,
-      //   });
-      // }
-      // this.showNodeType = showNodeType || this.showNodeTypeOptions[0].label;
-      // this.showRankId = showRankId || this.showRankIdOptions[0].value;
-
       // stage 选择
       this.showStageIdOptions = Object.keys(res).map((key) => {
         const stages = res[key];

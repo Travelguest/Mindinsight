@@ -367,6 +367,7 @@ export default {
 
     onNodeClick(node) {
       console.log(node);
+      this.$store.commit("setSelectedGraphNode", node);
     },
 
     onNodeMouseover(e, node) {
@@ -628,6 +629,7 @@ export default {
         this.nodeMaps.push(processedGraph.nodeMap);
       }
       // this.treeData = getTreeData().children;
+      this.$store.commit("setNodeMaps", this.nodeMaps);
     },
   },
 };

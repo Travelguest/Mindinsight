@@ -99,6 +99,7 @@ export default {
         levelOrder(getTreeData());
       }
       this.treeData = getTreeData().children;
+      console.log("Treedata: " , this.treeData)
       this.$store.commit("setProfileTreeData", this.treeData);
     },
     initView() {

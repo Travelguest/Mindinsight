@@ -22,6 +22,7 @@
     "eslint-plugin-vue": "^8.2.0",
     "gsap": "^3.7.1",
     "jquery": "3.5.0",
+    "leevueplugin": "^1.0.8",
     "less-loader": "^7.3.0",
     "lodash": "^4.17.21",
     "slickgrid": "2.4.22",

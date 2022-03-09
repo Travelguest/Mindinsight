@@ -53,6 +53,8 @@ export default new Vuex.Store ({
     // profileShowSpecialEdgeTypes: { newVal: [], oldVal: [] },
     profileShowSpecialEdgeTypes: [],
     graphData: {},
+    selectedGraphNode: null,
+    nodeMaps: [],
   },
   mutations: {
     // set cancelTokenArr
@@ -123,6 +125,12 @@ export default new Vuex.Store ({
     },
     setGraphData(state, val) {
       state.graphData = val;
+    },
+    setSelectedGraphNode(state, val) {
+      state.selectedGraphNode = val;
+    },
+    setNodeMaps(state, val){
+      state.nodeMaps = val;
     },
   },
   actions: {
