@@ -26,6 +26,10 @@
   height: 100%;
   width: 100%;
 }
+.links path {
+  stroke: #bbb;
+  stroke-opacity: 0.6;
+}
 </style>
 <script>
 import {
@@ -36,6 +40,9 @@ import requestService from "@/services/request-service";
 import * as vis from "vis";
 import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
 import * as echarts from "echarts/core";
+import * as d3 from "d3";
+import { Graph } from "@/js/communicate-view/graph.js";
+import { Paths } from "@/js/communicate-view/path.js";
 export default {
   data() {
     return {
@@ -56,7 +63,7 @@ export default {
     async initGraph() {
       await this.fetchData();
       // this.generateGraph();
-
+      this.renderNetwork();
       this.renderLineChartInit();
       // this.generateCanvas();
     },
@@ -95,7 +102,57 @@ export default {
         }
       }
     },
+    renderNetwork() {
+      // network data
+      var dataLink = [];
+      var dataNode = [];
+      this.communicateNodes[this.stepNum].forEach(function (d) {
+        dataNode.push({
+          id: d.name,
+          label: d.name.replace("device", ""),
+          c_cost: d.communication_cost,
+          w_cost: d.wait_cost,
+        });
+      });
+      // console.log(this.communicateEdges[this.stepNum]);
+      this.communicateEdges[this.stepNum].forEach(function (d) {
+        dataLink.push({
+          source: "device" + d.source,
+          target: "device" + d.target,
+          weight: d.value,
+          link_type: d.type,
+        });
+      });
 
+      var width = document.getElementById("networkPlot").clientWidth;
+      var height = document.getElementById("networkPlot").clientHeight;
+
+      d3.selectAll("#networkPlot>*").remove();
+      var svg = d3
+        .select("#networkPlot")
+        .append("svg")
+        .attr("id", "mainsvg")
+        .attr("width", width)
+        .attr("height", height);
+
+      d3.selectAll("#matrix > *").remove();
+      d3.selectAll("#force > *").remove();
+      d3.selectAll("#path > *").remove();
+
+      var matrix_layer = svg.append("g").attr("id", "matrix");
+      var force_layer = svg.append("g").attr("id", "force");
+      var path_layer = svg.append("g").attr("id", "path");
+
+      var graph = new Graph(width, height);
+      var paths = new Paths();
+      var matrix_list = [];
+      var matrix_node = [];
+      var originData = dataLink;
+
+      graph.create(dataLink, dataNode);
+    },
+
+    //折线图
     renderLineChartInit() {
       const chartDom = document.getElementById("communication-line-chart");
       const myChart = echarts.init(chartDom);
