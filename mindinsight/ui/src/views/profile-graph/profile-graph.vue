@@ -94,7 +94,8 @@
             :y="bgdRectBlock.y"
             :width="bgdRectBlock.width"
             :height="bgdRectBlock.height"
-            style="stroke: #009900; fill: none"
+            stroke-dasharray="5"
+            style="stroke: #ababab; fill: none; stroke-width: 2; "
           ></rect>
         </g>
 
@@ -170,12 +171,13 @@
               @click="onNodeClick(node)"
               @mouseover="onNodeMouseover($event, node)"
               @mouseout="onNodeMouseout"
+              :class="clickedNodeId === node.id ? 'active':''"
             >
               <circle
                 :cx="node.x"
                 :cy="node.y"
                 :r="node.r"
-                :class="`${node.type.toLowerCase()} node${
+                :class="`${node.type.toLowerCase()} ${node.parallel_shard.length !== 0 ? ' strategy ':''} node${
                   node.isAggreNode ? ' aggre-node' : ''
                 }`"
               ></circle>
@@ -284,6 +286,7 @@ export default {
       normalEdgesBackup: [],
       extraEdges: {},
       graphData: {},
+      clickedNodeId: ''
     };
   },
 
@@ -366,7 +369,9 @@ export default {
     haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
 
     onNodeClick(node) {
-      console.log(node);
+      console.log(node,this);
+      // d3.select(node).style("stroke", "red");
+      this.clickedNodeId = node.id;
       this.$store.commit('setSelectedGraphNode', node);
     },
 
@@ -646,49 +651,69 @@ export default {
 
 #profile-graph line {
   stroke-width: 1;
-  stroke: grey;
+  stroke: #adadad;
 }
 
 #profile-graph text {
   font-size: 5px;
 }
 
+#profile-graph .active circle.node {
+  stroke: #cb6056;
+}
+
 #profile-graph circle.node {
-  stroke: black;
-  stroke-width: 0.5;
-  fill: white;
+  stroke: white;
+  stroke-width: 1;
+  fill: #cbcbcb;
 }
 
 #profile-graph circle.allreduce {
-  stroke: red;
-  stroke-width: 2;
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--allreduce-operator-color);
+}
+
+#profile-graph circle.stridedslice {
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--redistribution-operator-color);
 }
 
 #profile-graph circle.allgather {
-  stroke: red;
-  stroke-width: 2;
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--allreduce-operator-color);
 }
 
 #profile-graph circle.alltoall {
-  stroke: red;
-  stroke-width: 2;
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--allreduce-operator-color);
 }
 
 #profile-graph circle.reducescatter {
-  stroke: red;
-  stroke-width: 2;
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--allreduce-operator-color);
+}
+
+#profile-graph circle.strategy {
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--slice-operator-color);
 }
 
 #profile-graph circle.send {
-  stroke: red;
-  stroke-width: 0.5;
-  fill: rgb(113, 243, 27);
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--send-operator-color);
 }
 
 #profile-graph circle.receive {
-  stroke: red;
-  stroke-width: 0.5;
-  fill: rgb(33, 29, 241);
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--receive-operator-color);
 }
 
 #profile-graph circle.load {

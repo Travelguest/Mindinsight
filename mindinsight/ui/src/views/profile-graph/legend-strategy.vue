@@ -35,7 +35,7 @@
           :key="`${index}_operator_legend`"
           r="6"
           cy="17.5"
-          :cx="`${166+index*140}`"
+          :cx="`${166+index*150}`"
           :fill="special_strategy_legend[`${index}`]['color']"
           stroke="white"
           stroke-width="1px"
@@ -43,7 +43,7 @@
           <text 
           v-for="(operator, index) in special_strategy_legend"
           :key="`${index}_operator`"
-          :x="`${182+index*140}`" y="17.5" font-size="12" alignment-baseline="middle">{{special_strategy_legend[`${index}`]['name']}}</text>
+          :x="`${182+index*150}`" y="17.5" font-size="12" alignment-baseline="middle">{{special_strategy_legend[`${index}`]['name']}}</text>
         </g>
       </svg>
     </div>
@@ -96,24 +96,24 @@ export default {
       ],
       special_strategy_legend : [
         {
-          "name": "send parameter",
+          "name": "send operator",
           "color": "var(--send-operator-color)",
         },
         {
-          "name": "receive parameter",
+          "name": "receive operator",
           "color": "var(--receive-operator-color)",
         },
         {
-          "name": "slice parameter",
+          "name": "parallel shard operator",
           "color": "var(--slice-operator-color)",
         },
         {
-          "name": "allreduce parameter",
-          "color": "var(--allreduce-operator-color)",
+          "name": "redistribution operator",
+          "color": "var(--redistribution-operator-color)",
         },
         {
-          "name": "redistribution parameter",
-          "color": "var(--redistribution-operator-color)",
+          "name": "gradient aggregation operator",
+          "color": "var(--allreduce-operator-color)",
         },
       ],
     };
