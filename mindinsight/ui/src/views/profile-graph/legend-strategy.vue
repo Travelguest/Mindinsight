@@ -104,7 +104,7 @@ export default {
           "color": "var(--receive-operator-color)",
         },
         {
-          "name": "strategy operator",
+          "name": "parallel shard operator",
           "color": "var(--slice-operator-color)",
         },
         {
@@ -112,7 +112,7 @@ export default {
           "color": "var(--redistribution-operator-color)",
         },
         {
-          "name": "collective communication operator",
+          "name": "gradient aggregation operator",
           "color": "var(--allreduce-operator-color)",
         },
       ],
