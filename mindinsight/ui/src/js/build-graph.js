@@ -17,7 +17,7 @@ import {
   INSERTED_ATTR,
 } from './const';
 
-import {genHash} from './util';
+import { genHash, _checkShardMethod } from './util';
 
 export let processedGraph = {
   nodeMap: {},
@@ -49,6 +49,7 @@ const pipelineNodeInfo = [[], []];
 const pipelineEdgeInfo = [];
 
 export const edgeIdMap = {};
+let specialNodesMap = {};
 
 let curEdgeTypes = {};
 
@@ -809,6 +810,74 @@ function _processSourceDataOld(data) {
 }
 
 /**
+ * Get special nodes cnt of the entire graph
+ */
+function _processNodesGlobalCnt() {
+  specialNodesMap = {};
+  const { nodeMap } = processedGraph;
+  Object.keys(nodeMap).forEach((id) => {
+    if (isNaN(id)) return;
+    const node = nodeMap[id];
+    if (_checkShardMethod(node.parallel_shard)) {
+      if (specialNodesMap.hasOwnProperty('hasStrategy')) {
+        specialNodesMap['hasStrategy']++;
+      } else {
+        specialNodesMap['hasStrategy'] = 1;
+      }
+    }
+    if (node.instance_type !== undefined) {
+      if (specialNodesMap.hasOwnProperty(node.instance_type)) {
+        specialNodesMap[node.instance_type]++;
+      } else {
+        specialNodesMap[node.instance_type] = 1;
+      }
+    }
+  });
+}
+
+/**
+ * Get special nodes cnt of all namescopes
+ */
+function _processNodesCnt() {
+  if (firstCntFlag) {
+    _processNodesGlobalCnt();
+    firstCntFlag = false;
+  }
+
+  const { nodeMap } = processedGraph;
+  Object.keys(nodeMap).forEach((id) => {
+    if (isNaN(id)) return;
+    const node = nodeMap[id];
+    const iterator = node.scope.split(SCOPE_SEPARATOR);
+
+    if (!node.parent) return;
+    do {
+      const name = iterator.join(SCOPE_SEPARATOR);
+      const scopeNode = nodeMap[name];
+      if (_checkShardMethod(node.parallel_shard)) {
+        if (scopeNode.specialNodesCnt.hasOwnProperty('hasStrategy')) {
+          scopeNode.specialNodesCnt['hasStrategy']++;
+        } else {
+          scopeNode.specialNodesCnt['hasStrategy'] = 1;
+        }
+      }
+      if (node.instance_type !== undefined) {
+        if (scopeNode.specialNodesCnt.hasOwnProperty(node.instance_type)) {
+          scopeNode.specialNodesCnt[node.instance_type]++;
+        } else {
+          scopeNode.specialNodesCnt[node.instance_type] = 1;
+        }
+      }
+      iterator.pop();
+    } while (iterator.length);
+  });
+}
+
+function getSpecialNodesMap() {
+  return specialNodesMap;
+}
+
+/**
  * Processing all data.
  * @param {Object} data All graph data
  */
@@ -827,6 +896,7 @@ function _processSourceData(data) {
   }
   _processNameScope();
   _processHierarchy();
+  _processNodesCnt();
   if (conceptualGraphMode) {
     conceptualGraphOptimizer(processedGraph);
   }
@@ -1356,6 +1426,7 @@ function buildGraph(data, conceptualMode = false, bipartiteMode = false) {
   conceptualGraphMode = conceptualMode;
   bipartiteGraphMode = bipartiteMode;
   _processSourceData(data);
+  console.log(data)
   bipartiteGraphMode && bipartiteGraphOptimzer.init(processedGraph);
 
   _optimizeNodes();
@@ -1385,4 +1456,5 @@ export {
   getInstanceTypeInfo,
   _findTopScope,
   _findExistNameScope,
+  getSpecialNodesMap,
 };

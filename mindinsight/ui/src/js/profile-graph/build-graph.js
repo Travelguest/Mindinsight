@@ -7,6 +7,9 @@ import {
   INSERTED_ATTR,
 } from '@/js/const.js';
 
+import { _checkShardMethod } from '../util';
+
+
 const debug = false;
 export let processedGraph = {
   nodeMap: {},
@@ -24,12 +27,15 @@ const COMM_LIST = new Set([
 ]);
 
 export const edgeIdMap = {};
+let specialNodesMap = {};
+
 
 let nodeBlocks = [];
 let nodeOrder = [];
 let pipelineGraph = {};
 let indegrees = {};
 let dependNodes = {};
+let firstCntFlag = true;
 
 /**
  * Reset data.
@@ -41,6 +47,13 @@ function _resetData() {
     constMap: {},
     root: {},
   };
+}
+
+/**
+ * reset firstCntFlag
+ */
+function resetFirstCntFlag() {
+  firstCntFlag = true;
 }
 
 function _createBasicNode(node) {
@@ -64,6 +77,8 @@ function _createBasicNode(node) {
     scope: node.scope,
     ...insertedAttr.reduce((acc, key) => ((acc[key] = node[key]), acc), {}),
     output_shape: node.output_shape,
+    instance_type: node.instance_type,
+    parallel_shard: node.parallel_shard,
   };
 }
 
@@ -88,6 +103,8 @@ function _createBasicNodeOld(node) {
     scope: node.scope,
     ...insertedAttr.reduce((acc, key) => ((acc[key] = node[key]), acc), {}),
     output_shape: node.output_shape,
+    parallel_shard: node.parallel_shard,
+    instance_type: node.instance_type,
   };
 }
 
@@ -601,6 +618,7 @@ function stackOptimizer() {
 function _processSourceDataOld(data) {
   _processNodesOld(data);
   processOutput();
+  _processNodesGlobalCnt();
   pruneTupleGetItem();
   // stackOptimizer();
 }
@@ -609,6 +627,7 @@ function _processSourceData(data) {
   _processNodes(data);
   processOutput();
   pruneTupleGetItem();
+  _processNodesGlobalCnt();
 }
 
 function pruneTupleGetItem() {
@@ -686,6 +705,75 @@ function getStrategyInfo(data) {
 }
 
 /**
+ * Get special nodes cnt of the entire graph
+ */
+function _processNodesGlobalCnt() {
+  specialNodesMap = {};
+  const { nodeMap } = processedGraph;
+  Object.keys(nodeMap).forEach((id) => {
+    if (isNaN(id)) return;
+    const node = nodeMap[id];
+    if (_checkShardMethod(node.parallel_shard)) {
+      if (specialNodesMap.hasOwnProperty('hasStrategy')) {
+        specialNodesMap['hasStrategy']++;
+      } else {
+        specialNodesMap['hasStrategy'] = 1;
+      }
+    }
+    if (node.instance_type !== undefined) {
+      if (specialNodesMap.hasOwnProperty(node.instance_type)) {
+        specialNodesMap[node.instance_type]++;
+      } else {
+        specialNodesMap[node.instance_type] = 1;
+      }
+    }
+  });
+}
+
+/**
+ * Get special nodes cnt of all namescopes
+ */
+// function _processNodesCnt() {
+//   if (firstCntFlag) {
+//     _processNodesGlobalCnt();
+//     firstCntFlag = false;
+//   }
+
+//   const { nodeMap } = processedGraph;
+//   Object.keys(nodeMap).forEach((id) => {
+//     if (isNaN(id)) return;
+//     const node = nodeMap[id];
+//     const iterator = node.scope.split(SCOPE_SEPARATOR);
+
+//     if (!node.parent) return;
+//     do {
+//       const name = iterator.join(SCOPE_SEPARATOR);
+//       debugger
+//       const scopeNode = nodeMap[name];
+//       if (_checkShardMethod(node.parallel_shard)) {
+//         if (scopeNode.specialNodesCnt.hasOwnProperty('hasStrategy')) {
+//           scopeNode.specialNodesCnt['hasStrategy']++;
+//         } else {
+//           scopeNode.specialNodesCnt['hasStrategy'] = 1;
+//         }
+//       }
+//       if (node.instance_type !== undefined) {
+//         if (scopeNode.specialNodesCnt.hasOwnProperty(node.instance_type)) {
+//           scopeNode.specialNodesCnt[node.instance_type]++;
+//         } else {
+//           scopeNode.specialNodesCnt[node.instance_type] = 1;
+//         }
+//       }
+//       iterator.pop();
+//     } while (iterator.length);
+//   });
+// }
+
+function getSpecialNodesMap() {
+  return specialNodesMap;
+}
+
+/**
  * Build graph data.
  * @param {Object} data All graph data
  * @param {Boolean} conceptualMode Whether is conceptual mode
@@ -710,4 +798,5 @@ export {
   getTreeData,
   levelOrder,
   getStrategyInfo,
+  getSpecialNodesMap,
 };

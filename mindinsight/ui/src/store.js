@@ -15,10 +15,12 @@
  */
 import Vue from "vue";
 import Vuex from "vuex";
+import RequestService from "@/services/request-service";
+import axios from 'axios'
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
+export default new Vuex.Store ({
   state: {
     // cancel request token
     cancelTokenArr: [],
@@ -50,6 +52,9 @@ export default new Vuex.Store({
     profileSpecialEdgeTypes: [],
     // profileShowSpecialEdgeTypes: { newVal: [], oldVal: [] },
     profileShowSpecialEdgeTypes: [],
+    graphData: {},
+    selectedGraphNode: null,
+    nodeMaps: [],
   },
   mutations: {
     // set cancelTokenArr
@@ -118,6 +123,31 @@ export default new Vuex.Store({
       // state.profileShowSpecialEdgeTypes["oldVal"] = val["oldVal"];
       state.profileShowSpecialEdgeTypes = val;
     },
+    setGraphData(state, val) {
+      state.graphData = val;
+    },
+    setSelectedGraphNode(state, val) {
+      state.selectedGraphNode = val;
+    },
+    setNodeMaps(state, val){
+      state.nodeMaps = val;
+    },
   },
-  actions: {},
+  actions: {
+    getGraphData({commit}) {
+      // const res = RequestService.getGraphs().data;
+      // if (res) {
+      //   commit('setGraphData', res.graphs)
+      // } else {
+      //   console.log(res);
+      // }
+      axios.get('mock/getGraphs')
+        .then((res) => {
+          commit('setGraphData', res.data) //调用mutations下面的changeListMutation方法并且传值过去
+        })
+        .catch((error) => {
+          console.log(error)
+        })
+    }
+  },
 });
