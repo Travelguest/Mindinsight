@@ -1,6 +1,5 @@
 <template>
-  <div class="communication-view">
-    <div style="width: 100%; height: 5%">Communication View</div>
+  <div class="communication-graph-box">
     <div id="networkPlot"></div>
     <div id="communication-line-chart-container">
       <div id="communication-line-chart"></div>
@@ -14,9 +13,20 @@
 }
 
 #networkPlot {
-  position: absolutel;
+  position: relative;
   width: 100%;
   height: 65%;
+}
+.communication-graph-box {
+  position: relative;
+  width: 100%;
+  height: 305px;
+}
+.el-icon-magic-stick {
+  position: absolute;
+  top: 0;
+  right: 5%;
+  z-index: 999;
 }
 #communication-line-chart-container {
   height: 30%;
