@@ -239,7 +239,7 @@ Graph.prototype.delete = function (ids) {
 };
 
 Graph.prototype.update = function () {
-  d3.selectAll("#networklayer > *").remove();
+  d3.selectAll("#networklayer").remove();
 
   var _this = this;
   var nodes = this.currNodes;

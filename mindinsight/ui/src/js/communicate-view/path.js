@@ -55,23 +55,26 @@ Paths.prototype.push = function (id) {
   }
   // console.log(this.originData);
   this.originData.forEach(function (d) {
-    var in_matrix, in_force;
-    // console.log(d);
+    var in_matrix, in_force, weight;
     if (d.source.id == id) {
       in_matrix = id;
       in_force = d.target.id;
+      weight = d.weight;
     } else if (d.target.id == id) {
       in_matrix = id;
       in_force = d.source.id;
+      weight = d.weight;
     } else return;
     var node = d3.select("#" + in_force);
     if (node.empty()) return;
+    console.log("inWeight", weight);
     _this.data.push({
       r: node.attr("r"),
       x: matrix.x,
       y: matrix.y,
       matrix_id: in_matrix,
       force_id: in_force,
+      weight: weight,
       center: {
         x: matrix.x + num * matrix.unitsize + matrix.unitsize / 2,
         y: matrix.y + num * matrix.unitsize + matrix.unitsize / 2,
@@ -96,8 +99,6 @@ Paths.prototype.push = function (id) {
     });
     _this.num++;
   });
-  // console.log(this.data);
-  // this.render();
 };
 
 Paths.prototype.generate = function (d) {
@@ -106,8 +107,6 @@ Paths.prototype.generate = function (d) {
   result.push([d.pos_end.x, d.pos_end.y]);
   var xx = d.pos2.x;
   var yy = d.pos3.y;
-  //decide the point to use
-  //console.log(_this.x)
   if (d.pos_end.x <= d.x && d.pos_end.y <= yy) {
     //left
     //console.log(1);
@@ -169,12 +168,13 @@ Paths.prototype.render = function () {
       return "path" + d.matrix_id;
     })
     .attr("d", function (d) {
-      // console.log(d);
-      // console.log("path");
       return line(_this.generate(d));
     })
     .attr("stroke", "#999")
-    .attr("stroke-width", 2)
+    .attr("stroke-width", function (d) {
+      return d.weight;
+    })
     .attr("fill", "none")
-    .attr("stroke-opacity", 0.2);
+    .attr("stroke-opacity", 0.2)
+    .attr("marker-end", "url(#arrow)");
 };
