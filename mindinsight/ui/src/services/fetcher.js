@@ -26,8 +26,8 @@ axios.defaults.timeout = 30000;
 axios.defaults.baseURL = basePath;
 axios.interceptors.request.use(
     function(config) {
-      config.headers['Pragma'] = 'no-cache';
-      config.headers['Cache-Control'] = 'no-cache,no-store,must-revalidate';
+      // config.headers['Pragma'] = 'no-cache';
+      // config.headers['Cache-Control'] = 'no-cache,no-store,must-revalidate';
       if (router.currentRoute.path !== '/debugger') {
         config.cancelToken = new axios.CancelToken((cancel) => {
           store.commit('pushToken', {
