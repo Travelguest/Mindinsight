@@ -162,16 +162,16 @@ export default {
       var force_layer = svg.append("g").attr("id", "force");
       var path_layer = svg.append("g").attr("id", "path");
 
-      var graph = new Graph(width, height);
+      window.graph = new Graph(width, height);
       var paths = new Paths();
       var matrix_list = [];
       var matrix_node = [];
       var originData = dataLink;
 
-      graph.create(dataLink, dataNode);
+      window.graph.create(dataLink, dataNode);
 
-      var l = new Lasso();
-      l.bind();
+      window.lasso = new Lasso();
+      window.lasso.bind();
     },
 
     //折线图
