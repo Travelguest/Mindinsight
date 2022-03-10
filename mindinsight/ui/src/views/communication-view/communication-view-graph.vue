@@ -1,6 +1,5 @@
 <template>
-  <div class="communication-view">
-    <div style="width: 100%; height: 5%">Communication View</div>
+  <div class="communication-graph-box">
     <div id="networkPlot"></div>
     <div id="communication-line-chart-container">
       <div id="communication-line-chart"></div>
@@ -14,7 +13,7 @@
 }
 
 #networkPlot {
-  position: absolutel;
+  position: relative;
   width: 100%;
   height: 65%;
 }
