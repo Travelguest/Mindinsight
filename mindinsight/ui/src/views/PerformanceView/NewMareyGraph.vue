@@ -13,7 +13,7 @@
             :transform="`translate(-20, ${yScale(name)})`"
             dominant-baseline="middle"
           >
-            {{ name.replace("device", "") }}
+            {{ parseInt(name.replace("device", ""), 10) + 1 }}
           </text>
         </g>
         <!-- 设备定位线 -->
@@ -36,8 +36,8 @@
               :key="data.op"
               :points="data.data"
               :fill="getOperatorColor(data.op)"
-              fill-opacity="1"
-              stroke-width="3"
+              fill-opacity="0.6"
+              stroke="none"
             />
           </template>
         </g>
@@ -48,7 +48,7 @@
             :d="MFLOPsLinePath(d)"
             fill="none"
             stroke="#00AEA6"
-            stroke-width="1"
+            stroke-width="0.4"
           />
         </g>
         <g class="memory-chart">
@@ -58,7 +58,7 @@
             :d="MemoryLinePath(d)"
             fill="none"
             stroke="#DB0047"
-            stroke-width="1"
+            stroke-width="0.4"
           />
         </g>
       </g>
@@ -121,7 +121,7 @@ export default {
       return d3
         .scaleBand()
         .domain(this.deviceName)
-        .range([this.innerHeight, 0]);
+        .range([0, this.innerHeight]);
     },
     xScale() {
       return d3
@@ -160,8 +160,10 @@ export default {
   },
   mounted() {
     const { width, height } = this.$refs.container.getBoundingClientRect();
+
     this.width = Math.floor(width);
     this.height = Math.floor(height);
+
     this.initZoom();
   },
   methods: {
@@ -203,10 +205,10 @@ export default {
         if (curOpDeviceData.length == 1) {
           // 只有1个算子，画个矩形框
           const dt = curOpDeviceData[0];
-          points += `${this.xScale(dt.x1)},${this.yScale(dt.y) - 10} `;
-          points += `${this.xScale(dt.x2)},${this.yScale(dt.y) - 10} `;
-          points += `${this.xScale(dt.x2)},${this.yScale(dt.y) + 10} `;
-          points += `${this.xScale(dt.x1)},${this.yScale(dt.y) + 10} `;
+          points += `${this.xScale(dt.x1)},${this.yScale(dt.y) - 1} `;
+          points += `${this.xScale(dt.x2)},${this.yScale(dt.y) - 1} `;
+          points += `${this.xScale(dt.x2)},${this.yScale(dt.y) + 1} `;
+          points += `${this.xScale(dt.x1)},${this.yScale(dt.y) + 1} `;
         } else {
           for (let i = 0; i < curOpDeviceData.length; i++) {
             const dt = curOpDeviceData[i];
@@ -287,15 +289,30 @@ export default {
       const zoom = d3
         .zoom()
         .scaleExtent([1, 50])
-         .translateExtent([
+        .translateExtent([
           [-this.margin.left, -this.margin.top],
           [this.width, this.height],
         ])
-        .on("zoom", () => {
-          console.log("event", d3.event);
-          d3.select("svg g").attr("transform", d3.event.transform);
-        });
-      // function handleZoom(e) {}
+        .on("zoom", handleZoom.bind(this));
+      function handleZoom() {
+        // const { x, y, k } = d3.event.transform || {};
+        // console.log("x,y,k", x, y, k); //(x|y)/k等于真实的左上角视角位置
+        // const newY = Math.floor(-y / k);
+        // const newX = Math.floor(-x / k);
+        // const width = Math.floor(this.innerWidth / k);
+        // const height = Math.floor(this.innerHeight / k);
+        // console.log(
+        //   newX,
+        //   newY,
+        //   width,
+        //   height,
+        //   this.innerWidth,
+        //   this.innerHeight
+        // );
+
+        d3.select("svg g").attr("transform", d3.event.transform);
+      }
+
       d3.select("svg").call(zoom);
     },
   },
