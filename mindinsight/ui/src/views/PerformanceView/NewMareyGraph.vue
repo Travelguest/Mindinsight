@@ -258,7 +258,7 @@ export default {
         arr.forEach((opInfo) => {
           const opName = opInfo["op_full_name"].split("/").pop();
           const opData = this.data[device][opName];
-          const x = opData ? opData.ed : NaN; //取的结束点
+          const x = opData ? (opData.st + opData.ed) / 2 : NaN; //取的结束点
           const y = opInfo[" MFLOPs(10^6)"];
           if (!isNaN(x)) {
             min = Math.min(min, y);
@@ -283,7 +283,7 @@ export default {
         for (let i = 0; i < nodes.length; i++) {
           const opName = nodes[i].name;
           const opData = this.data[device][opName];
-          const x = opData ? opData.st : NaN; //取的开始点
+          const x = opData ? (opData.st + opData.ed) / 2 : NaN; //取的开始点
           const y = lines[i];
           if (!isNaN(x) && y) {
             min = Math.min(min, y);
