@@ -26,6 +26,7 @@ export default {
   name: "StackedColumnChart",
   props: {
     overViewData: Object,
+    stepNumber: Number,
   },
   components: {},
   data() {
@@ -33,34 +34,20 @@ export default {
       data: [],
       stackedColumnChart: null,
       option: null,
+      isxAisData: false, //是否有x轴数据
     };
   },
   watch: {
+    stepNumber() {
+      this.clearRender();
+      this.renderUpdate();
+    },
     overViewData: function () {
-      const [intervalObj, propagaionObj, tailObj] = this.option.series;
-      let isxAisData = false; //是否有x轴数据
-      //只展示了step1的
-      const curStep = 0; //下标从0开始
-      this.option.title.text += curStep;
-      Object.keys(this.overViewData).forEach((device) => {
-        if (!isxAisData) {
-          this.option?.xAxis?.data.push(device.replace("device", ""));
-        }
-        const curStepInfo = this.overViewData[device][curStep];
-        // console.log("curStepInfo", curStepInfo);
-        intervalObj.data.push(parseInt(curStepInfo["iteration_interval"], 10));
-        propagaionObj.data.push(parseInt(curStepInfo["fp_and_bp"], 10));
-        tailObj.data.push(parseInt(curStepInfo["tail"], 10));
-      });
-      isxAisData = true;
-      // this.option.series = series;
-      console.log(this.option);
       this.renderUpdate();
     },
   },
   mounted() {
     this.renderInit();
-    // this.renderUpdate();
   },
   computed: {},
   methods: {
@@ -72,11 +59,11 @@ export default {
       const option = {
         title: {
           show: true,
-          text: "Current Step: ",
-          left: "14%",
+          text: "",
+          left: "13.5%",
           top: "11%",
           textStyle: {
-            fontSize: 10,
+            fontSize: 12,
             fontStyle: "normal",
           },
         },
@@ -156,7 +143,30 @@ export default {
       this.option = option;
     },
     renderUpdate() {
-      this.option.series && this.stackedColumnChart.setOption(this.option);
+      //处理数据
+      const [intervalObj, propagaionObj, tailObj] = this.option.series;
+      //只展示了step1的
+      const curStep = this.stepNumber - 1; //下标从0开始
+      this.option.title.text = `Current Step: ${this.stepNumber}`;
+      Object.keys(this.overViewData).forEach((device) => {
+        if (!this.isxAisData) {
+          this.option?.xAxis?.data.push(device.replace("device", ""));
+        }
+        const curStepInfo = this.overViewData[device][curStep];
+        intervalObj.data.push(parseInt(curStepInfo["iteration_interval"], 10));
+        propagaionObj.data.push(parseInt(curStepInfo["fp_and_bp"], 10));
+        tailObj.data.push(parseInt(curStepInfo["tail"], 10));
+      });
+      if (!this.isxAisData) {
+        this.isxAisData = true;
+      }
+      this.stackedColumnChart.setOption(this.option);
+    },
+    clearRender() {
+      const [intervalObj, propagaionObj, tailObj] = this.option.series;
+      intervalObj.data = [];
+      propagaionObj.data = [];
+      tailObj.data = [];
     },
   },
 };
@@ -164,8 +174,8 @@ export default {
 
 <style scoped>
 #stacked-column-container {
-  height: 150px;
-  width: 600px;
+  height: 200px;
+  width: 100%;
   /* background: rebeccapurple; */
   /* border: 1px solid red; */
 }
