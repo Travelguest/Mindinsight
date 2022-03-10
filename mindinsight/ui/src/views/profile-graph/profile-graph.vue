@@ -87,17 +87,19 @@
               style="font-size: 40; font-weight: bold"
             >
               Device {{ index + 1 }}
-            </text>
-            <rect
-              v-for="(bgdRectBlock, index) in bgdRectBlocks"
-              :key="`${index}_bgdRectBlock`"
-              :x="bgdRectBlock.x"
-              :y="bgdRectBlock.y"
-              :width="bgdRectBlock.width"
-              :height="bgdRectBlock.height"
-              style="stroke: #009900; fill: none"
-            ></rect>
-          </g>
+          </text>
+          <rect
+            v-for="(bgdRectBlock, index) in bgdRectBlocks"
+            :key="`${index}_bgdRectBlock`"
+            :x="bgdRectBlock.x"
+            :y="bgdRectBlock.y"
+            :width="bgdRectBlock.width"
+            :height="bgdRectBlock.height"
+            stroke-dasharray="5"
+            style="stroke: #ababab; fill: none; stroke-width: 2; "
+          ></rect>
+        </g>
+            
 
           <g id="graph-halo-container">
             <g
@@ -241,7 +243,7 @@
               </g>
             </g>
           </g>
-        </g>
+        <!-- </g> -->
       </svg>
     </div>
     <div style="width: 100%; height: 20%">
@@ -300,6 +302,45 @@
                   :d="specialEdgesGroup[cls].path(edge.source, edge.target)"
                 ></path>
               </g>
+              <g
+                v-for="node in opNodesGroup.filter((v) => v.x !== undefined)"
+                :key="node.id"
+                @click="onNodeClick(node)"
+                @mouseover="onNodeMouseover($event, node)"
+                @mouseout="onNodeMouseout"
+                :class="clickedNodeId === node.id ? 'active':''"
+              >
+              <circle
+                :cx="node.x"
+                :cy="node.y"
+                :r="node.r"
+                :class="`${node.type.toLowerCase()} ${node.parallel_shard.length !== 0 ? ' strategy ':''} node${
+                  node.isAggreNode ? ' aggre-node' : ''
+                }`"
+              ></circle>
+              <circle
+                v-if="node.isAggreNode"
+                :cx="node.x + 2"
+                :cy="node.y + 2"
+                :r="node.r"
+                :class="`${node.type.toLowerCase()} node${
+                  node.isAggreNode ? ' aggre-node' : ''
+                }`"
+              ></circle>
+              <circle
+                v-if="node.isAggreNode"
+                :cx="node.x + 4"
+                :cy="node.y + 4"
+                :r="node.r"
+                :class="`${node.type.toLowerCase()} node${
+                  node.isAggreNode ? ' aggre-node' : ''
+                }`"
+              ></circle>
+              <text
+                :x="node.x - 10"
+                :y="node.y + 20"
+                v-html="`${node.id} ${node.type}`"
+              ></text>
             </g>
           </g>
 
@@ -407,12 +448,12 @@ import {
   getTreeData,
   levelOrder,
   getStrategyInfo,
-} from "@/js/profile-graph/build-graph.js";
-import * as d3 from "d3";
-import { layout } from "@/js/profile-graph/force-layout.js";
-import { extractVisNodeAndEdge } from "@/js/profile-graph/graph-process.js";
-import { TreeSelect } from "ant-design-vue";
-import RequestService from "@/services/request-service";
+} from '@/js/profile-graph/build-graph.js';
+import * as d3 from 'd3';
+import {layout} from '@/js/profile-graph/force-layout.js';
+import {extractVisNodeAndEdge} from '@/js/profile-graph/graph-process.js';
+import {TreeSelect} from 'ant-design-vue';
+import RequestService from '@/services/request-service';
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
 export default {
@@ -438,6 +479,8 @@ export default {
       parallelStrategyParas: null,
       normalEdgesBackup: [],
       extraEdges: {},
+      graphData: {},
+      clickedNodeId: ''
     };
   },
 
@@ -454,13 +497,13 @@ export default {
         }
       }
     },
-    "$store.state.profileNamespaces": function (val) {
+    '$store.state.profileNamespaces': function(val) {
       this.selectNamespaces = val;
     },
-    "$store.state.profileTreeData": function (val) {
+    '$store.state.profileTreeData': function(val) {
       this.treeData = val;
     },
-    "$store.state.profileShowSpecialEdgeTypes": function (val) {
+    '$store.state.profileShowSpecialEdgeTypes': function(val) {
       for (const showSpecialEdgeType of val[0]) {
         for (const specialEdgesGroup of this.specialEdges) {
           specialEdgesGroup[showSpecialEdgeType].display = false;
@@ -472,13 +515,17 @@ export default {
         }
       }
     },
+    '$store.state.graphData': function(val) {
+      this.graphData = val;
+      this.initGraph();
+    },
   },
 
   computed: {
     haloInfo() {
       const res = [];
       for (const namespace of this.selectNamespaces) {
-        const childrenIndex = namespace.split("-");
+        const childrenIndex = namespace.split('-');
         childrenIndex.shift();
         let selectNode = this.treeData[Number(childrenIndex[0])];
         const rankID = childrenIndex[0];
@@ -489,9 +536,9 @@ export default {
         const nodeGroup = [];
         // iterate subtree
         this.preOrder(
-          selectNode,
-          nodeGroup,
-          this.isPipelineLayout ? rankID : 0
+            selectNode,
+            nodeGroup,
+          this.isPipelineLayout ? rankID : 0,
         );
         nodeGroup = nodeGroup.filter((v) => v !== undefined);
         nodeGroup = Array.from(new Set(nodeGroup));
@@ -502,14 +549,13 @@ export default {
   },
 
   mounted() {
-    this.svg = d3.select("#profile-graph");
-    this.g = d3.select(this.$refs["graph-container"]);
+    this.svg = d3.select('#profile-graph');
+    this.g = d3.select(this.$refs['graph-container']);
     this.svg.call(
-      d3.zoom().on("zoom", () => {
-        this.g.attr("transform", d3.event.transform);
-      })
+        d3.zoom().on('zoom', () => {
+          this.g.attr('transform', d3.event.transform);
+        }),
     );
-    this.initGraph();
     // this.miniSvg = d3.select("#minimap-profile");
     // this.minig = d3.select(this.$refs["minimap-container"]);
     // this.miniSvg.call(
@@ -517,6 +563,7 @@ export default {
     //     this.minig.attr("transform", d3.event.transform);
     //   })
     // );
+    // this.initGraph();
   },
 
   methods: {
@@ -551,11 +598,14 @@ export default {
     haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
 
     onNodeClick(node) {
-      console.log(node);
+      console.log(node,this);
+      // d3.select(node).style("stroke", "red");
+      this.clickedNodeId = node.id;
+      this.$store.commit('setSelectedGraphNode', node);
     },
 
     onNodeMouseover(e, node) {
-      const { right, bottom } = e.target.getBoundingClientRect();
+      const {right, bottom} = e.target.getBoundingClientRect();
       this.hoveredNodeInfo = {
         node: node,
         x: right,
@@ -583,7 +633,7 @@ export default {
       for (let i = 0; i < this.nodeOrder.length; i++) {
         const thisNodeBlock = this.nodeOrder[i];
         const [nodeGroupIndex, startNodeID, endNodeID] =
-          thisNodeBlock.split("-");
+          thisNodeBlock.split('-');
         const startNodeIndex = this.idToIndexs[nodeGroupIndex][startNodeID];
         const endNodeIndex = this.idToIndexs[nodeGroupIndex][endNodeID];
 
@@ -600,8 +650,8 @@ export default {
                 lastDependNodeBlockEndX
               ) {
                 lastDependNodeBlockEndX = Math.max(
-                  lastDependNodeBlockEndX,
-                  nodeBlockBorders[this.nodeOrder[j]].rightBorder
+                    lastDependNodeBlockEndX,
+                    nodeBlockBorders[this.nodeOrder[j]].rightBorder,
                 );
               }
             }
@@ -638,12 +688,12 @@ export default {
       this.$forceUpdate();
     },
 
-    async initGraph() {
-      await this.fetchData();
+    initGraph() {
+      this.fetchData();
 
       for (let i = 0; i < this.nodeMaps.length; i++) {
         const nodeMap = this.nodeMaps[i];
-        const [normalEdgesBackup, { specialEdges, normalEdges, opNodes }] =
+        const [normalEdgesBackup, {specialEdges, normalEdges, opNodes}] =
           extractVisNodeAndEdge(nodeMap);
         this.normalEdgesBackup.push(normalEdgesBackup);
         this.specialEdges.push(specialEdges);
@@ -661,7 +711,7 @@ export default {
       }
       this.specialEdgeTypes = Array.from(new Set(this.specialEdgeTypes));
       console.log(this.specialEdgeTypes);
-      this.$store.commit("setProfileSpecialEdgeTypes", this.specialEdgeTypes);
+      this.$store.commit('setProfileSpecialEdgeTypes', this.specialEdgeTypes);
 
       for (const opNodes of this.opNodes) {
         const idToIndex = {};
@@ -684,17 +734,17 @@ export default {
       this.parallelStrategyParas = {};
       const reds = d3.schemeReds[9];
       Object.keys(this.parallelStrategyRawData).forEach((key) => {
-        const [nodeGroupIndex, sourceID, targetID] = key.split("-");
+        const [nodeGroupIndex, sourceID, targetID] = key.split('-');
         const [sourceNode, targetNode] = [
           this.nodeMaps[nodeGroupIndex][sourceID],
           this.nodeMaps[nodeGroupIndex][targetID],
         ];
         if (!sourceNode || !targetNode) return;
-        if (sourceNode.type === "Load" || targetNode.type === "Load") return;
+        if (sourceNode.type === 'Load' || targetNode.type === 'Load') return;
 
         if (
           !this.normalEdgesBackup[nodeGroupIndex].includes(
-            `${sourceID}-${targetID}`
+              `${sourceID}-${targetID}`,
           )
         ) {
           if (!(nodeGroupIndex in this.extraEdges)) {
@@ -710,11 +760,11 @@ export default {
 
         // 计算小矩形的各种坐标
         const centerDist = Math.hypot(
-          targetNode.x - sourceNode.x,
-          targetNode.y - sourceNode.y
+            targetNode.x - sourceNode.x,
+            targetNode.y - sourceNode.y,
         );
         const theta = Math.asin(
-          Math.abs(targetNode.y - sourceNode.y) / centerDist
+            Math.abs(targetNode.y - sourceNode.y) / centerDist,
         );
         const offset = 2;
         const [sourceRadius, targetRadius] = [sourceNode.r, targetNode.r];
@@ -760,9 +810,38 @@ export default {
       // console.log(this.extraEdges);
     },
 
-    async fetchData() {
-      const res = (await RequestService.getGraphs()).data;
-      if ("graphs" in res) {
+
+    // async fetchData() {
+    //   const res = (await RequestService.getGraphs()).data;
+    //   if ("graphs" in res) {
+    //     this.isPipelineLayout = true;
+    //     buildPipelinedStageInfo(res.graphs);
+    //     ({
+    //       nodeBlocks: this.nodeBlocks,
+    //       nodeOrder: this.nodeOrder,
+    //       dependNodes: this.dependNodes,
+    //     } = getPipelineBlockInfo());
+
+    //     this.parallelStrategyRawData = getStrategyInfo(res.graphs);
+
+    //     Object.keys(res.graphs).forEach((rankID) => {
+    //       const thisGraph = res.graphs[rankID];
+    //       buildGraph(thisGraph);
+    //       this.nodeMaps.push(processedGraph.nodeMap);
+    //     });
+
+    //     levelOrder(getTreeData());
+    //   } else {
+    //     this.isPipelineLayout = false;
+    //     buildGraphOld(res.data);
+    //     this.nodeMaps.push(processedGraph.nodeMap);
+    //   }
+    //   // this.treeData = getTreeData().children;
+    // },
+
+    fetchData() {
+      const res = this.graphData;
+      if ('graphs' in res) {
         this.isPipelineLayout = true;
         buildPipelinedStageInfo(res.graphs);
         ({
@@ -779,13 +858,14 @@ export default {
           this.nodeMaps.push(processedGraph.nodeMap);
         });
 
-        levelOrder(getTreeData());
+        // levelOrder(getTreeData());
       } else {
         this.isPipelineLayout = false;
         buildGraphOld(res.data);
         this.nodeMaps.push(processedGraph.nodeMap);
       }
       // this.treeData = getTreeData().children;
+      this.$store.commit('setNodeMaps', this.nodeMaps);
     },
   },
 };
@@ -803,49 +883,69 @@ export default {
 
 #profile-graph line {
   stroke-width: 1;
-  stroke: grey;
+  stroke: #adadad;
 }
 
 #profile-graph text {
   font-size: 5px;
 }
 
+#profile-graph .active circle.node {
+  stroke: #cb6056;
+}
+
 #profile-graph circle.node {
-  stroke: black;
-  stroke-width: 0.5;
-  fill: white;
+  stroke: white;
+  stroke-width: 1;
+  fill: #cbcbcb;
 }
 
 #profile-graph circle.allreduce {
-  stroke: red;
-  stroke-width: 2;
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--allreduce-operator-color);
+}
+
+#profile-graph circle.stridedslice {
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--redistribution-operator-color);
 }
 
 #profile-graph circle.allgather {
-  stroke: red;
-  stroke-width: 2;
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--allreduce-operator-color);
 }
 
 #profile-graph circle.alltoall {
-  stroke: red;
-  stroke-width: 2;
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--allreduce-operator-color);
 }
 
 #profile-graph circle.reducescatter {
-  stroke: red;
-  stroke-width: 2;
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--allreduce-operator-color);
+}
+
+#profile-graph circle.strategy {
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--slice-operator-color);
 }
 
 #profile-graph circle.send {
-  stroke: red;
-  stroke-width: 0.5;
-  fill: rgb(113, 243, 27);
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--send-operator-color);
 }
 
 #profile-graph circle.receive {
-  stroke: red;
-  stroke-width: 0.5;
-  fill: rgb(33, 29, 241);
+  stroke: white;
+  stroke-width: 1;
+  fill: var(--receive-operator-color);
 }
 
 #profile-graph circle.load {
