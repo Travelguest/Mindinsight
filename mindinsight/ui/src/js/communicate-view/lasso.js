@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import * as d3Lasso from "d3-lasso";
 import { Matrix } from "@/js/communicate-view/matrix.js";
 
-export function Lasso(graph) {
+export function Lasso() {
   this.circles = d3.selectAll("circle");
   this.svg = d3.select("#mainsvg");
   this.available = false;
@@ -23,7 +23,12 @@ Lasso.prototype.bind = function () {
         var id = d3.select(d).attr("id");
         newNodes[id] = 1;
       });
-      window.graph.delete(newNodes);
+      if (Object.keys(newNodes).length != 0) {
+        window.graph.delete(newNodes);
+        var m = new Matrix(d3.event.x, d3.event.y);
+        m.create(Object.keys(newNodes));
+      }
     });
   this.svg.call(this.lasso);
 };
+Lasso.prototype.unbind = function () {};

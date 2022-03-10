@@ -6,12 +6,14 @@ export function Graph(w, h) {
   this.h = h;
   this.nodes = [];
   this.links = [];
-  this.weights = [];
   this.currNodes = [];
   this.currLinks = [];
   this.min_ratio = 1;
   this.max_ratio = 0;
 }
+Graph.prototype.getLinks = function () {
+  return this.links;
+};
 Graph.prototype.create = function (links, nodes) {
   d3.selectAll("#networklayer").remove();
   this.layer = d3.select("#force");
@@ -197,6 +199,12 @@ Graph.prototype.create = function (links, nodes) {
       });
     node
       .attr("cx", function (d) {
+        window.paths.data.forEach(function (dd) {
+          if (dd.force_id == d.id) {
+            dd.pos_end.x = d.x;
+            dd.pos_end.y = d.y;
+          }
+        });
         return d.x;
       })
       .attr("cy", function (d) {
@@ -231,28 +239,12 @@ Graph.prototype.delete = function (ids) {
 };
 
 Graph.prototype.update = function () {
-  d3.selectAll("#networklayer").remove();
+  d3.selectAll("#networklayer > *").remove();
+
   var _this = this;
   var nodes = this.currNodes;
   var links = this.currLinks;
   var network = this.layer.append("g").attr("id", "networklayer");
-
-  // this.layer = d3.select("#force");
-  // this.svg = d3.select("#mainsvg");
-
-  this.defs = this.svg.append("defs");
-  var arrowMarker = this.defs
-    .append("marker")
-    .attr("id", "arrow")
-    .attr("markerUnits", "strokeWidth")
-    .attr("markerWidth", "8")
-    .attr("markerHeight", "8")
-    .attr("viewBox", "0 0 12 12")
-    .attr("refX", "13")
-    .attr("refY", "6")
-    .attr("orient", "auto");
-  var arrow_path = "M2,2 L10,6 L2,10 L4,6 L2,2";
-  arrowMarker.append("path").attr("d", arrow_path).attr("fill", "#bbb");
 
   var link = network
     .append("g")
@@ -346,7 +338,13 @@ Graph.prototype.update = function () {
     .force("x", d3.forceX(_this.w * 0.8))
     .force("y", d3.forceY(_this.h * 0.8));
 
-  simulation.nodes(nodes).on("tick", ticked);
+  simulation
+    .nodes(nodes)
+    .on("tick", ticked)
+    .on("end", function () {
+      console.log("force end");
+      window.paths.render();
+    });
   simulation.force("link").links(links);
   function ticked() {
     link.attr("d", function (d) {
@@ -404,6 +402,13 @@ Graph.prototype.update = function () {
       });
     node
       .attr("cx", function (d) {
+        window.paths.data.forEach(function (dd) {
+          if (dd.force_id == d.id) {
+            dd.pos_end.x = d.x;
+            dd.pos_end.y = d.y;
+          }
+        });
+        window.paths.render();
         return d.x;
       })
       .attr("cy", function (d) {
