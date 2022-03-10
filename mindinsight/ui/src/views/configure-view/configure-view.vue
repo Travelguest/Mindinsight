@@ -10,9 +10,9 @@
       tree-checkable
       :show-checked-strategy="SHOW_PARENT"
       search-placeholder="Please select"
-      :dropdownStyle="{ maxHeight: '230px' }"
+      :dropdownStyle="{ height: '230px' }"
       :maxTagCount="Number(1)"
-      :treeExpandedKeys="expandedKeys"
+      :treeDefaultExpandedKeys="expandedKeys"
       dropdownMatchSelectWidth
       open
       @change="handleTreeChange"
