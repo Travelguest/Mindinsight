@@ -1,7 +1,13 @@
 <template>
   <div ref="container" class="marey-graph-container">
-    <svg :viewbox="`0 0 ${width} ${height}`" :width="width" :height="height">
+    <svg
+      id="marey-graph"
+      :viewbox="`0 0 ${width} ${height}`"
+      :width="width"
+      :height="height"
+    >
       <g
+        id="marey-graph-group"
         :transform="`translate(${margin.left}, ${margin.top})`"
         style="background: #ccc"
       >
@@ -36,7 +42,7 @@
               :key="data.op"
               :points="data.data"
               :fill="getOperatorColor(data.op)"
-              fill-opacity="0.6"
+              fill-opacity="0.5"
               stroke="none"
             />
           </template>
@@ -46,9 +52,7 @@
             v-for="(d, i) in MFLOPsData"
             :key="`FLOPs-Chart-${i}`"
             :d="MFLOPsLinePath(d)"
-            fill="none"
-            stroke="#00AEA6"
-            stroke-width="0.4"
+            class="performance-cls-2"
           />
         </g>
         <g class="memory-chart">
@@ -56,9 +60,7 @@
             v-for="(d, i) in MemoryData"
             :key="`Memory-Chart-${i}`"
             :d="MemoryLinePath(d)"
-            fill="none"
-            stroke="#DB0047"
-            stroke-width="0.4"
+            class="performance-cls-3"
           />
         </g>
       </g>
@@ -68,6 +70,7 @@
 
 <script>
 import * as d3 from "d3";
+// import { nextTick } from "vue/types/umd";
 
 // AllReduce ALlGather ： 集合算子-黄色
 // Send Receive ：点对点通信算子-紫色
@@ -100,6 +103,8 @@ export default {
       minT: 0,
       maxT: 0,
       displayedData: null, //算子op与[{x1,x2,y}]的映射
+      svg: null,
+      g: null,
       margin: { top: 50, right: 50, bottom: 10, left: 50 },
       width: 0,
       height: 0,
@@ -164,6 +169,9 @@ export default {
     this.width = Math.floor(width);
     this.height = Math.floor(height);
 
+    this.svg = d3.select("#marey-graph");
+    this.g = d3.select("#marey-graph-group");
+
     this.initZoom();
   },
   methods: {
@@ -227,13 +235,17 @@ export default {
     },
     getOperatorColor(op) {
       if (op.startsWith("All")) {
-        //集合算子-黄色
-        return "#EB5C36";
-      } else if (op.startsWith("Send") || op.startsWith("Receive")) {
-        //点对点通信算子-紫色
-        return "#2965A7";
+        //集合算子-collective communication
+        return "#e6882e";
+      } else if (op.startsWith("Send")) {
+        //点对点通信算子send
+        return "#bf73d6";
+      } else if (op.startsWith("Receive")) {
+        //点对点通信算子receive
+        return "#4192d3";
       } else {
-        return "#F28F00";
+        //forward and backward propagation
+        return "#74ba62";
       }
     },
     FLOPsDataProcessing() {
@@ -294,6 +306,7 @@ export default {
           [this.width, this.height],
         ])
         .on("zoom", handleZoom.bind(this));
+
       function handleZoom() {
         // const { x, y, k } = d3.event.transform || {};
         // console.log("x,y,k", x, y, k); //(x|y)/k等于真实的左上角视角位置
@@ -309,11 +322,9 @@ export default {
         //   this.innerWidth,
         //   this.innerHeight
         // );
-
-        d3.select("svg g").attr("transform", d3.event.transform);
+        this.g.attr("transform", d3.event.transform);
       }
-
-      d3.select("svg").call(zoom);
+      this.svg.call(zoom);
     },
   },
 };
@@ -322,5 +333,16 @@ export default {
 .marey-graph-container {
   width: 100%;
   height: 100%;
+}
+.performance-cls-2,
+.performance-cls-3 {
+  fill: none;
+  stroke-miterlimit: 10;
+}
+.performance-cls-2 {
+  stroke: var(--performance-flops);
+}
+.performance-cls-3 {
+  stroke: var(--performance-memory);
 }
 </style>
