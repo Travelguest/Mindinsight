@@ -29,20 +29,21 @@
             v-for="name in deviceName"
             :key="name"
             x="0"
-            :y="yScale(name) - 15"
+            :y="yScale(name) - offset"
             :width="innerWidth"
-            height="30"
+            :height="2 * offset"
             style="stroke: #cecece; stroke-width: 1px; fill: none"
           ></rect>
         </g>
         <!-- marey-graph -->
         <g class="marey-graph">
-          <template v-for="data in polygonData">
+          <template v-for="(data, index) in polygonData">
             <polygon
-              :key="data.op"
+              class="marey-graph-polygon"
+              :key="`${stepNumber}-${data.op}-${index}`"
               :points="data.data"
               :fill="getOperatorColor(data.op)"
-              fill-opacity="0.5"
+              fill-opacity="1"
               stroke="none"
             />
           </template>
@@ -62,9 +63,36 @@
             :d="MemoryLinePath(d)"
             class="performance-cls-3"
           />
+          <!-- <g v-for="(data, index) in MemoryData" :key="`Memory-Chart-${index}`">
+            <circle
+              v-for="(d, i) in data"
+              :key="i"
+              :cx="xScale(d.x)"
+              :cy="yScale(d.device) + MemoryScale(d.y)"
+              r="1"
+              fill="red"
+              class="performance-cls-3"
+              @mousemove="onNodeMouseover($event, d, i)"
+              @mouseout="onNodeMouseout"
+            ></circle>
+          </g> -->
         </g>
       </g>
     </svg>
+    <div
+      class="marey-graph-tooltip"
+      v-if="hoveredNodeInfo.show"
+      :style="{
+        transform: `translate(${hoveredNodeInfo.x}px, ${hoveredNodeInfo.y}px)`,
+      }"
+    >
+      <div class="marey-graph-tooltip-title">
+        device: {{ hoveredNodeInfo.node.device }}
+      </div>
+      <div>
+        index:{{ hoveredNodeInfo.index }} op: {{ hoveredNodeInfo.node.opName }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -86,22 +114,23 @@ export default {
   },
   watch: {
     timeLineData: function () {
+      this.clearData();
       this.timeLineDataProcessing();
-      // this.FLOPsData && this.FLOPsDataProcessing();
     },
     FLOPsData: function () {
       this.timeLineData && this.FLOPsDataProcessing();
     },
     MemoryDataProps: function () {
-      this.MemoryDataProcessing();
+      this.timeLineData && this.MemoryDataProcessing();
     },
   },
   data() {
     return {
+      offset: 8,
       data: null,
       deviceName: null,
-      minT: 0,
-      maxT: 0,
+      minT: Number.MAX_VALUE,
+      maxT: Number.MIN_VALUE,
       displayedData: null, //算子op与[{x1,x2,y}]的映射
       svg: null,
       g: null,
@@ -113,6 +142,16 @@ export default {
       MFLOPs: { min: 0, max: 0 },
       MemoryData: null,
       Memory: { min: 0, max: 0 },
+      hoveredNodeInfo: {
+        show: false,
+        node: {
+          device: "",
+          opName: "",
+        },
+        index: 0,
+        x: 0,
+        y: 0,
+      },
     };
   },
   computed: {
@@ -138,13 +177,13 @@ export default {
       return d3
         .scaleLinear()
         .domain([this.MFLOPs.min, this.MFLOPs.max])
-        .range([15, -15]);
+        .range([this.offset, -this.offset]);
     },
     MemoryScale() {
       return d3
         .scaleLinear()
         .domain([this.Memory.min, this.Memory.max])
-        .range([15, -15]);
+        .range([this.offset, -this.offset]);
     },
     MFLOPsLinePath() {
       //MFLOPsLinePath(curDeviceMFIPsData)
@@ -175,6 +214,9 @@ export default {
     this.initZoom();
   },
   methods: {
+    clearData() {
+      this.polygonData = [];
+    },
     timeLineDataProcessing() {
       const { maps } = this.timeLineData || {};
       this.data = maps;
@@ -184,12 +226,11 @@ export default {
       let minT = Infinity,
         maxT = -Infinity;
       const displayedData = {};
-      const k = devices.length; // k个设备
       devices.forEach((deviceName) => {
         const curDeviceData = maps[deviceName];
         Object.keys(curDeviceData).forEach((op) => {
           // 这里op是算子名
-          if (!op.startsWith("Stream")) {
+          if (!op.startsWith("Stream") && !op.startsWith("AtomicAddrClean")) {
             //过滤掉StreamSend
             if (!displayedData[op]) displayedData[op] = [];
             const curOp = curDeviceData[op];
@@ -203,34 +244,62 @@ export default {
           }
         });
       });
-      this.minT = minT;
-      this.maxT = maxT;
+      // this.minT = minT;
+      // this.maxT = maxT;
+      this.minT = Math.min(minT, this.minT);
+      this.maxT = Math.max(maxT, this.maxT);
       this.displayedData = displayedData;
 
       Object.keys(displayedData).forEach((op) => {
-        let points = "";
         const curOpDeviceData = displayedData[op];
-        if (curOpDeviceData.length == 1) {
-          // 只有1个算子，画个矩形框
-          const dt = curOpDeviceData[0];
-          points += `${this.xScale(dt.x1)},${this.yScale(dt.y) - 1} `;
-          points += `${this.xScale(dt.x2)},${this.yScale(dt.y) - 1} `;
-          points += `${this.xScale(dt.x2)},${this.yScale(dt.y) + 1} `;
-          points += `${this.xScale(dt.x1)},${this.yScale(dt.y) + 1} `;
-        } else {
-          for (let i = 0; i < curOpDeviceData.length; i++) {
-            const dt = curOpDeviceData[i];
-            points += `${this.xScale(dt.x1)},${this.yScale(dt.y)} `;
-          }
-          for (let i = curOpDeviceData.length - 1; i >= 0; i--) {
-            const dt = curOpDeviceData[i];
-            points += `${this.xScale(dt.x2)},${this.yScale(dt.y)} `;
+        // curOpDeviceData.length = [1,2,3,4]
+
+        const areaArr = []; //保存各个区域
+        let pointsArr = [];
+        for (let i = 0; i < curOpDeviceData.length; i++) {
+          const dt = curOpDeviceData[i];
+
+          // 处理设备块内的区域
+          const areaD = `${this.xScale(dt.x1)},${
+            this.yScale(dt.y) - this.offset
+          } ${this.xScale(dt.x1)},${
+            this.yScale(dt.y) + this.offset
+          } ${this.xScale(dt.x2)},${
+            this.yScale(dt.y) + this.offset
+          } ${this.xScale(dt.x2)},${this.yScale(dt.y) - this.offset}`;
+          areaArr.push({
+            op,
+            data: areaD,
+          });
+
+          // 处理设备块之间的间隔
+          const leftBottom = `${this.xScale(dt.x1)},${
+            this.yScale(dt.y) + this.offset
+          }`;
+          const rightBootm = `${this.xScale(dt.x2)},${
+            this.yScale(dt.y) + this.offset
+          }`;
+
+          if (i === 0) {
+            pointsArr.push(leftBottom, rightBootm);
+          } else if (i > 0) {
+            const leftTop = `${this.xScale(dt.x1)},${
+              this.yScale(dt.y) - this.offset
+            }`;
+            const rightTop = `${this.xScale(dt.x2)},${
+              this.yScale(dt.y) - this.offset
+            }`;
+            pointsArr.splice(1, 0, leftTop, rightTop);
+            areaArr.push({
+              op,
+              data: pointsArr.join(" "),
+            });
+            pointsArr = [leftBottom, rightBootm]; //清空
           }
         }
-        this.polygonData.push({
-          op: op,
-          data: points,
-        });
+        if (areaArr.length) {
+          this.polygonData.push(...areaArr);
+        }
       });
     },
     getOperatorColor(op) {
@@ -260,12 +329,17 @@ export default {
           const opData = this.data[device][opName];
           const x = opData ? (opData.st + opData.ed) / 2 : NaN; //取的结束点
           const y = opInfo[" MFLOPs(10^6)"];
-          if (!isNaN(x)) {
+          if (
+            !isNaN(x) &&
+            !opName.startsWith("Stream") &&
+            !opName.startsWith("AtomicAddrClean")
+          ) {
             min = Math.min(min, y);
             max = Math.max(max, y);
             curDeviceMFIPsData.push({ x, y, device });
           }
         });
+        curDeviceMFIPsData.sort((objA, objB) => objA.x - objB.x);
         MFLOPsData.push(curDeviceMFIPsData);
       });
       this.MFLOPsData = MFLOPsData; //保存每个device的FLOPs折线图数据
@@ -276,21 +350,30 @@ export default {
       const MemoryData = [];
       let min = Infinity;
       let max = -Infinity;
+
       Object.keys(this.MemoryDataProps).forEach((device) => {
         const curDeviceMemoryData = [];
         const { lines, nodes } =
           this.MemoryDataProps[device]["details"]["1"] || {};
+
         for (let i = 0; i < nodes.length; i++) {
           const opName = nodes[i].name;
           const opData = this.data[device][opName];
-          const x = opData ? (opData.st + opData.ed) / 2 : NaN; //取的开始点
+          const x = opData ? opData.st : NaN; //取的开始点
           const y = lines[i];
-          if (!isNaN(x) && y) {
+
+          if (
+            !isNaN(x) &&
+            y &&
+            !opName.startsWith("Stream") &&
+            !opName.startsWith("AtomicAddrClean")
+          ) {
             min = Math.min(min, y);
             max = Math.max(max, y);
-            curDeviceMemoryData.push({ x, y, device });
+            curDeviceMemoryData.push({ x, y, device, opName });
           }
         }
+        curDeviceMemoryData.sort((objA, objB) => objA.x - objB.x);
         MemoryData.push(curDeviceMemoryData);
       });
       this.MemoryData = MemoryData;
@@ -305,26 +388,25 @@ export default {
           [-this.margin.left, -this.margin.top],
           [this.width, this.height],
         ])
-        .on("zoom", handleZoom.bind(this));
+        .on("zoom", () => {
+          this.g.attr("transform", d3.event.transform);
+        });
 
-      function handleZoom() {
-        // const { x, y, k } = d3.event.transform || {};
-        // console.log("x,y,k", x, y, k); //(x|y)/k等于真实的左上角视角位置
-        // const newY = Math.floor(-y / k);
-        // const newX = Math.floor(-x / k);
-        // const width = Math.floor(this.innerWidth / k);
-        // const height = Math.floor(this.innerHeight / k);
-        // console.log(
-        //   newX,
-        //   newY,
-        //   width,
-        //   height,
-        //   this.innerWidth,
-        //   this.innerHeight
-        // );
-        this.g.attr("transform", d3.event.transform);
-      }
       this.svg.call(zoom);
+    },
+    onNodeMouseover(e, node, index) {
+      const { clientX, clientY } = e || {};
+      this.hoveredNodeInfo = {
+        show: true,
+        node: node,
+        index,
+        x: clientX + 5,
+        y: clientY + 5,
+      };
+    },
+
+    onNodeMouseout() {
+      this.hoveredNodeInfo.show = false;
     },
   },
 };
@@ -344,5 +426,15 @@ export default {
 }
 .performance-cls-3 {
   stroke: var(--performance-memory);
+}
+.marey-graph-tooltip {
+  position: fixed;
+  border: 1px solid #d8d8d8;
+  background-color: #fff;
+  z-index: 100;
+  width: 260px;
+  left: 0;
+  top: 0;
+  padding: 8px;
 }
 </style>

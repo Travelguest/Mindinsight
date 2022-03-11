@@ -4,23 +4,23 @@
       <div class="view-title-bg">
         <h1 class="view-title-name">Communication View</h1>
       </div>
-      <communication-view-graph />
+      <!-- <communication-view-graph /> -->
     </div>
     <div class="strategy-view">
       <div class="view-header">
         <div class="view-title-bg">
           <h1 class="view-title-name">Parallel Strategy View</h1>
         </div>
-        <LegendStrategy />
+        <!-- <LegendStrategy /> -->
       </div>
-      <profile-graph />
-      <AttributePanel />
+      <!-- <profile-graph /> -->
+      <!-- <AttributePanel /> -->
     </div>
     <div class="configuration-view">
       <div class="view-title-bg">
         <h1 class="view-title-name">Configuration View</h1>
       </div>
-      <configure-view />
+      <!-- <configure-view /> -->
     </div>
     <div class="performance-view">
       <div class="view-header">
@@ -61,8 +61,8 @@ export default {
       margin: { left: 100, top: 20, right: 30, bottom: 20 },
     };
   },
-  created(){  
-    this.$store.dispatch('getGraphData')  //调用vuex 中的 getGraphData 异步方法
+  created() {
+    this.$store.dispatch("getGraphData"); //调用vuex 中的 getGraphData 异步方法
   },
 };
 </script>
@@ -101,22 +101,21 @@ export default {
   margin-top: -51px;
 }
 .view-title-bg {
-    border-top: 35px solid #838383;
-    border-right: 50px solid transparent;
-    width: 220px;
-    /* position: relative;
+  border-top: 35px solid #838383;
+  border-right: 50px solid transparent;
+  width: 220px;
+  /* position: relative;
     float: left; */
-  }
-  .view-title-name {
-    color: #ffffff;
-    font-size: 16px;
-    line-height: 35px;
-    margin-top: -35px;
-    padding-left: 10px;
-    margin-bottom: 0;
-  }
-  .view-header {
-    display: flex;
-  }
-  
+}
+.view-title-name {
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 35px;
+  margin-top: -35px;
+  padding-left: 10px;
+  margin-bottom: 0;
+}
+.view-header {
+  display: flex;
+}
 </style>
