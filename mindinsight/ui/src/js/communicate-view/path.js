@@ -67,7 +67,6 @@ Paths.prototype.push = function (id) {
     } else return;
     var node = d3.select("#" + in_force);
     if (node.empty()) return;
-    console.log("inWeight", weight);
     _this.data.push({
       r: node.attr("r"),
       x: matrix.x,
@@ -176,5 +175,8 @@ Paths.prototype.render = function () {
     })
     .attr("fill", "none")
     .attr("stroke-opacity", 0.2)
-    .attr("marker-end", "url(#arrow)");
+    .attr("marker-end", function (d) {
+      if (d.link_type == "SDMA") return "url(#arrowSDMA)";
+      else return "url(#arrowOther)";
+    });
 };

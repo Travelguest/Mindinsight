@@ -36,10 +36,7 @@
   height: 100%;
   width: 100%;
 }
-.links path {
-  stroke: #bbb;
-  /* stroke-opacity: 0.6; */
-}
+
 .lasso path {
   stroke: rgb(80, 80, 80);
   stroke-width: 2px;
@@ -77,6 +74,7 @@ export default {
       stepNum: 1,
       communicateNodes: {},
       communicateEdges: {},
+      communicateOps: {},
       communicateGraphData: {},
 
       linecharOption: null,
@@ -115,8 +113,11 @@ export default {
           if (!this.communicateEdges.hasOwnProperty(step_info["step_num"])) {
             this.communicateEdges[step_info["step_num"]] = [];
           }
+          if (!this.communicateOps.hasOwnProperty(step_info["step_num"])) {
+            this.communicateOps[step_info["step_num"]] = {};
+          }
+
           for (var link in link_info) {
-            // console.log(link_info[link]);
             for (var type in link_info[link]) {
               var new_link = Object.create(communicate_link);
               var node_pair = link.split("-");
@@ -124,14 +125,42 @@ export default {
               new_link.target = node_pair[1];
               new_link.type = type;
               new_link.value = link_info[link][type][0];
+              new_link.communication_duration = link_info[link][type][0];
+              new_link.traffic = link_info[link][type][1];
+              new_link.bandWidth = link_info[link][type][2];
               this.communicateEdges[step_info["step_num"]].push(new_link);
+            }
+          }
+
+          var op_info = step_info["communication_operator_cost"];
+
+          var step = step_info["step_num"];
+          for (var op_name in op_info) {
+            // console.log(op_name, op_info[op_name][3]);
+            for (var link in op_info[op_name][3]) {
+              if (!this.communicateOps[step].hasOwnProperty(link)) {
+                this.communicateOps[step][link] = [];
+              }
+              for (var link_type in op_info[op_name][3][link]) {
+                var duration = op_info[op_name][3][link][link_type][0];
+                var traffic = op_info[op_name][3][link][link_type][1];
+                var bandWidth = op_info[op_name][3][link][link_type][2];
+                this.communicateOps[step][link].push({
+                  op_name: op_name,
+                  duration: duration,
+                  traffic: traffic,
+                  bandWidth: bandWidth,
+                });
+              }
             }
           }
         }
       }
+      // console.log(this.communicateOps);
     },
     renderNetwork() {
       // network data
+      // console.log(this.communicateOps);
       var dataLink = [];
       var dataNode = [];
       this.communicateNodes[this.stepNum].forEach(function (d) {
@@ -144,12 +173,28 @@ export default {
       });
 
       // console.log(this.communicateEdges[this.stepNum]);
-      this.communicateEdges[this.stepNum].forEach(function (d) {
+      this.communicateEdges[this.stepNum].forEach((d) => {
+        var op_duration = [],
+          op_traffic = [],
+          op_bandWidth = [];
+        var link_str = d.source + "-" + d.target;
+        var op_info = this.communicateOps[this.stepNum][link_str];
+        op_info.forEach((i) => {
+          op_duration.push(i["duration"]);
+          op_traffic.push(i["traffic"]);
+          op_bandWidth.push(i["bandWidth"]);
+        });
         dataLink.push({
           source: "device" + d.source,
           target: "device" + d.target,
           weight: d.value,
           link_type: d.type,
+          communication_duration: d.communication_duration,
+          traffic: d.traffic,
+          bandWidth: d.bandWidth,
+          op_duration: op_duration.sort((a, b) => a - b),
+          op_traffic: op_traffic.sort((a, b) => a - b),
+          op_bandWidth: op_bandWidth.sort((a, b) => a - b),
         });
       });
 

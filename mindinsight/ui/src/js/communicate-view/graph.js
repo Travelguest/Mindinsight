@@ -14,15 +14,29 @@ export function Graph(w, h) {
 Graph.prototype.getLinks = function () {
   return this.links;
 };
+Graph.prototype.getNodesData = function (nameList) {
+  // console.log(this.nodes);
+  // console.log(nameList);
+  var resData = {};
+  this.nodes.forEach((node) => {
+    // console.log(node);
+    if (nameList.includes(node.id)) {
+      // console.log("yes");
+      resData[node.id] = { c_cost: node.c_cost, w_cost: node.w_cost };
+    }
+  });
+  // console.log(resData);
+  return resData;
+};
 Graph.prototype.create = function (links, nodes) {
   d3.selectAll("#networklayer").remove();
   this.layer = d3.select("#force");
   this.svg = d3.select("#mainsvg");
 
   this.defs = this.svg.append("defs");
-  var arrowMarker = this.defs
+  var arrowMarkerSDMA = this.defs
     .append("marker")
-    .attr("id", "arrow")
+    .attr("id", "arrowSDMA")
     .attr("markerUnits", "strokeWidth")
     .attr("markerWidth", "8")
     .attr("markerHeight", "8")
@@ -31,7 +45,20 @@ Graph.prototype.create = function (links, nodes) {
     .attr("refY", "6")
     .attr("orient", "auto");
   var arrow_path = "M2,2 L10,6 L2,10 L4,6 L2,2";
-  arrowMarker.append("path").attr("d", arrow_path).attr("fill", "#bbb");
+  arrowMarkerSDMA.append("path").attr("d", arrow_path).attr("fill", "#cecfd1");
+
+  var arrowMarkerOther = this.defs
+    .append("marker")
+    .attr("id", "arrowOther")
+    .attr("markerUnits", "strokeWidth")
+    .attr("markerWidth", "8")
+    .attr("markerHeight", "8")
+    .attr("viewBox", "0 0 12 12")
+    .attr("refX", "13")
+    .attr("refY", "6")
+    .attr("orient", "auto");
+  var arrow_path = "M2,2 L10,6 L2,10 L4,6 L2,2";
+  arrowMarkerOther.append("path").attr("d", arrow_path).attr("fill", "#a1a1a1");
 
   this.nodes = nodes;
   this.links = links;
@@ -51,7 +78,7 @@ Graph.prototype.create = function (links, nodes) {
     _this.currLinks.push(d);
   });
   var network = this.layer.append("g").attr("id", "networklayer");
-
+  console.log(links);
   var link = network
     .append("g")
     .attr("class", "links")
@@ -61,10 +88,17 @@ Graph.prototype.create = function (links, nodes) {
     .enter()
     .append("path")
     .style("fill", "none")
+    .style("stroke", function (d) {
+      if (d.link_type == "SDMA") return "#cecfd1";
+      else return "a1a1a1";
+    })
     .attr("stroke-width", function (d) {
       return d.weight;
     })
-    .attr("marker-end", "url(#arrow)");
+    .attr("marker-end", function (d) {
+      if (d.link_type == "SDMA") return "url(#arrowSDMA)";
+      else return "url(#arrowOther)";
+    });
 
   var node = network
     .append("g")
