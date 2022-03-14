@@ -104,14 +104,17 @@ import GetBound from "../../mixins/basic-operation-of-charts/get-bound.vue";
 import { COMM_LIST } from "@/js/const.js";
 
 export default {
-  name:'MareyGraph',
+  name: "MareyGraph",
   mixins: [getBound], // 用来获取画布的大小
-
   components: {
     svgWrapper,
     GetBound,
   },
-
+  props: {
+    overViewData: Object,
+    timeLineData: Object,
+    stepNumber: Number,
+  },
   data() {
     return {
       SVG_NAME: SVG_NAME,
@@ -132,9 +135,17 @@ export default {
       func: null,
     };
   },
-
+  watch: {
+    timeLineData: function () {
+      console.log("timeLineData改变!");
+    },
+    stepNumber: function () {
+      console.log("stepNumber!", this.timeLineData);
+    },
+  },
   mounted() {
-    RequestService.getTimelineData().then(
+    console.log("看看", this.stepNumber, this.timeLineData);
+    RequestService.getTimeLineData().then(
       ({ data }) => {
         // console.log("data:", data);
         const { maps: operator_time_maps } = data || {};
@@ -211,8 +222,7 @@ export default {
     );
   },
 
-  watch: {
-  },
+  watch: {},
   computed: {
     gridlineOptions() {
       if (this.yScale !== null) {
@@ -282,7 +292,7 @@ export default {
           data: points,
         });
       });
-      console.log(this.polygonData);
+      // console.log(this.polygonData);
     },
 
     draw() {
