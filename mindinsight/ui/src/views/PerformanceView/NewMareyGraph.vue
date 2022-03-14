@@ -35,8 +35,18 @@
             style="stroke: #cecece; stroke-width: 1px; fill: none"
           ></rect>
         </g>
+        <defs>
+          <clipPath id="clip">
+            <rect
+              x="0"
+              :y="-offset"
+              :width="innerWidth"
+              :height="innerHeight"
+            />
+          </clipPath>
+        </defs>
         <!-- marey-graph -->
-        <g class="marey-graph">
+        <g class="marey-graph" clip-path="url(#clip)">
           <template v-for="(data, index) in polygonData">
             <polygon
               class="marey-graph-polygon"
@@ -48,7 +58,8 @@
             />
           </template>
         </g>
-        <g class="flops-chart">
+        <g class="brush"></g>
+        <g class="flops-chart" clip-path="url(#clip)">
           <path
             v-for="(d, i) in MFLOPsData"
             :key="`FLOPs-Chart-${i}`"
@@ -56,7 +67,7 @@
             class="performance-cls-2"
           />
         </g>
-        <g class="memory-chart">
+        <g class="memory-chart" clip-path="url(#clip)">
           <path
             v-for="(d, i) in MemoryData"
             :key="`Memory-Chart-${i}`"
@@ -114,8 +125,8 @@ export default {
   },
   watch: {
     timeLineData: function () {
-      this.clearData();
       this.timeLineDataProcessing();
+      this.mareyGraphReRender();
     },
     FLOPsData: function () {
       this.timeLineData && this.FLOPsDataProcessing();
@@ -131,12 +142,15 @@ export default {
       deviceName: null,
       minT: Number.MAX_VALUE,
       maxT: Number.MIN_VALUE,
+      constantMinT: 0,
+      constantMaxT: 0,
+      timeStack: [], //存储每次brush的[minT, maxT],双击退回
       displayedData: null, //算子op与[{x1,x2,y}]的映射
       svg: null,
       g: null,
       margin: { top: 50, right: 50, bottom: 10, left: 50 },
-      width: 0,
-      height: 0,
+      width: 100,
+      height: 100,
       polygonData: [],
       MFLOPsData: null,
       MFLOPs: { min: 0, max: 0 },
@@ -211,49 +225,15 @@ export default {
     this.svg = d3.select("#marey-graph");
     this.g = d3.select("#marey-graph-group");
 
-    this.initZoom();
+    this.initBrush();
+    this.initDBlclick();
   },
   methods: {
-    clearData() {
-      this.polygonData = [];
-    },
-    timeLineDataProcessing() {
-      const { maps } = this.timeLineData || {};
-      this.data = maps;
-
-      const devices = Object.keys(maps).sort((a, b) => a - b);
-      this.deviceName = devices;
-      let minT = Infinity,
-        maxT = -Infinity;
-      const displayedData = {};
-      devices.forEach((deviceName) => {
-        const curDeviceData = maps[deviceName];
-        Object.keys(curDeviceData).forEach((op) => {
-          // 这里op是算子名
-          if (!op.startsWith("Stream") && !op.startsWith("AtomicAddrClean")) {
-            //过滤掉StreamSend
-            if (!displayedData[op]) displayedData[op] = [];
-            const curOp = curDeviceData[op];
-            minT = Math.min(curOp.st, minT);
-            maxT = Math.max(curOp.ed, maxT);
-            displayedData[op].push({
-              x1: curOp.st,
-              x2: curOp.ed,
-              y: deviceName,
-            });
-          }
-        });
-      });
-      // this.minT = minT;
-      // this.maxT = maxT;
-      this.minT = Math.min(minT, this.minT);
-      this.maxT = Math.max(maxT, this.maxT);
-      this.displayedData = displayedData;
-
-      Object.keys(displayedData).forEach((op) => {
-        const curOpDeviceData = displayedData[op];
+    mareyGraphReRender() {
+      const polygonData = [];
+      Object.keys(this.displayedData).forEach((op) => {
+        const curOpDeviceData = this.displayedData[op];
         // curOpDeviceData.length = [1,2,3,4]
-
         const areaArr = []; //保存各个区域
         let pointsArr = [];
         for (let i = 0; i < curOpDeviceData.length; i++) {
@@ -298,9 +278,44 @@ export default {
           }
         }
         if (areaArr.length) {
-          this.polygonData.push(...areaArr);
+          polygonData.push(...areaArr);
         }
       });
+      this.polygonData = polygonData;
+    },
+    timeLineDataProcessing() {
+      const { maps } = this.timeLineData || {};
+      this.data = maps;
+
+      const devices = Object.keys(maps).sort((a, b) => a - b);
+      this.deviceName = devices;
+
+      let minT = Infinity,
+        maxT = -Infinity;
+      const displayedData = {};
+      devices.forEach((deviceName) => {
+        const curDeviceData = maps[deviceName];
+        Object.keys(curDeviceData).forEach((op) => {
+          // 这里op是算子名
+          if (!op.startsWith("Stream") && !op.startsWith("AtomicAddrClean")) {
+            //过滤掉StreamSend
+            if (!displayedData[op]) displayedData[op] = [];
+            const curOp = curDeviceData[op];
+            minT = Math.min(curOp.st, minT);
+            maxT = Math.max(curOp.ed, maxT);
+            displayedData[op].push({
+              x1: curOp.st,
+              x2: curOp.ed,
+              y: deviceName,
+            });
+          }
+        });
+      });
+      this.minT = minT;
+      this.maxT = maxT;
+      this.timeStack.push([minT, maxT]);
+      this.displayedData = displayedData;
+      console.log("displayedData", displayedData);
     },
     getOperatorColor(op) {
       if (op.startsWith("All")) {
@@ -380,19 +395,54 @@ export default {
       this.Memory.min = min;
       this.Memory.max = max;
     },
-    initZoom() {
-      const zoom = d3
-        .zoom()
-        .scaleExtent([1, 50])
-        .translateExtent([
-          [-this.margin.left, -this.margin.top],
-          [this.width, this.height],
-        ])
-        .on("zoom", () => {
-          this.g.attr("transform", d3.event.transform);
-        });
+    initBrush() {
+      // const zoom = d3
+      //   .zoom()
+      //   .scaleExtent([1, 50])
+      //   .translateExtent([
+      //     [-this.margin.left, -this.margin.top],
+      //     [this.width, this.height],
+      //   ])
+      //   .on("zoom", () => {
+      //     this.g.attr("transform", d3.event.transform);
+      //   });
 
-      this.svg.call(zoom);
+      // this.svg.call(zoom);
+      const brush = d3
+        .brushX() // Add the brush feature using the d3.brush function
+        .extent([
+          [0, -this.offset],
+          [this.innerWidth, this.innerHeight - 5 * this.offset],
+        ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+        .on("end", this.updateChart);
+      this.g.select(".brush").call(brush);
+    },
+    updateChart() {
+      const extent = d3.event.selection;
+      if (!extent) return;
+
+      const [left, right] = extent.map((d) => this.xScale.invert(d));
+      console.log("extent", extent, left, right);
+      //改变minT,maxT，进而改变xScale.domain引起FLOPs和memory刷新
+      this.timeStack.push([this.minT, this.maxT]); //缓存
+      this.minT = left;
+      this.maxT = right;
+      this.mareyGraphReRender(); //刷新mareyGraph
+      // this.g.select(".brush").call(brush.move, null); // This remove the grey brush area as soon as the selection has been done
+
+      this.g.select(".marey-graph").transition().duration(1000);
+    },
+    initDBlclick() {
+      this.g.on("dblclick", this.handleDblclick);
+    },
+    handleDblclick() {
+      if (!this.timeStack.length) {
+        return;
+      }
+      const [preMinT, preMaxT] = this.timeStack.pop();
+      this.minT = preMinT;
+      this.maxT = preMaxT;
+      this.mareyGraphReRender();
     },
     onNodeMouseover(e, node, index) {
       const { clientX, clientY } = e || {};
