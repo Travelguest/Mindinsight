@@ -102,6 +102,7 @@ export default {
   flex-grow: 1;
 }
 .performance-view-container .bottom {
+  margin-bottom: 45px;
   display: flex;
   flex-direction: row;
 }

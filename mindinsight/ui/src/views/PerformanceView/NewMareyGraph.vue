@@ -1,5 +1,17 @@
 <template>
   <div ref="container" class="marey-graph-container">
+    <div
+      class="marey-graph-tooltip"
+      v-show="hoveredNodeInfo.show"
+      :style="{
+        transform: `translate3d(${hoveredNodeInfo.x}px, ${hoveredNodeInfo.y}px, 0px)`,
+      }"
+    >
+      <div>OpName: {{ hoveredNodeInfo.opName }}</div>
+      <div>Device: {{ hoveredNodeInfo.device }}</div>
+      <div>x: {{ hoveredNodeInfo.xValue }}</div>
+      <div>y: {{ hoveredNodeInfo.yValue }}</div>
+    </div>
     <svg
       id="marey-graph"
       :viewbox="`0 0 ${width} ${height}`"
@@ -9,7 +21,7 @@
       <g
         id="marey-graph-group"
         :transform="`translate(${margin.left}, ${margin.top})`"
-        style="background: #ccc"
+        @dblclick="handleDblclick"
       >
         <!-- 设备名 -->
         <g class="device-name">
@@ -47,69 +59,47 @@
         </defs>
         <!-- marey-graph -->
         <g class="marey-graph" clip-path="url(#clip)">
-          <template v-for="(data, index) in polygonData">
-            <polygon
-              class="marey-graph-polygon"
-              :key="`${stepNumber}-${data.op}-${index}`"
-              :points="data.data"
-              :fill="getOperatorColor(data.op)"
-              fill-opacity="1"
-              stroke="none"
-            />
-          </template>
+          <polygon
+            v-for="(data, index) in polygonData"
+            class="marey-graph-polygon"
+            :key="`${stepNumber}-${data.op}-${index}`"
+            :points="data.data"
+            :fill="getOperatorColor(data.op)"
+            fill-opacity="1"
+            @mousemove="onNodeMouseover($event, data.op, true)"
+            @mouseout="onNodeMouseout"
+          />
         </g>
         <g class="brush"></g>
+        <!-- flops-chart -->
         <g class="flops-chart" clip-path="url(#clip)">
           <path
             v-for="(d, i) in MFLOPsData"
             :key="`FLOPs-Chart-${i}`"
             :d="MFLOPsLinePath(d)"
             class="performance-cls-2"
+            @mousemove="onNodeMouseover($event, d)"
+            @mouseout="onNodeMouseout"
           />
         </g>
+        <!--memory-chart  -->
         <g class="memory-chart" clip-path="url(#clip)">
           <path
             v-for="(d, i) in MemoryData"
             :key="`Memory-Chart-${i}`"
             :d="MemoryLinePath(d)"
             class="performance-cls-3"
+            @mousemove="onNodeMouseover($event, d)"
+            @mouseout="onNodeMouseout"
           />
-          <!-- <g v-for="(data, index) in MemoryData" :key="`Memory-Chart-${index}`">
-            <circle
-              v-for="(d, i) in data"
-              :key="i"
-              :cx="xScale(d.x)"
-              :cy="yScale(d.device) + MemoryScale(d.y)"
-              r="1"
-              fill="red"
-              class="performance-cls-3"
-              @mousemove="onNodeMouseover($event, d, i)"
-              @mouseout="onNodeMouseout"
-            ></circle>
-          </g> -->
         </g>
       </g>
     </svg>
-    <div
-      class="marey-graph-tooltip"
-      v-if="hoveredNodeInfo.show"
-      :style="{
-        transform: `translate(${hoveredNodeInfo.x}px, ${hoveredNodeInfo.y}px)`,
-      }"
-    >
-      <div class="marey-graph-tooltip-title">
-        device: {{ hoveredNodeInfo.node.device }}
-      </div>
-      <div>
-        index:{{ hoveredNodeInfo.index }} op: {{ hoveredNodeInfo.node.opName }}
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
 import * as d3 from "d3";
-// import { nextTick } from "vue/types/umd";
 
 // AllReduce ALlGather ： 集合算子-黄色
 // Send Receive ：点对点通信算子-紫色
@@ -158,14 +148,14 @@ export default {
       Memory: { min: 0, max: 0 },
       hoveredNodeInfo: {
         show: false,
-        node: {
-          device: "",
-          opName: "",
-        },
-        index: 0,
         x: 0,
         y: 0,
+        opName: "",
+        device: "",
+        xValue: 0,
+        yValue: 0,
       },
+      brush: null,
     };
   },
   computed: {
@@ -226,7 +216,6 @@ export default {
     this.g = d3.select("#marey-graph-group");
 
     this.initBrush();
-    this.initDBlclick();
   },
   methods: {
     mareyGraphReRender() {
@@ -287,7 +276,11 @@ export default {
       const { maps } = this.timeLineData || {};
       this.data = maps;
 
-      const devices = Object.keys(maps).sort((a, b) => a - b);
+      const devices = Object.keys(maps).sort((a, b) => {
+        const [num1] = a.match(/\d+/g);
+        const [num2] = b.match(/\d+/g);
+        return parseInt(num1, 10) - parseInt(num2, 10);
+      });
       this.deviceName = devices;
 
       let minT = Infinity,
@@ -351,7 +344,7 @@ export default {
           ) {
             min = Math.min(min, y);
             max = Math.max(max, y);
-            curDeviceMFIPsData.push({ x, y, device });
+            curDeviceMFIPsData.push({ x, y, device, opName });
           }
         });
         curDeviceMFIPsData.sort((objA, objB) => objA.x - objB.x);
@@ -396,18 +389,6 @@ export default {
       this.Memory.max = max;
     },
     initBrush() {
-      // const zoom = d3
-      //   .zoom()
-      //   .scaleExtent([1, 50])
-      //   .translateExtent([
-      //     [-this.margin.left, -this.margin.top],
-      //     [this.width, this.height],
-      //   ])
-      //   .on("zoom", () => {
-      //     this.g.attr("transform", d3.event.transform);
-      //   });
-
-      // this.svg.call(zoom);
       const brush = d3
         .brushX() // Add the brush feature using the d3.brush function
         .extent([
@@ -415,6 +396,7 @@ export default {
           [this.innerWidth, this.innerHeight - 5 * this.offset],
         ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
         .on("end", this.updateChart);
+      this.brush = brush;
       this.g.select(".brush").call(brush);
     },
     updateChart() {
@@ -428,12 +410,9 @@ export default {
       this.minT = left;
       this.maxT = right;
       this.mareyGraphReRender(); //刷新mareyGraph
-      // this.g.select(".brush").call(brush.move, null); // This remove the grey brush area as soon as the selection has been done
+      this.g.select(".brush").call(this.brush.move, null); // This remove the grey brush area as soon as the selection has been done
 
-      this.g.select(".marey-graph").transition().duration(1000);
-    },
-    initDBlclick() {
-      this.g.on("dblclick", this.handleDblclick);
+      // this.g.select(".marey-graph").transition().duration(1000);
     },
     handleDblclick() {
       if (!this.timeStack.length) {
@@ -444,27 +423,60 @@ export default {
       this.maxT = preMaxT;
       this.mareyGraphReRender();
     },
-    onNodeMouseover(e, node, index) {
-      const { clientX, clientY } = e || {};
-      this.hoveredNodeInfo = {
-        show: true,
-        node: node,
-        index,
-        x: clientX + 5,
-        y: clientY + 5,
-      };
+    onNodeMouseover(e, data, isMareyGraph = false) {
+      const { layerX, layerY } = e || {};
+      if (!isMareyGraph) {
+        const bisect = d3.bisector((d) => d.x).left;
+        const x = this.xScale.invert(layerX - 50);
+        const index = bisect(data, x);
+        const selectedData = data[index];
+        const { opName, device, x: xValue, y: yValue } = data[index];
+        this.hoveredNodeInfo = {
+          show: true,
+          x: layerX + 15,
+          y: layerY - 55,
+          opName,
+          device,
+          xValue,
+          yValue,
+        };
+      } else {
+        console.log("看看", data);
+      }
     },
 
     onNodeMouseout() {
       this.hoveredNodeInfo.show = false;
     },
+    // mouseMoveEvent(event, data) {
+    //   const { layerX, layerY } = event || {};
+    //   const bisect = d3.bisector((d) => d.x).left;
+    //   const x = this.xScale.invert(layerX - 50);
+    //   const index = bisect(data, x);
+    //   const selectedData = data[index];
+
+    //   d3.select("#marey-graph-tooltip")
+    //     .style("left", layerX + 10 + "px")
+    //     .style("top", layerY + 10 + "px")
+    //     .style("display", "block")
+    //     .html(selectedData);
+    // },
+
+    // mouseOutEvent() {
+    //   // d3.select("#marey-graph-tooltip").style("display", "none");
+    // },
   },
 };
 </script>
 <style scoped>
 .marey-graph-container {
+  position: relative;
   width: 100%;
   height: 100%;
+}
+#marey-graph-group {
+  background: #ccc;
+  position: relative;
 }
 .performance-cls-2,
 .performance-cls-3 {
@@ -477,14 +489,36 @@ export default {
 .performance-cls-3 {
   stroke: var(--performance-memory);
 }
+.marey-graph-polygon {
+  pointer-events: fill;
+}
 .marey-graph-tooltip {
-  position: fixed;
-  border: 1px solid #d8d8d8;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  padding: 10px;
+  opacity: 0.8;
+  width: fit-content;
+  height: fit-content;
   background-color: #fff;
-  z-index: 100;
-  width: 260px;
-  left: 0;
-  top: 0;
-  padding: 8px;
+  border: 1px solid #fff;
+  box-shadow: rgba(0, 0, 0, 0.2) 1px 2px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+  padding: 10px;
+  z-index: 99;
+  /* -webkit-user-select: none; */
+  font: 14px / 21px sans-serif;
+  color: #333;
+
+  border-style: solid;
+  white-space: nowrap;
+  box-shadow: rgba(0, 0, 0, 0.2) 1px 2px 10px;
+  transition: opacity 0.2s cubic-bezier(0.23, 1, 0.32, 1) 0s,
+    visibility 0.2s cubic-bezier(0.23, 1, 0.32, 1) 0s,
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0s;
+}
+.brush {
+  pointer-events: none;
 }
 </style>

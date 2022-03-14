@@ -60,8 +60,8 @@ export default {
         title: {
           show: true,
           text: "",
-          left: "13.5%",
-          top: "11%",
+          left: "23%",
+          top: "15%",
           textStyle: {
             fontSize: 12,
             fontStyle: "normal",
@@ -73,12 +73,14 @@ export default {
             type: "shadow",
           },
         },
-        legend: {},
+        legend: {
+          top: "6%",
+        },
         grid: {
-          top: "21%",
+          top: "20%",
           left: "5%",
           right: "10%",
-          bottom: "5%",
+          bottom: "16%",
           containLabel: true,
         },
         xAxis: {
@@ -90,8 +92,15 @@ export default {
             alignWithLabel: true,
           },
           axisLine: {
-            symbol: ["none", "arrow"],
+            symbol: ["none", "triangle"],
             show: true,
+            symbolSize: 10,
+            symbolOffset: 5,
+          },
+          nameTextStyle: {
+            fontStyle: "normal",
+            fontWeight: "bold",
+            fontSize: 16,
           },
           data: [],
         },
@@ -99,21 +108,30 @@ export default {
           type: "value",
           name: "time(ms)",
           axisLine: {
-            symbol: ["none", "arrow"],
+            symbol: ["none", "triangle"],
             show: true,
+            symbolSize: 10,
+            symbolOffset: 5,
           },
           axisLabel: {
-            show: false,
+            show: true,
           },
           splitLine: {
             show: false,
+          },
+          nameTextStyle: {
+            fontStyle: "normal",
+            fontWeight: "bold",
+            fontSize: 16,
+            align: "center",
+            verticalAlign: "bottom",
           },
         },
         series: [
           {
             name: "Step Interval",
             type: "bar",
-            barWidth: 40,
+            barWidth: 25,
             stack: "Time",
             emphasis: {
               focus: "series",
@@ -174,7 +192,7 @@ export default {
 
 <style scoped>
 #stacked-column-container {
-  height: 200px;
+  height: 250px;
   width: 100%;
   /* background: rebeccapurple; */
   /* border: 1px solid red; */
