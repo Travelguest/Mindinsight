@@ -10,18 +10,17 @@ export function Graph(w, h) {
   this.currLinks = [];
   this.min_ratio = 1;
   this.max_ratio = 0;
+  this.inputNodes = [];
+  this.inputLinks = [];
 }
+// Graph.prototype.node = [];
 Graph.prototype.getLinks = function () {
   return this.links;
 };
 Graph.prototype.getNodesData = function (nameList) {
-  // console.log(this.nodes);
-  // console.log(nameList);
   var resData = {};
   this.nodes.forEach((node) => {
-    // console.log(node);
     if (nameList.includes(node.id)) {
-      // console.log("yes");
       resData[node.id] = { c_cost: node.c_cost, w_cost: node.w_cost };
     }
   });
@@ -29,6 +28,8 @@ Graph.prototype.getNodesData = function (nameList) {
   return resData;
 };
 Graph.prototype.create = function (links, nodes) {
+  this.inputLinks = links;
+  this.inputNodes = nodes;
   d3.selectAll("#networklayer").remove();
   this.layer = d3.select("#force");
   this.svg = d3.select("#mainsvg");
@@ -78,7 +79,7 @@ Graph.prototype.create = function (links, nodes) {
     _this.currLinks.push(d);
   });
   var network = this.layer.append("g").attr("id", "networklayer");
-  console.log(links);
+  // console.log(links);
   var link = network
     .append("g")
     .attr("class", "links")
@@ -272,7 +273,17 @@ Graph.prototype.delete = function (ids) {
   this.update();
 };
 
+Graph.prototype.pushNode = function (node) {
+  // console.log(node);
+  // this.create(this.links, this.nodes);
+  this.currLinks = this.links;
+  this.currNodes = this.nodes;
+  this.update();
+};
+
 Graph.prototype.update = function () {
+  console.log(this.currNodes);
+  console.log(this.currLinks);
   d3.selectAll("#networklayer").remove();
 
   var _this = this;
@@ -289,10 +300,17 @@ Graph.prototype.update = function () {
     .enter()
     .append("path")
     .style("fill", "none")
+    .style("stroke", function (d) {
+      if (d.link_type == "SDMA") return "#cecfd1";
+      else return "a1a1a1";
+    })
     .attr("stroke-width", function (d) {
       return d.weight;
     })
-    .attr("marker-end", "url(#arrow)");
+    .attr("marker-end", function (d) {
+      if (d.link_type == "SDMA") return "url(#arrowSDMA)";
+      else return "url(#arrowOther)";
+    });
 
   var minR = this.min_ratio;
   var maxR = this.max_ratio;

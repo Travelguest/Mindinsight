@@ -26,6 +26,15 @@ Matrix.prototype.margin = 3;
 Matrix.prototype.barHight = 6; //6*5+(6/2)*6=48
 
 Matrix.prototype.create = function (node) {
+  // this.locallayer.on("contextmenu", function (d) {
+  //   d3.event.preventDefault();
+  //   // console.log(window.matrix_list);
+  //   window.matrix_list.
+  //   // d3.select("#matrix > *").remove();
+  //   // d3.select("#path > *").remove();
+  //   // // console.log("click matrix");
+  //   // window.graph.pushNode(node);
+  // });
   this.nodeData = window.graph.getNodesData(node);
   // console.log(this.nodeData);
   var _this = this;
@@ -53,14 +62,12 @@ Matrix.prototype.create = function (node) {
   for (var i in this.edges) {
     var x = this.nodes.indexOf(this.edges[i].source.id);
     var y = this.nodes.indexOf(this.edges[i].target.id);
+    // console.log(this.edges[i].op_traffic.join());
     this.adj_matrix[x][y] = {
       exist: true,
       bandWidth: this.edges[i].bandWidth,
       communication_duration: this.edges[i].communication_duration,
       traffic: this.edges[i].traffic,
-      // op_bandWidth: this.edges[i].op_bandWidth,
-      // op_traffic: this.edges[i].op_traffic,
-      // op_duration: this.edges[i].op_traffic,
       box_bandWidth: {
         min: this.edges[i].op_bandWidth[0],
         max: this.edges[i].op_bandWidth[this.edges[i].op_bandWidth.length - 1],
@@ -89,7 +96,7 @@ Matrix.prototype.create = function (node) {
     );
     this.maxTraffic = Math.max(this.maxTraffic, this.edges[i].traffic);
   }
-  console.log(this.adj_matrix);
+  // console.log(this.adj_matrix);
   window.matrix_list.push(this);
   this.render();
   if (window.paths.created) {
@@ -102,6 +109,8 @@ Matrix.prototype.create = function (node) {
 Matrix.prototype.render = function () {
   d3.selectAll("#mat" + this.id + ">*").remove();
   var _this = this;
+  // var max_ccost = 0,
+  //   max_wcost = 0;
   for (var i in this.nodes) {
     for (var j in this.nodes) {
       _this.locallayer
@@ -360,8 +369,29 @@ Matrix.prototype.render = function () {
         });
       }
     }
-    console.log(this.nodes[i]);
+    var c_cost = this.nodeData[this.nodes[i]].c_cost;
+    var w_cost = this.nodeData[this.nodes[i]].w_cost;
+    _this.locallayer
+      .append("rect")
+      .attr("class", this.nodes[i] + "-barchart")
+      .attr("x", _this.x + this.unitsize * this.nodes.length)
+      .attr("y", _this.y + this.unitsize * i + this.barHight)
+      .attr("width", c_cost)
+      .attr("height", _this.barHight * 2)
+      .style("fill", "gray");
+    _this.locallayer
+      .append("rect")
+      .attr("class", this.nodes[i] + "-barchart")
+      .attr("x", _this.x + this.unitsize * this.nodes.length)
+      .attr("y", _this.y + this.unitsize * i + 5 * this.barHight)
+      .attr("width", w_cost)
+      .attr("height", _this.barHight * 2)
+      .style("fill", "gray");
+    // console.log(this.nodeData[this.nodes[i]]);
+    // max_ccost = Math.max(max_ccost, this.nodeData[this.nodes[i]].c_cost);
+    // max_wcost = Math.max(max_wcost, this.nodeData[this.nodes[i]].w_cost);
   }
+  // console.log(max_ccost, max_wcost);
   for (var i in this.nodes) {
     _this.locallayer
       .append("text")
