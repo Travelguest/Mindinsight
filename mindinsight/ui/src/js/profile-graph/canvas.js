@@ -1,10 +1,12 @@
 import * as d3 from "d3";
+import { debounce } from "@/js/profile-graph/debounce.js";
+import { Minimap } from "@/js/profile-graph/minimap.js";
 export function Canvas() {
   this.width = 0;
   this.height = 0;
   this.wrapperBorder = 0;
   this.minimap = null;
-  this.minimapPadding = 10;
+  this.minimapPadding = 0;
   this.minimapScale = 0.25;
   this.svgHeight = 0;
   this.svgWidth = 0;
@@ -12,7 +14,7 @@ export function Canvas() {
 }
 
 Canvas.prototype.create = function () {
-  var layout = d3.select("#profile-graph");
+  //   var layout = d3.select("#profile-graph");
   this.svgHeight =
     document.getElementsByClassName("strategy-view")[0].clientHeight -
     document.getElementById("parallel-title").clientHeight;
@@ -36,7 +38,7 @@ Canvas.prototype.create = function () {
     .select(".background")
     .attr("width", this.width + 2 * this.wrapperBorder)
     .attr("height", this.height + 2 * this.wrapperBorder)
-    .style("fill", "#000000");
+    .style("fill", "#ffffff");
 
   var innerWrapper = outerWrapper.select(".wrapperInner");
   innerWrapper
@@ -50,70 +52,69 @@ Canvas.prototype.create = function () {
     .select(".background")
     .attr("width", this.width)
     .attr("height", this.height)
-    .style("fill", "#cccccc")
+    .style("fill", "#ffffff")
     .style("cursor", "move");
 
   var panCanvas = innerWrapper.select(".panCanvas");
   panCanvas
     // .attr("width", this.width)
     // .attr("height", this.height)
-    .attr("transform", "translate(0,0)")
+    // .attr("transform", "translate(0,0)")
     .style("cursor", "move");
+  // .style("position", "fixed");
 
-  //   panCanvas
-  //     .select(".background")
-  //     .attr("width", this.width * 10)
-  //     .attr("height", this.height)
-  //     .style("fill", "#f6f6f6")
-  //     .style("stroke", "#333333")
-  //     .style("cursor", "move");
+  // console.log(panCanvas.node().getBBox());
+  // console.log(innerWrapper.select(".background").node().getBBox());
 
-  this.zoom = d3.zoom().scaleExtent([0.05, 500]);
-  var updateCanvasZoomExtents = () => {
-    var scale = innerWrapper.property("__zoom").k;
-    var targetWidth = this.svgWidth;
-    var targetHeight = this.svgHeight;
-    var viewportWidth = this.width;
-    var viewportHeight = this.height;
-    this.zoom.translateExtent([
-      [-viewportWidth / scale, -viewportHeight / scale],
-      [
-        viewportWidth / scale + targetWidth,
-        viewportHeight / scale + targetHeight,
-      ],
-    ]);
-  };
-  var zoomHandler = function () {
-    // console.log(d3.event.transform);
-    panCanvas.attr("transform", d3.event.transform);
-    if (
-      d3.event.sourceEvent instanceof MouseEvent ||
-      d3.event.sourceEvent instanceof WheelEvent
-    ) {
-      //minimap.update(d3.event.transform)
-    }
-    updateCanvasZoomExtents();
-  };
-  this.zoom.on("zoom", zoomHandler);
-  innerWrapper.call(this.zoom);
-
-  // var background = d3.select(".panCanvas>.background").node().getBBox();
-  var box = d3.select("#graph-container").node().getBBox();
+  var box = innerWrapper.select("#graph-container").node().getBBox();
   var widthScale = this.width / box.width;
   var heightScale = this.height / box.height;
-  d3.select("#graph-container").attr(
+
+  innerWrapper.select("#graph-container").attr(
     "transform",
-    "scale(" +
-      heightScale +
-      "," +
-      heightScale +
-      ")" +
-      "translate(" +
-      -box.x +
-      "," +
-      -box.y +
-      ")"
+    // "scale(" +
+    //   heightScale +
+    //   "," +
+    //   heightScale +
+    //   ")" +
+    "translate(" + -box.x + "," + -box.y + ")"
   );
+  console.log(innerWrapper.select("#graph-container").node().getBBox());
+  //   box = d3.select("#graph-container").node().getBBox();
+  innerWrapper
+    .select("#profile-graph")
+    .attr("viewBox", "0 0 " + this.width + " " + this.height)
+    .attr("height", this.height)
+    .attr("width", this.width);
+
+  var minimap = new Minimap();
+  minimap.create();
+
+  innerWrapper.call(
+    d3
+      .zoom()
+      .scaleExtent([0.005, 2])
+      .on("zoom", () => {
+        // console.log(d3.event.transform);
+        let transform = d3.event.transform;
+        let xtrans = -transform.x;
+        let ytrans = -transform.y;
+        innerWrapper
+          .select("#profile-graph")
+          .attr(
+            "viewBox",
+            xtrans +
+              " " +
+              ytrans +
+              " " +
+              this.width / transform.k +
+              " " +
+              this.height / transform.k
+          );
+        minimap.update(xtrans, ytrans, transform.k);
+      })
+  );
+  // console.log(panCanvas.node.getBBox);
 };
 
 Canvas.prototype.generateDefs = function () {
