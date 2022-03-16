@@ -264,6 +264,7 @@
       </g>
       <g class="minimap">
         <g class="minipanCanvas">
+          <rect class="background" id="minimap-background"></rect>
           <svg id="profile-graph">
             <defs>
               <radialGradient

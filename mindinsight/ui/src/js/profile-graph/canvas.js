@@ -1,6 +1,6 @@
 import * as d3 from "d3";
-import { debounce } from "@/js/profile-graph/debounce.js";
 import { Minimap } from "@/js/profile-graph/minimap.js";
+import { Store } from "@/js/profile-graph/store.js";
 export function Canvas() {
   this.width = 0;
   this.height = 0;
@@ -13,6 +13,7 @@ export function Canvas() {
   this.zoom = null;
   this.viewBox = [0, 0, 0, 0];
   this.lastTransform = { k: 1, x: 0, y: 0 };
+  this.store = new Store();
 }
 
 Canvas.prototype.create = function () {
@@ -23,7 +24,7 @@ Canvas.prototype.create = function () {
   this.svgWidth =
     document.getElementsByClassName("profile-graph")[0].clientWidth;
   this.width = this.svgWidth;
-  this.height = this.svgHeight * 0.8;
+  this.height = this.svgHeight * 0.9;
 
   var svg = d3.select(".svgCanvas");
   svg
@@ -79,31 +80,80 @@ Canvas.prototype.create = function () {
     .attr("viewBox")
     .split(" ")
     .map((d) => Number(d));
-  var minimap = new Minimap();
+  this.store.setViewBox(this.viewBox);
+
+  var minimap = new Minimap(this.store);
   minimap.create();
 
-  innerWrapper.call(
-    d3
-      .zoom()
-      .scaleExtent([0.005, 2])
-      .on("zoom", () => {
-        // console.log(d3.event.transform);
-        let transform = d3.event.transform;
-        // let xtrans = -transform.x;
-        // let ytrans = -transform.y;
-        this.viewBox[0] = this.viewBox[0] + this.lastTransform.x - transform.x;
-        this.viewBox[1] = this.viewBox[1] + this.lastTransform.y - transform.y;
-        this.viewBox[2] =
-          (this.viewBox[2] * this.lastTransform.k) / transform.k;
-        this.viewBox[3] =
-          (this.viewBox[3] * this.lastTransform.k) / transform.k;
-        innerWrapper
-          .select("#profile-graph")
-          .attr("viewBox", this.viewBox.join(" "));
-        this.lastTransform = transform;
-        minimap.update(this.viewBox);
-      })
-  );
+  var innerEl = document.getElementsByClassName("wrapperInner")[0];
+  innerEl.onwheel = (e) => {
+    // console.log(e);
+    let delta = e.wheelDelta && (e.wheelDelta > 0 ? 1 : -1);
+    this.viewBox = this.store.getViewBox();
+    if (delta > 0) {
+      this.viewBox[2] = this.viewBox[2] / 1.1;
+      this.viewBox[3] = this.viewBox[3] / 1.1;
+    } else if (delta < 0) {
+      this.viewBox[2] = this.viewBox[2] * 1.1;
+      this.viewBox[3] = this.viewBox[3] * 1.1;
+    }
+    innerWrapper
+      .select("#profile-graph")
+      .attr("viewBox", this.viewBox.join(" "));
+    this.store.changeViewBox(this.viewBox);
+    // minimap.update();
+  };
+  var offsetX, offsetY;
+  var dragging = false;
+  innerEl.onmousedown = (e) => {
+    dragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+  };
+  innerEl.onmouseup = (e) => {
+    if (dragging) {
+      this.viewBox = this.store.getViewBox();
+      this.viewBox[0] = this.viewBox[0] - e.offsetX + offsetX;
+      this.viewBox[1] = this.viewBox[1] - e.offsetY + offsetY;
+      offsetX = e.offsetX;
+      offsetY = e.offsetY;
+      innerWrapper
+        .select("#profile-graph")
+        .attr("viewBox", this.viewBox.join(" "));
+      dragging = false;
+      this.store.changeViewBox(this.viewBox);
+      // minimap.update();
+    }
+  };
+  // innerEl.onmouseup = (e) => {
+  //   dragging = false;
+  // };
+
+  // innerWrapper.call(
+  //   d3
+  //     .zoom()
+  //     .scaleExtent([0.005, 2])
+  //     .on("zoom", () => {
+  //       // console.log(d3.event.transform);
+  //       let transform = d3.event.transform;
+  //       // let xtrans = -transform.x;
+  //       // let ytrans = -transform.y;
+  //       this.viewBox[0] = this.viewBox[0] + this.lastTransform.x - transform.x;
+  //       this.viewBox[1] = this.viewBox[1] + this.lastTransform.y - transform.y;
+  //       this.viewBox[2] =
+  //         (this.viewBox[2] * this.lastTransform.k) / transform.k;
+  //       this.viewBox[3] =
+  //         (this.viewBox[3] * this.lastTransform.k) / transform.k;
+  //       innerWrapper
+  //         .select("#profile-graph")
+  //         .attr("viewBox", this.viewBox.join(" "));
+  //       this.lastTransform = transform;
+  //       minimap.update(this.viewBox);
+  //     })
+  // );
+  // innerWrapper.onMouseDown = function () {
+  //   console.log("down");
+  // };
   // console.log(panCanvas.node.getBBox);
 };
 
