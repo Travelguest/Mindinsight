@@ -513,6 +513,9 @@
     "trainingPipeline": "Training Pipeline",
     "nodeAttribute": "Node Attributes",
     "updateButton": "Update",
+    "hasStrategy": "Operator with Strategy",
+    "redistribution": "Operator for Redistribution",
+    "gradientAggregate": "Operator for Gradient Aggregation",
     "memory": {
       "memoryDetailLink": "Memory Usage Information",
       "overView": "Memory Allocation OverView",

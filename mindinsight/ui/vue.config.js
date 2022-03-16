@@ -58,8 +58,8 @@ module.exports = {
     port: 8085,
     disableHostCheck: true,
     proxy: {
-      "/mock": {
-        target: "http://10.76.0.163:8088/",
+      '/mock': {
+        target: 'http://10.76.0.163:8088/',
         ws: true,
         changeOrigin: true,
         pathRewrite: {

@@ -93,10 +93,11 @@ export default {
         showRankId = null,
         edgeTypesArray = null,
     ) {
-      fetch('static/data/resnet_pipeline_parallel.json')
+      fetch('http://localhost:8085/mock/getGraphs')
           .then((res) => res.json())
           .then((res) => {
           // pipelined stage
+            res = res.graphs
             const {
               pipelinedStageInfo,
               pipelineNodeInfo,

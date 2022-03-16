@@ -46,6 +46,9 @@ export const specialEdgesDef = [
 ];
 
 export function isUpdateStateBigEdge(source, target) {
+  if (source.type === 'UpdateState' && target.type === 'UpdateState') {
+    return true;
+  }
   if (source.type !== 'UpdateState' && target.type !== 'UpdateState') {
     return false;
   }

@@ -22,7 +22,7 @@ limitations under the License.
       <span class="cancel-icon"
             @click="cancelWarmText"></span>
     </div>
-    <Header></Header>
+    <!-- <Header></Header> -->
     <div :class="['cl-center', showWarmText ? 'cl-center-height' : '']">
       <router-view></router-view>
     </div>
@@ -95,7 +95,8 @@ export default {
 }
 
 .cl-center {
-  height: calc(100% - 64px);
+  /* height: calc(100% - 64px); */
+  height: 100%;
   overflow: hidden;
   color: var(--font-color);
 }
