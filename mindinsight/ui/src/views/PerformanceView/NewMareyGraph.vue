@@ -64,8 +64,8 @@
             class="marey-graph-polygon"
             :key="`${stepNumber}-${data.op}-${index}`"
             :points="data.data"
-            :fill="getOperatorColor(data.op)"
-            fill-opacity="1"
+            :fill="OperatorColor.get(getOperatorType(data.op))"
+            fill-opacity="0.5"
             @mousemove="onNodeMouseover($event, data.op, true)"
             @mouseout="onNodeMouseout"
           />
@@ -104,6 +104,10 @@ import * as d3 from "d3";
 // AllReduce ALlGather ： 集合算子-黄色
 // Send Receive ：点对点通信算子-紫色
 // StreamSend ：可过滤
+const FBOP = "forward and backward propagation";
+const CCOP = "collective communication";
+const SOP = "send operator";
+const ROP = "receive operator";
 
 export default {
   name: "MareyGraph",
@@ -156,6 +160,7 @@ export default {
         yValue: 0,
       },
       brush: null,
+      OperatorColor: new Map(),
     };
   },
   computed: {
@@ -215,19 +220,34 @@ export default {
     this.svg = d3.select("#marey-graph");
     this.g = d3.select("#marey-graph-group");
 
+    this.initColor();
+    const OperatorColor = new Map();
+    OperatorColor.set(FBOP, "#74ba62");
+    OperatorColor.set(SOP, "#bf73d6");
+    OperatorColor.set(ROP, "#4192d3");
+    OperatorColor.set(CCOP, "#e6882e");
+
     this.initBrush();
   },
   methods: {
-    mareyGraphReRender() {
-      const polygonData = [];
+    initColor() {
+      this.OperatorColor.set(FBOP, "#74ba62");
+      this.OperatorColor.set(SOP, "#bf73d6");
+      this.OperatorColor.set(ROP, "#4192d3");
+      this.OperatorColor.set(CCOP, "#e6882e");
+    },
+    mareyGraphReRender(left = Number.MIN_VALUE, right = Number.MAX_VALUE) {
+      let polygonData = [];
       Object.keys(this.displayedData).forEach((op) => {
         const curOpDeviceData = this.displayedData[op];
-        // curOpDeviceData.length = [1,2,3,4]
         const areaArr = []; //保存各个区域
         let pointsArr = [];
         for (let i = 0; i < curOpDeviceData.length; i++) {
           const dt = curOpDeviceData[i];
-
+          //不在brush范围内，直接跳过
+          if (dt.x1 < left || dt.x2 > right) {
+            continue;
+          }
           // 处理设备块内的区域
           const areaD = `${this.xScale(dt.x1)},${
             this.yScale(dt.y) - this.offset
@@ -239,6 +259,7 @@ export default {
           areaArr.push({
             op,
             data: areaD,
+            type: "block", //块内区域
           });
 
           // 处理设备块之间的间隔
@@ -262,6 +283,7 @@ export default {
             areaArr.push({
               op,
               data: pointsArr.join(" "),
+              type: "gap", //块间隔
             });
             pointsArr = [leftBottom, rightBootm]; //清空
           }
@@ -270,7 +292,113 @@ export default {
           polygonData.push(...areaArr);
         }
       });
-      this.polygonData = polygonData;
+
+      console.log("polygonData.length", polygonData.length);
+      // console.log("polygonData1", polygonData);
+
+      // 限制图形数量，超过就合并
+      if (polygonData.length > 50) {
+        // const OpArr = [];
+        // 先过滤这三个，只绘制绿色
+        // const CCOPArr = polygonData.filter((item) => {
+        //   if (this.getOperatorType(item.op) === CCOP) {
+        //     return true;
+        //   } else {
+        //     OpArr.push(item);
+        //     return false;
+        //   }
+        // });
+        // console.log("CCOPArr", CCOPArr.length);
+        // console.log("OpArr.length", OpArr.length);
+
+        //测试——>只看绿色
+        // polygonData = polygonData.filter(
+        //   (item) => this.getOperatorType(item.op) === FBOP
+        // );
+        // polygonData.sort((objA, objB) => {
+        //   const xA = parseFloat(
+        //     objA.data.split(" ").map((item) => item.split(","))[0][1]
+        //   );
+        //   const xB = parseFloat(
+        //     objB.data.split(" ").map((item) => item.split(","))[0][1]
+        //   );
+        //   return yA - yB;
+        // });
+
+        // 2.先按y排序
+        polygonData.sort((objA, objB) => {
+          const yA = parseFloat(
+            objA.data.split(" ").map((item) => item.split(","))[0][1]
+          );
+          const yB = parseFloat(
+            objB.data.split(" ").map((item) => item.split(","))[0][1]
+          );
+          return yA - yB;
+        });
+
+        const filterRes = [polygonData[0]]; //保存筛选结果
+        for (let i = 1; i < polygonData.length; i++) {
+          const preRect = filterRes[filterRes.length - 1];
+          const curRect = polygonData[i];
+          //1. 不同类别算子：不合并
+          if (
+            this.getOperatorType(preRect.op) !==
+            this.getOperatorType(curRect.op)
+          ) {
+            filterRes.push(polygonData[i]);
+          } else {
+            let preRectDataArr = preRect.data.split(" ");
+            let curRectDataArr = curRect.data.split(" ");
+
+            preRectDataArr = preRectDataArr.map((item) =>
+              item.split(",").map((d) => parseFloat(d))
+            );
+            curRectDataArr = curRectDataArr.map((item) =>
+              item.split(",").map((d) => parseFloat(d))
+            );
+
+            let [preLeftTop, preLeftBottom, preRightBottom, preRightTop] =
+              preRectDataArr;
+            let [curLeftTop, curLeftBottom, curRightBottom, curRightTop] =
+              curRectDataArr;
+            // 2.不是同一device：不合并
+            // 问题：依次比较可能是同一个图形的不同部分，y肯定不同——>按y排序
+            const threshold = this.innerWidth * 0.1;
+            if (
+              preLeftTop[1] !== curLeftTop[1] ||
+              preLeftBottom[1] !== curLeftBottom[1] ||
+              Math.abs(preLeftTop[0] - curLeftTop[0]) > threshold ||
+              Math.abs(preLeftBottom[0] - curLeftBottom[0]) > threshold ||
+              Math.abs(preRightBottom[0] - curRightBottom[0]) > threshold ||
+              Math.abs(preRightTop[0] - curRightTop[0]) > threshold
+            ) {
+              filterRes.push(polygonData[i]);
+            } else {
+              preLeftTop[0] = Math.min(preLeftTop[0], curLeftTop[0]);
+              preLeftBottom[0] = Math.min(preLeftBottom[0], curLeftBottom[0]);
+              preRightBottom[0] = Math.max(
+                preRightBottom[0],
+                curRightBottom[0]
+              );
+              preRightTop[0] = Math.max(preRightTop[0], curRightTop[0]);
+              const data = [
+                preLeftTop,
+                preLeftBottom,
+                preRightBottom,
+                preRightTop,
+              ]
+                .map((item) => item.join(","))
+                .join(" ");
+
+              preRect.data = data;
+            }
+          }
+        }
+        console.log("filterRes.length", filterRes.length);
+        this.polygonData = filterRes;
+      } else {
+        this.polygonData = polygonData;
+      }
     },
     timeLineDataProcessing() {
       const { maps } = this.timeLineData || {};
@@ -308,21 +436,21 @@ export default {
       this.maxT = maxT;
       this.timeStack.push([minT, maxT]);
       this.displayedData = displayedData;
-      console.log("displayedData", displayedData);
+      // console.log("displayedData", displayedData);
     },
-    getOperatorColor(op) {
+    getOperatorType(op) {
       if (op.startsWith("All")) {
         //集合算子-collective communication
-        return "#e6882e";
+        return CCOP;
       } else if (op.startsWith("Send")) {
         //点对点通信算子send
-        return "#bf73d6";
+        return SOP;
       } else if (op.startsWith("Receive")) {
         //点对点通信算子receive
-        return "#4192d3";
+        return ROP;
       } else {
         //forward and backward propagation
-        return "#74ba62";
+        return FBOP;
       }
     },
     FLOPsDataProcessing() {
@@ -393,7 +521,7 @@ export default {
         .brushX() // Add the brush feature using the d3.brush function
         .extent([
           [0, -this.offset],
-          [this.innerWidth, this.innerHeight - 5 * this.offset],
+          [this.innerWidth, this.innerHeight - 4 * this.offset],
         ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
         .on("end", this.updateChart);
       this.brush = brush;
@@ -409,7 +537,7 @@ export default {
       this.timeStack.push([this.minT, this.maxT]); //缓存
       this.minT = left;
       this.maxT = right;
-      this.mareyGraphReRender(); //刷新mareyGraph
+      this.mareyGraphReRender(left, right); //刷新mareyGraph
       this.g.select(".brush").call(this.brush.move, null); // This remove the grey brush area as soon as the selection has been done
 
       // this.g.select(".marey-graph").transition().duration(1000);
@@ -421,7 +549,7 @@ export default {
       const [preMinT, preMaxT] = this.timeStack.pop();
       this.minT = preMinT;
       this.maxT = preMaxT;
-      this.mareyGraphReRender();
+      this.mareyGraphReRender(preMinT, preMaxT);
     },
     onNodeMouseover(e, data, isMareyGraph = false) {
       const { layerX, layerY } = e || {};
@@ -507,7 +635,6 @@ export default {
   pointer-events: none;
   padding: 10px;
   z-index: 99;
-  /* -webkit-user-select: none; */
   font: 14px / 21px sans-serif;
   color: #333;
 
