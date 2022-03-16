@@ -724,6 +724,7 @@ export default {
       }
       this.$nextTick(() => {
         // this.initMiniMap();
+        // console.log(this.opNodes);
       });
     },
 

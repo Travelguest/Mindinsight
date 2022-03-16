@@ -6,10 +6,19 @@ export function Minimap() {
   this.svgWidth = 0;
   this.svgHeight = 0;
   this.heightScale = 0;
+  this.widthScale = 0;
 }
 
 Minimap.prototype.create = function () {
-  console.log("create");
+  var nodes = d3.select(".svgCanvas>.minimap").selectAll("circle");
+  var minX = 10000,
+    maxX = -10000;
+
+  nodes._groups[0].forEach((d) => {
+    minX = Math.min(minX, d.getBBox().x);
+    maxX = Math.max(maxX, d.getBBox().x);
+  });
+
   this.svgHeight =
     document.getElementsByClassName("strategy-view")[0].clientHeight -
     document.getElementById("parallel-title").clientHeight;
@@ -17,26 +26,26 @@ Minimap.prototype.create = function () {
     document.getElementsByClassName("profile-graph")[0].clientWidth;
   this.width = this.svgWidth;
   this.height = this.svgHeight * 0.2;
+  this.bigWidth = d3
+    .select(".wrapperInner")
+    .select("#profile-graph")
+    .attr("width");
 
   var container = d3.select(".svgCanvas>.minimap");
-  // var frame = container.select(".frame");
   container.attr(
     "transform",
     "translate(0," + (this.svgHeight - this.height) + ")"
   );
 
   var box = container.select("#graph-container").node().getBBox();
-  var widthScale = this.width / box.width;
+  this.widthScale = this.width / (maxX - minX);
   this.heightScale = this.height / box.height;
-  console.log(this.heightScale);
   container
     .select("#graph-container")
     .attr(
       "transform",
       "scale(" +
-        this.heightScale +
-        "," +
-        this.heightScale +
+        this.widthScale +
         ")" +
         "translate(" +
         -box.x +
@@ -44,21 +53,12 @@ Minimap.prototype.create = function () {
         -box.y +
         ")"
     );
-  // container.select("#minipanCanvas").style("overflow", "scroll");
   this.generateFrame();
 };
 
-// Minimap.prototype.render = function () {};
 Minimap.prototype.generateFrame = function () {
   var frame = d3.select(".minimap>.frame");
   var window = frame.select(".background");
-  // var target = d3.select(".wrapperOuter").select(".wrapperInner").select(".background");
-  // var targetView = d3
-  //   .select(".wrapperOuter")
-  //   .select("#profile-graph")
-  //   .attr("viewBox")
-  //   .split(" ");
-  // console.log(targetView);
 
   window
     .attr("width", this.width)
@@ -69,21 +69,18 @@ Minimap.prototype.generateFrame = function () {
     .style("fill", "url(#minimapGradient)")
     .style("filter", "url(#minimapDropShadow)")
     .style("cursor", "move")
-    .attr("transform", "scale(" + this.heightScale + ")");
+    .attr("transform", "scale(" + this.widthScale + ")");
   frame.attr("transform", "translate(" + 0 + " " + 0 + ")scale(1)");
 };
 
-Minimap.prototype.update = function (xtrans, ytrans, scale) {
+Minimap.prototype.update = function (viewBox) {
   var frame = d3.select(".minimap>.frame");
+  console.log(viewBox);
+  var xtrans = viewBox[0] * this.widthScale;
+  var ytrans = viewBox[1] * this.widthScale;
+  var s = viewBox[2] / this.bigWidth;
   frame.attr(
     "transform",
-    "translate(" +
-      xtrans * this.heightScale +
-      " " +
-      ytrans * this.heightScale +
-      ")" +
-      "scale(" +
-      1 / scale +
-      ")"
+    "translate(" + xtrans + " " + ytrans + ")" + "scale(" + s + ")"
   );
 };

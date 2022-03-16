@@ -11,6 +11,8 @@ export function Canvas() {
   this.svgHeight = 0;
   this.svgWidth = 0;
   this.zoom = null;
+  this.viewBox = [0, 0, 0, 0];
+  this.lastTransform = { k: 1, x: 0, y: 0 };
 }
 
 Canvas.prototype.create = function () {
@@ -56,37 +58,27 @@ Canvas.prototype.create = function () {
     .style("cursor", "move");
 
   var panCanvas = innerWrapper.select(".panCanvas");
-  panCanvas
-    // .attr("width", this.width)
-    // .attr("height", this.height)
-    // .attr("transform", "translate(0,0)")
-    .style("cursor", "move");
-  // .style("position", "fixed");
-
-  // console.log(panCanvas.node().getBBox());
-  // console.log(innerWrapper.select(".background").node().getBBox());
+  panCanvas.style("cursor", "move");
 
   var box = innerWrapper.select("#graph-container").node().getBBox();
   var widthScale = this.width / box.width;
   var heightScale = this.height / box.height;
 
-  innerWrapper.select("#graph-container").attr(
-    "transform",
-    // "scale(" +
-    //   heightScale +
-    //   "," +
-    //   heightScale +
-    //   ")" +
-    "translate(" + -box.x + "," + -box.y + ")"
-  );
-  console.log(innerWrapper.select("#graph-container").node().getBBox());
-  //   box = d3.select("#graph-container").node().getBBox();
+  innerWrapper
+    .select("#graph-container")
+    .attr("transform", "translate(" + -box.x + "," + -box.y + ")");
+
   innerWrapper
     .select("#profile-graph")
     .attr("viewBox", "0 0 " + this.width + " " + this.height)
     .attr("height", this.height)
     .attr("width", this.width);
 
+  this.viewBox = innerWrapper
+    .select("#profile-graph")
+    .attr("viewBox")
+    .split(" ")
+    .map((d) => Number(d));
   var minimap = new Minimap();
   minimap.create();
 
@@ -97,21 +89,19 @@ Canvas.prototype.create = function () {
       .on("zoom", () => {
         // console.log(d3.event.transform);
         let transform = d3.event.transform;
-        let xtrans = -transform.x;
-        let ytrans = -transform.y;
+        // let xtrans = -transform.x;
+        // let ytrans = -transform.y;
+        this.viewBox[0] = this.viewBox[0] + this.lastTransform.x - transform.x;
+        this.viewBox[1] = this.viewBox[1] + this.lastTransform.y - transform.y;
+        this.viewBox[2] =
+          (this.viewBox[2] * this.lastTransform.k) / transform.k;
+        this.viewBox[3] =
+          (this.viewBox[3] * this.lastTransform.k) / transform.k;
         innerWrapper
           .select("#profile-graph")
-          .attr(
-            "viewBox",
-            xtrans +
-              " " +
-              ytrans +
-              " " +
-              this.width / transform.k +
-              " " +
-              this.height / transform.k
-          );
-        minimap.update(xtrans, ytrans, transform.k);
+          .attr("viewBox", this.viewBox.join(" "));
+        this.lastTransform = transform;
+        minimap.update(this.viewBox);
       })
   );
   // console.log(panCanvas.node.getBBox);
