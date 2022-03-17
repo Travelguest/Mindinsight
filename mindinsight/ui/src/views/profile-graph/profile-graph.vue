@@ -67,7 +67,7 @@
         <g class="wrapperInner">
           <rect class="background"></rect>
           <g class="panCanvas">
-            <svg id="profile-graph">
+            <svg id="profile-graph" style="width: 100%; height: 100%">
               <defs>
                 <radialGradient
                   v-for="namespace in selectNamespaces"
@@ -175,6 +175,26 @@
 
                 <g id="graph-node-container">
                   <g
+                    id="isomorphic-subgraph-circle-g"
+                    v-for="(circle, circleIndex) in isomorphicSubgraphCircles"
+                    :key="circleIndex"
+                  >
+                    <ellipse
+                      class="isomorphic-subgraph-circle"
+                      :rx="circle.rx"
+                      :ry="circle.ry"
+                      :cx="circle.x"
+                      :cy="circle.y"
+                    />
+                    <text
+                      class="isomorphic-subgraph-text"
+                      v-html="`x${circle.n}`"
+                      :x="circle.x"
+                      :y="circle.y - circle.ry + 15"
+                      style="font-size: 15; font-weight: bold"
+                    ></text>
+                  </g>
+                  <g
                     v-for="(opNodesGroup, groupIndex) in opNodes"
                     :key="groupIndex"
                   >
@@ -265,7 +285,7 @@
       <g class="minimap">
         <g class="minipanCanvas">
           <rect class="background" id="minimap-background"></rect>
-          <svg id="profile-graph">
+          <svg id="profile-graph" style="width: 100%; height: 100%">
             <defs>
               <radialGradient
                 v-for="namespace in selectNamespaces"
@@ -371,6 +391,26 @@
 
               <g id="graph-node-container">
                 <g
+                  id="isomorphic-subgraph-circle-g"
+                  v-for="(circle, circleIndex) in isomorphicSubgraphCircles"
+                  :key="circleIndex"
+                >
+                  <ellipse
+                    class="isomorphic-subgraph-circle"
+                    :rx="circle.rx"
+                    :ry="circle.ry"
+                    :cx="circle.x"
+                    :cy="circle.y"
+                  />
+                  <text
+                    class="isomorphic-subgraph-text"
+                    v-html="`x${circle.n}`"
+                    :x="circle.x"
+                    :y="circle.y - circle.ry + 15"
+                    style="font-size: 15; font-weight: bold"
+                  ></text>
+                </g>
+                <g
                   v-for="(opNodesGroup, groupIndex) in opNodes"
                   :key="groupIndex"
                 >
@@ -379,6 +419,9 @@
                       (v) => v.x !== undefined
                     )"
                     :key="node.id"
+                    @click="onNodeClick(node)"
+                    @mouseover="onNodeMouseover($event, node)"
+                    @mouseout="onNodeMouseout"
                     :class="clickedNodeId === node.id ? 'active' : ''"
                   >
                     <circle
@@ -505,6 +548,7 @@ export default {
       extraEdges: {},
       graphData: {},
       clickedNodeId: "",
+      isomorphicSubgraphCircles: [],
     };
   },
 
@@ -688,7 +732,7 @@ export default {
 
     initGraph() {
       this.fetchData();
-
+      console.log("initGraph");
       for (let i = 0; i < this.nodeMaps.length; i++) {
         const nodeMap = this.nodeMaps[i];
         const [normalEdgesBackup, { specialEdges, normalEdges, opNodes }] =
@@ -708,7 +752,6 @@ export default {
         });
       }
       this.specialEdgeTypes = Array.from(new Set(this.specialEdgeTypes));
-      console.log(this.specialEdgeTypes);
       this.$store.commit("setProfileSpecialEdgeTypes", this.specialEdgeTypes);
 
       for (const opNodes of this.opNodes) {
@@ -722,6 +765,34 @@ export default {
       if (this.isPipelineLayout) {
         this.pipelineLayout();
         this.calcStrategyPara();
+      }
+      const subgraphSet = new Set();
+      for (const nodeGroup of this.opNodes) {
+        for (const node of nodeGroup) {
+          if (node.isAggreNode) {
+            subgraphSet.add(node.aggreNodes);
+          }
+        }
+      }
+      for (const aggreNodes of subgraphSet) {
+        let right = 0;
+        let left = 100000000;
+        let top = -1000000;
+        let bottom = 1000000;
+        for (const node of aggreNodes) {
+          if (node.x > right) right = node.x;
+          if (node.x < left) left = node.x;
+          if (node.y > top) top = node.y;
+          if (node.y < bottom) bottom = node.y;
+        }
+        this.isomorphicSubgraphCircles.push({
+          x: (left + right) / 2,
+          y: (bottom + top) / 2,
+          rx: (right - left) / 2 + 40,
+          ry: (top - bottom) / 2 + 40,
+          // r: Math.max(right - left, top - bottom) / 2 + 15,
+          n: aggreNodes.length,
+        });
       }
       this.$nextTick(() => {
         // this.initMiniMap();
@@ -1015,4 +1086,10 @@ export default {
   fill: #cccccc;
   cursor: move;
 } */
+.isomorphic-subgraph-circle {
+  stroke: #ababab;
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 4;
+}
 </style>

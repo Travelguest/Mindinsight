@@ -91,6 +91,7 @@ function _aggreSubgraphs(specialEdges, normalEdges, opNodes, isomorphicSubgraphs
           aggreNodes.push(aggreNode);
           opNodes[obj2index.get(node)] = aggreNode;
           aggreNode.isAggreNode = true;
+          aggreNode.aggreNodes = aggreNodes;
           aggreNode.contain = [node];
           node2aggreNode.set(node, aggreNode);
           templateNodes.add(node);
