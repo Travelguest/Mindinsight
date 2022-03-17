@@ -1,25 +1,28 @@
 <template>
   <div class="performance-view-container">
     <div class="top">
-      <MareyGraph
-        :stepNumber="stepNumber"
-        :timeLineData="timeLineData"
-        :FLOPsData="FLOPsData"
-        :MemoryDataProps="MemoryData"
-      />
+      <div class="left"></div>
+      <div class="right">
+        <MareyGraph
+          :stepNumber="stepNumber"
+          :timeLineData="timeLineData"
+          :FLOPsData="FLOPsData"
+          :MemoryDataProps="MemoryData"
+        />
+      </div>
     </div>
     <div class="bottom">
       <div class="left">
-        <LineChart
+        <!-- <LineChart
           :overViewData="overViewData"
           @getStepNumber="getStepNumber"
-        />
+        /> -->
       </div>
       <div class="right">
-        <StackedColumnChart
+        <!-- <StackedColumnChart
           :overViewData="overViewData"
           :stepNumber="stepNumber"
-        />
+        /> -->
       </div>
     </div>
   </div>
@@ -100,6 +103,14 @@ export default {
 }
 .performance-view-container .top {
   flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+}
+.performance-view-container .top .left {
+  flex-basis: 200px;
+}
+.performance-view-container .top .right {
+  flex: 1;
 }
 .performance-view-container .bottom {
   margin-bottom: 45px;
