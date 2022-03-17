@@ -216,6 +216,7 @@ export default {
 
     this.width = Math.floor(width);
     this.height = Math.floor(height);
+    console.log("innerWidth", this.innerWidth);
 
     this.svg = d3.select("#marey-graph");
     this.g = d3.select("#marey-graph-group");
@@ -238,6 +239,8 @@ export default {
     },
     mareyGraphReRender(left = Number.MIN_VALUE, right = Number.MAX_VALUE) {
       let polygonData = [];
+      const offset = 100; //brush偏移值
+
       Object.keys(this.displayedData).forEach((op) => {
         const curOpDeviceData = this.displayedData[op];
         const areaArr = []; //保存各个区域
@@ -245,7 +248,7 @@ export default {
         for (let i = 0; i < curOpDeviceData.length; i++) {
           const dt = curOpDeviceData[i];
           //不在brush范围内，直接跳过
-          if (dt.x1 < left || dt.x2 > right) {
+          if (dt.x1 < left - offset || dt.x2 > right + offset) {
             continue;
           }
           // 处理设备块内的区域
@@ -297,7 +300,7 @@ export default {
       // console.log("polygonData1", polygonData);
 
       // 限制图形数量，超过就合并
-      if (polygonData.length > 50) {
+      if (polygonData.length > 100) {
         // const OpArr = [];
         // 先过滤这三个，只绘制绿色
         // const CCOPArr = polygonData.filter((item) => {
@@ -315,17 +318,18 @@ export default {
         // polygonData = polygonData.filter(
         //   (item) => this.getOperatorType(item.op) === FBOP
         // );
+
         // polygonData.sort((objA, objB) => {
         //   const xA = parseFloat(
-        //     objA.data.split(" ").map((item) => item.split(","))[0][1]
+        //     objA.data.split(" ").map((item) => item.split(","))[0][0]
         //   );
         //   const xB = parseFloat(
-        //     objB.data.split(" ").map((item) => item.split(","))[0][1]
+        //     objB.data.split(" ").map((item) => item.split(","))[0][0]
         //   );
-        //   return yA - yB;
+        //   return xA - xB;
         // });
 
-        // 2.先按y排序
+        // 先按y排序
         polygonData.sort((objA, objB) => {
           const yA = parseFloat(
             objA.data.split(" ").map((item) => item.split(","))[0][1]
@@ -363,14 +367,16 @@ export default {
               curRectDataArr;
             // 2.不是同一device：不合并
             // 问题：依次比较可能是同一个图形的不同部分，y肯定不同——>按y排序
-            const threshold = this.innerWidth * 0.1;
+
+            const threshold = this.innerWidth * 0.001; // 3.间隔超过 0.1%不合并
+
             if (
               preLeftTop[1] !== curLeftTop[1] ||
               preLeftBottom[1] !== curLeftBottom[1] ||
-              Math.abs(preLeftTop[0] - curLeftTop[0]) > threshold ||
-              Math.abs(preLeftBottom[0] - curLeftBottom[0]) > threshold ||
-              Math.abs(preRightBottom[0] - curRightBottom[0]) > threshold ||
-              Math.abs(preRightTop[0] - curRightTop[0]) > threshold
+              Math.max(
+                Math.abs(curLeftTop[0] - preRightTop[0]),
+                Math.abs(curLeftBottom[0] - preRightBottom[0])
+              ) > threshold
             ) {
               filterRes.push(polygonData[i]);
             } else {
