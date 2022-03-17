@@ -4,9 +4,10 @@ import * as d3Lasso from "d3-lasso";
 import { Matrix } from "@/js/communicate-view/matrix.js";
 
 export function Lasso() {
+  d3.select(".lasso").remove();
   this.circles = d3.selectAll("circle");
   this.svg = d3.select("#mainsvg");
-  this.available = false;
+  // this.available = false;
   this.lasso = d3Lasso.lasso();
 }
 
@@ -23,10 +24,15 @@ Lasso.prototype.bind = function () {
         var id = d3.select(d).attr("id");
         newNodes[id] = 1;
       });
+      // console.log(newNodes);
       if (Object.keys(newNodes).length != 0) {
-        window.graph.delete(newNodes);
-        var m = new Matrix(d3.event.x, d3.event.y);
+        console.log("hello");
+        //   window.graph.delete(newNodes);
+        var m = new Matrix();
+        window.graph.renderMatrix(newNodes);
         m.create(Object.keys(newNodes));
+      } else {
+        window.graph.renderNet();
       }
     });
   this.svg.call(this.lasso);
