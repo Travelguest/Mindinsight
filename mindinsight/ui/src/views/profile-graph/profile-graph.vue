@@ -67,198 +67,205 @@
         <g class="wrapperInner">
           <rect class="background"></rect>
           <g class="panCanvas">
-            <svg id="profile-graph">
-              <defs>
-                <radialGradient
-                  v-for="namespace in selectNamespaces"
-                  :id="namespace + '_halo'"
-                  :key="namespace + '_halo'"
-                  x1="0"
-                  x2="0"
-                  y1="0"
-                  y2="1"
+            <svg id="profile-graph" style="width: 100%; height: 100%">
+        <defs>
+          <radialGradient
+            v-for="namespace in selectNamespaces"
+            :id="namespace + '_halo'"
+            :key="namespace + '_halo'"
+            x1="0"
+            x2="0"
+            y1="0"
+            y2="1"
+          >
+            <stop offset="0%" :stop-color="haloColorScale(namespace)" />
+            <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+          </radialGradient>
+        </defs>
+
+        <g ref="graph-container">
+          <g id="pipeline-extra-container" v-if="isPipelineLayout">
+            <text
+              v-for="(opNode, index) in opNodes"
+              :key="index"
+              :x="bgdRectBlocks[0].x - 200"
+              :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
+              style="font-size: 40; font-weight: bold"
+            >
+              Device {{ index + 1 }}
+            </text>
+            <rect
+              v-for="(bgdRectBlock, index) in bgdRectBlocks"
+              :key="`${index}_bgdRectBlock`"
+              :x="bgdRectBlock.x"
+              :y="bgdRectBlock.y"
+              :width="bgdRectBlock.width"
+              :height="bgdRectBlock.height"
+              stroke-dasharray="5"
+              style="stroke: #ababab; fill: none; stroke-width: 2"
+            ></rect>
+          </g>
+        <!-- </g> -->
+
+        <g id="graph-halo-container">
+          <g
+            v-for="([namespace, nodeGroup], index) in haloInfo"
+            :key="namespace + index"
+          >
+            <circle
+              v-for="node in nodeGroup.filter((v) => v !== undefined)"
+              :key="node.id + 'halo' + index"
+              :cx="node.x"
+              :cy="node.y"
+              r="50"
+              :fill="`url(#${namespace}_halo)`"
+            ></circle>
+          </g>
+        </g>
+
+        <g id="graph-edge-container">
+          <g id="normal-edge-container">
+            <g
+              v-for="(normalEdgesGroup, groupIndex) in normalEdges"
+              :key="groupIndex"
+            >
+              <line
+                v-for="(edge, index) in normalEdgesGroup"
+                :key="index"
+                :x1="edge.source.x"
+                :y1="edge.source.y"
+                :x2="edge.target.x"
+                :y2="edge.target.y"
+              ></line>
+            </g>
+          </g>
+          <g
+            v-for="(specialEdgesGroup, groupIndex) in specialEdges"
+            :key="groupIndex"
+          >
+            <g
+              v-for="cls in Object.keys(specialEdgesGroup)"
+              :key="cls"
+              v-show="specialEdgesGroup[cls].display"
+            >
+              <path
+                v-for="(edge, index) in specialEdgesGroup[cls].values"
+                :key="index"
+                :class="cls"
+                :d="specialEdgesGroup[cls].path(edge.source, edge.target)"
+              ></path>
+            </g>
+          </g>
+        </g>
+
+        <g id="graph-extra-edge-container">
+          <g v-for="(value, key) in extraEdges" :key="key">
+            <line
+              v-for="(edge, index) in value"
+              :key="index"
+              :x1="edge[0]"
+              :y1="edge[1]"
+              :x2="edge[2]"
+              :y2="edge[3]"
+            ></line>
+          </g>
+        </g>
+
+        <g id="graph-node-container">
+          <g id="isomorphic-subgraph-circle-g"
+            v-for="(circle, circleIndex) in isomorphicSubgraphCircles"
+            :key="circleIndex">
+            <ellipse
+              class="isomorphic-subgraph-circle"
+              :rx="circle.rx"
+              :ry="circle.ry"
+              :cx="circle.x"
+              :cy="circle.y"
+              />
+            <text
+              class="isomorphic-subgraph-text"
+              v-html="`x${circle.n}`"
+              :x="circle.x"
+              :y="circle.y - circle.ry + 15"
+              style="font-size: 15; font-weight: bold"></text>
+          </g>
+          <g v-for="(opNodesGroup, groupIndex) in opNodes" :key="groupIndex">
+            <g
+              v-for="node in opNodesGroup.filter((v) => v.x !== undefined)"
+              :key="node.id"
+              @click="onNodeClick(node)"
+              @mouseover="onNodeMouseover($event, node)"
+              @mouseout="onNodeMouseout"
+              :class="clickedNodeId === node.id ? 'active' : ''"
+            >
+              <circle
+                :cx="node.x"
+                :cy="node.y"
+                :r="node.r"
+                :class="`${node.type.toLowerCase()} ${
+                    node.parallel_shard.length !== 0 ? ' strategy ' : ''
+                  } node${node.isAggreNode ? ' aggre-node' : ''}`"
+              ></circle>
+              <circle
+                v-if="node.isAggreNode"
+                :cx="node.x + 2"
+                :cy="node.y + 2"
+                :r="node.r"
+                :class="`${node.type.toLowerCase()} node${
+                  node.isAggreNode ? ' aggre-node' : ''
+                }`"
+              ></circle>
+              <circle
+                v-if="node.isAggreNode"
+                :cx="node.x + 4"
+                :cy="node.y + 4"
+                :r="node.r"
+                :class="`${node.type.toLowerCase()} node${
+                  node.isAggreNode ? ' aggre-node' : ''
+                }`"
+              ></circle>
+              <text
+                :x="node.x - 10"
+                :y="node.y + 20"
+                v-html="`${node.id} ${node.type}`"
+              ></text>
+            </g>
+          </g>
+        </g>
+
+        <g id="parallel-strategy-container">
+          <g
+            v-for="(value, key) in parallelStrategyParas"
+            :key="`${key}_strategy_group`"
+          >
+            <g v-for="(item, index) in value" :key="`${key}_${index}_strategy`">
+              <g
+                v-for="(rect, index1) in item.rects"
+                :key="`${key}_${index}_${index1}_rect`"
+                :transform="`rotate(${item.theta},${item.rotateCenter[0]},${item.rotateCenter[1]})`"
+              >
+                <rect
+                  :x="rect[0]"
+                  :y="rect[1]"
+                  :width="rect[2]"
+                  :height="rect[3]"
+                  :fill="item.colors[index1]"
+                  stroke="white"
+                  stroke-width="0.1px"
+                ></rect>
+                <text
+                  dx="-1"
+                  dy="1.5"
+                  :transform="`matrix(0.5 0 0 0.5 ${item.textsPos[index1][0]} ${item.textsPos[index1][1]})`"
                 >
-                  <stop offset="0%" :stop-color="haloColorScale(namespace)" />
-                  <stop offset="100%" stop-color="rgba(255,255,255,0)" />
-                </radialGradient>
-              </defs>
-
-              <g ref="graph-container" id="graph-container">
-                <g id="pipeline-extra-container" v-if="isPipelineLayout">
-                  <text
-                    v-for="(opNode, index) in opNodes"
-                    :key="index"
-                    :x="bgdRectBlocks[0].x - 200"
-                    :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
-                    style="font-size: 40; font-weight: bold"
-                  >
-                    Device {{ index + 1 }}
-                  </text>
-                  <rect
-                    v-for="(bgdRectBlock, index) in bgdRectBlocks"
-                    :key="`${index}_bgdRectBlock`"
-                    :x="bgdRectBlock.x"
-                    :y="bgdRectBlock.y"
-                    :width="bgdRectBlock.width"
-                    :height="bgdRectBlock.height"
-                    stroke-dasharray="5"
-                    style="stroke: #ababab; fill: none; stroke-width: 2"
-                  ></rect>
-                </g>
-                <!-- </g> -->
-
-                <g id="graph-halo-container">
-                  <g
-                    v-for="([namespace, nodeGroup], index) in haloInfo"
-                    :key="namespace + index"
-                  >
-                    <circle
-                      v-for="node in nodeGroup.filter((v) => v !== undefined)"
-                      :key="node.id + 'halo' + index"
-                      :cx="node.x"
-                      :cy="node.y"
-                      r="50"
-                      :fill="`url(#${namespace}_halo)`"
-                    ></circle>
-                  </g>
-                </g>
-
-                <g id="graph-edge-container">
-                  <g id="normal-edge-container">
-                    <g
-                      v-for="(normalEdgesGroup, groupIndex) in normalEdges"
-                      :key="groupIndex"
-                    >
-                      <line
-                        v-for="(edge, index) in normalEdgesGroup"
-                        :key="index"
-                        :x1="edge.source.x"
-                        :y1="edge.source.y"
-                        :x2="edge.target.x"
-                        :y2="edge.target.y"
-                      ></line>
-                    </g>
-                  </g>
-                  <g
-                    v-for="(specialEdgesGroup, groupIndex) in specialEdges"
-                    :key="groupIndex"
-                  >
-                    <g
-                      v-for="cls in Object.keys(specialEdgesGroup)"
-                      :key="cls"
-                      v-show="specialEdgesGroup[cls].display"
-                    >
-                      <path
-                        v-for="(edge, index) in specialEdgesGroup[cls].values"
-                        :key="index"
-                        :class="cls"
-                        :d="
-                          specialEdgesGroup[cls].path(edge.source, edge.target)
-                        "
-                      ></path>
-                    </g>
-                  </g>
-                </g>
-
-                <g id="graph-extra-edge-container">
-                  <g v-for="(value, key) in extraEdges" :key="key">
-                    <line
-                      v-for="(edge, index) in value"
-                      :key="index"
-                      :x1="edge[0]"
-                      :y1="edge[1]"
-                      :x2="edge[2]"
-                      :y2="edge[3]"
-                    ></line>
-                  </g>
-                </g>
-
-                <g id="graph-node-container">
-                  <g
-                    v-for="(opNodesGroup, groupIndex) in opNodes"
-                    :key="groupIndex"
-                  >
-                    <g
-                      v-for="node in opNodesGroup.filter(
-                        (v) => v.x !== undefined
-                      )"
-                      :key="node.id"
-                      @click="onNodeClick(node)"
-                      @mouseover="onNodeMouseover($event, node)"
-                      @mouseout="onNodeMouseout"
-                      :class="clickedNodeId === node.id ? 'active' : ''"
-                    >
-                      <circle
-                        :cx="node.x"
-                        :cy="node.y"
-                        :r="node.r"
-                        :class="`${node.type.toLowerCase()} ${
-                          node.parallel_shard.length !== 0 ? ' strategy ' : ''
-                        } node${node.isAggreNode ? ' aggre-node' : ''}`"
-                      ></circle>
-                      <circle
-                        v-if="node.isAggreNode"
-                        :cx="node.x + 2"
-                        :cy="node.y + 2"
-                        :r="node.r"
-                        :class="`${node.type.toLowerCase()} node${
-                          node.isAggreNode ? ' aggre-node' : ''
-                        }`"
-                      ></circle>
-                      <circle
-                        v-if="node.isAggreNode"
-                        :cx="node.x + 4"
-                        :cy="node.y + 4"
-                        :r="node.r"
-                        :class="`${node.type.toLowerCase()} node${
-                          node.isAggreNode ? ' aggre-node' : ''
-                        }`"
-                      ></circle>
-                      <text
-                        :x="node.x - 10"
-                        :y="node.y + 20"
-                        v-html="`${node.id} ${node.type}`"
-                      ></text>
-                    </g>
-                  </g>
-                </g>
-
-                <g id="parallel-strategy-container">
-                  <g
-                    v-for="(value, key) in parallelStrategyParas"
-                    :key="`${key}_strategy_group`"
-                  >
-                    <g
-                      v-for="(item, index) in value"
-                      :key="`${key}_${index}_strategy`"
-                    >
-                      <g
-                        v-for="(rect, index1) in item.rects"
-                        :key="`${key}_${index}_${index1}_rect`"
-                        :transform="`rotate(${item.theta},${item.rotateCenter[0]},${item.rotateCenter[1]})`"
-                      >
-                        <rect
-                          :x="rect[0]"
-                          :y="rect[1]"
-                          :width="rect[2]"
-                          :height="rect[3]"
-                          :fill="item.colors[index1]"
-                          stroke="white"
-                          stroke-width="0.1px"
-                        ></rect>
-                        <text
-                          dx="-1"
-                          dy="1.5"
-                          :transform="`matrix(0.5 0 0 0.5 ${item.textsPos[index1][0]} ${item.textsPos[index1][1]})`"
-                        >
-                          {{ item.texts[index1] }}
-                        </text>
-                      </g>
-                    </g>
-                  </g>
-                </g>
+                  {{ item.texts[index1] }}
+                </text>
               </g>
-            </svg>
+            </g>
+          </g>
+        </g>
+        </g>
+      </svg>
           </g>
         </g>
       </g>
@@ -505,6 +512,7 @@ export default {
       extraEdges: {},
       graphData: {},
       clickedNodeId: "",
+      isomorphicSubgraphCircles: [],
     };
   },
 
@@ -688,7 +696,7 @@ export default {
 
     initGraph() {
       this.fetchData();
-
+      console.log('initGraph')
       for (let i = 0; i < this.nodeMaps.length; i++) {
         const nodeMap = this.nodeMaps[i];
         const [normalEdgesBackup, { specialEdges, normalEdges, opNodes }] =
@@ -708,8 +716,7 @@ export default {
         });
       }
       this.specialEdgeTypes = Array.from(new Set(this.specialEdgeTypes));
-      console.log(this.specialEdgeTypes);
-      this.$store.commit("setProfileSpecialEdgeTypes", this.specialEdgeTypes);
+      this.$store.commit('setProfileSpecialEdgeTypes', this.specialEdgeTypes);
 
       for (const opNodes of this.opNodes) {
         const idToIndex = {};
@@ -722,6 +729,34 @@ export default {
       if (this.isPipelineLayout) {
         this.pipelineLayout();
         this.calcStrategyPara();
+      }
+      const subgraphSet = new Set();
+      for (const nodeGroup of this.opNodes) {
+        for (const node of nodeGroup) {
+          if (node.isAggreNode) {
+            subgraphSet.add(node.aggreNodes);
+          }
+        }
+      }
+      for (const aggreNodes of subgraphSet) {
+        let right = 0;
+        let left = 100000000;
+        let top = -1000000;
+        let bottom = 1000000;
+        for (const node of aggreNodes) {
+          if (node.x > right) right = node.x;
+          if (node.x < left) left = node.x;
+          if (node.y > top) top = node.y;
+          if (node.y < bottom) bottom = node.y;
+        }
+        this.isomorphicSubgraphCircles.push({
+          x: (left + right) / 2,
+          y: (bottom + top) / 2,
+          rx: (right - left) / 2 + 40,
+          ry: (top - bottom) / 2 + 40,
+          // r: Math.max(right - left, top - bottom) / 2 + 15,
+          n: aggreNodes.length,
+        });
       }
       this.$nextTick(() => {
         // this.initMiniMap();
@@ -1015,4 +1050,11 @@ export default {
   fill: #cccccc;
   cursor: move;
 } */
+.isomorphic-subgraph-circle {
+  stroke: #ababab;
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 4;
+}
+
 </style>
