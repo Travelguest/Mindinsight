@@ -218,13 +218,14 @@ export default {
       var path_layer = svg.append("g").attr("id", "path");
 
       window.graph = new Graph(width, height);
-      window.paths = new Paths();
-      window.matrix_list = [];
-      window.matrix_node = [];
-      var originData = dataLink;
+      window.graph.init(dataLink, dataNode);
+      // window.paths = new Paths();
+      // window.matrix_list = [];
+      // window.matrix_node = [];
+      // var originData = dataLink;
 
-      window.graph.create(dataLink, dataNode);
-      window.paths.create(dataLink);
+      // window.graph.create(dataLink, dataNode);
+      // window.paths.create(dataLink);
       window.lasso = new Lasso();
       window.lasso.bind();
     },
