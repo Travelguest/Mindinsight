@@ -6,21 +6,38 @@ export function Graph(w, h) {
   this.h = h;
   this.nodes = [];
   this.links = [];
-  this.weights = [];
   this.currNodes = [];
   this.currLinks = [];
   this.min_ratio = 1;
   this.max_ratio = 0;
+  this.inputNodes = [];
+  this.inputLinks = [];
 }
+// Graph.prototype.node = [];
+Graph.prototype.getLinks = function () {
+  return this.links;
+};
+Graph.prototype.getNodesData = function (nameList) {
+  var resData = {};
+  this.nodes.forEach((node) => {
+    if (nameList.includes(node.id)) {
+      resData[node.id] = { c_cost: node.c_cost, w_cost: node.w_cost };
+    }
+  });
+  // console.log(resData);
+  return resData;
+};
 Graph.prototype.create = function (links, nodes) {
+  this.inputLinks = links;
+  this.inputNodes = nodes;
   d3.selectAll("#networklayer").remove();
   this.layer = d3.select("#force");
   this.svg = d3.select("#mainsvg");
 
   this.defs = this.svg.append("defs");
-  var arrowMarker = this.defs
+  var arrowMarkerSDMA = this.defs
     .append("marker")
-    .attr("id", "arrow")
+    .attr("id", "arrowSDMA")
     .attr("markerUnits", "strokeWidth")
     .attr("markerWidth", "8")
     .attr("markerHeight", "8")
@@ -29,7 +46,20 @@ Graph.prototype.create = function (links, nodes) {
     .attr("refY", "6")
     .attr("orient", "auto");
   var arrow_path = "M2,2 L10,6 L2,10 L4,6 L2,2";
-  arrowMarker.append("path").attr("d", arrow_path).attr("fill", "#bbb");
+  arrowMarkerSDMA.append("path").attr("d", arrow_path).attr("fill", "#cecfd1");
+
+  var arrowMarkerOther = this.defs
+    .append("marker")
+    .attr("id", "arrowOther")
+    .attr("markerUnits", "strokeWidth")
+    .attr("markerWidth", "8")
+    .attr("markerHeight", "8")
+    .attr("viewBox", "0 0 12 12")
+    .attr("refX", "13")
+    .attr("refY", "6")
+    .attr("orient", "auto");
+  var arrow_path = "M2,2 L10,6 L2,10 L4,6 L2,2";
+  arrowMarkerOther.append("path").attr("d", arrow_path).attr("fill", "#a1a1a1");
 
   this.nodes = nodes;
   this.links = links;
@@ -49,7 +79,7 @@ Graph.prototype.create = function (links, nodes) {
     _this.currLinks.push(d);
   });
   var network = this.layer.append("g").attr("id", "networklayer");
-
+  // console.log(links);
   var link = network
     .append("g")
     .attr("class", "links")
@@ -59,10 +89,17 @@ Graph.prototype.create = function (links, nodes) {
     .enter()
     .append("path")
     .style("fill", "none")
+    .style("stroke", function (d) {
+      if (d.link_type == "SDMA") return "#cecfd1";
+      else return "a1a1a1";
+    })
     .attr("stroke-width", function (d) {
       return d.weight;
     })
-    .attr("marker-end", "url(#arrow)");
+    .attr("marker-end", function (d) {
+      if (d.link_type == "SDMA") return "url(#arrowSDMA)";
+      else return "url(#arrowOther)";
+    });
 
   var node = network
     .append("g")
@@ -197,6 +234,12 @@ Graph.prototype.create = function (links, nodes) {
       });
     node
       .attr("cx", function (d) {
+        window.paths.data.forEach(function (dd) {
+          if (dd.force_id == d.id) {
+            dd.pos_end.x = d.x;
+            dd.pos_end.y = d.y;
+          }
+        });
         return d.x;
       })
       .attr("cy", function (d) {
@@ -230,29 +273,23 @@ Graph.prototype.delete = function (ids) {
   this.update();
 };
 
+Graph.prototype.pushNode = function (node) {
+  // console.log(node);
+  // this.create(this.links, this.nodes);
+  this.currLinks = this.links;
+  this.currNodes = this.nodes;
+  this.update();
+};
+
 Graph.prototype.update = function () {
+  console.log(this.currNodes);
+  console.log(this.currLinks);
   d3.selectAll("#networklayer").remove();
+
   var _this = this;
   var nodes = this.currNodes;
   var links = this.currLinks;
   var network = this.layer.append("g").attr("id", "networklayer");
-
-  // this.layer = d3.select("#force");
-  // this.svg = d3.select("#mainsvg");
-
-  this.defs = this.svg.append("defs");
-  var arrowMarker = this.defs
-    .append("marker")
-    .attr("id", "arrow")
-    .attr("markerUnits", "strokeWidth")
-    .attr("markerWidth", "8")
-    .attr("markerHeight", "8")
-    .attr("viewBox", "0 0 12 12")
-    .attr("refX", "13")
-    .attr("refY", "6")
-    .attr("orient", "auto");
-  var arrow_path = "M2,2 L10,6 L2,10 L4,6 L2,2";
-  arrowMarker.append("path").attr("d", arrow_path).attr("fill", "#bbb");
 
   var link = network
     .append("g")
@@ -263,10 +300,17 @@ Graph.prototype.update = function () {
     .enter()
     .append("path")
     .style("fill", "none")
+    .style("stroke", function (d) {
+      if (d.link_type == "SDMA") return "#cecfd1";
+      else return "a1a1a1";
+    })
     .attr("stroke-width", function (d) {
       return d.weight;
     })
-    .attr("marker-end", "url(#arrow)");
+    .attr("marker-end", function (d) {
+      if (d.link_type == "SDMA") return "url(#arrowSDMA)";
+      else return "url(#arrowOther)";
+    });
 
   var minR = this.min_ratio;
   var maxR = this.max_ratio;
@@ -346,7 +390,13 @@ Graph.prototype.update = function () {
     .force("x", d3.forceX(_this.w * 0.8))
     .force("y", d3.forceY(_this.h * 0.8));
 
-  simulation.nodes(nodes).on("tick", ticked);
+  simulation
+    .nodes(nodes)
+    .on("tick", ticked)
+    .on("end", function () {
+      console.log("force end");
+      window.paths.render();
+    });
   simulation.force("link").links(links);
   function ticked() {
     link.attr("d", function (d) {
@@ -404,6 +454,13 @@ Graph.prototype.update = function () {
       });
     node
       .attr("cx", function (d) {
+        window.paths.data.forEach(function (dd) {
+          if (dd.force_id == d.id) {
+            dd.pos_end.x = d.x;
+            dd.pos_end.y = d.y;
+          }
+        });
+        window.paths.render();
         return d.x;
       })
       .attr("cy", function (d) {
