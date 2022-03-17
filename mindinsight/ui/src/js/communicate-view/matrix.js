@@ -14,6 +14,7 @@ export function Matrix() {
   this.maxDuration = 0;
   this.maxTraffic = 0;
   this.nodeData = [];
+  this.linkSelect = false;
   // this.matrix_size = matrix_size;
 }
 
@@ -35,7 +36,8 @@ Matrix.prototype.barHight = 6; //6*5+(6/2)*6=48
 //   // })
 // };
 
-Matrix.prototype.create = function (node) {
+Matrix.prototype.create = function (node, linkSelect = false) {
+  this.linkSelect = linkSelect;
   this.locallayer.on("contextmenu", function (d) {
     d3.event.preventDefault();
     window.graph.renderNet();
@@ -144,7 +146,14 @@ Matrix.prototype.render = function () {
         .style("fill", function (d) {
           return "#cecfd1";
         })
-        .style("stroke", "black")
+        .style("stroke", (d) => {
+          if (this.linkSelect) {
+            if (j == 0 && i == 1) {
+              return "red";
+            }
+          }
+          return "black";
+        })
         .call(
           d3.drag().on("drag", function (d) {
             var matrix = matrix_list[d.id];
@@ -421,8 +430,7 @@ Matrix.prototype.render = function () {
   var xtrans = -this.locallayer.node().getBBox().x;
   var ytrans = -this.locallayer.node().getBBox().y;
   var scale = this.matrix_size / this.locallayer.node().getBBox().height;
-  console.log(this.matrix_size);
-  console.log(this.locallayer.node().getBBox());
+
   this.locallayer.attr(
     "transform",
     "scale(" + scale + ")" + "translate(" + xtrans + "," + ytrans + ")"

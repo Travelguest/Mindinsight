@@ -26,13 +26,12 @@ Lasso.prototype.bind = function () {
       });
       // console.log(newNodes);
       if (Object.keys(newNodes).length != 0) {
-        console.log("hello");
         //   window.graph.delete(newNodes);
         var m = new Matrix();
         window.graph.renderMatrix(newNodes);
         m.create(Object.keys(newNodes));
       } else {
-        window.graph.renderNet();
+        // window.graph.renderNet();
       }
     });
   this.svg.call(this.lasso);
