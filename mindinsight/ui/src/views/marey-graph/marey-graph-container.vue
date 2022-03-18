@@ -4,7 +4,7 @@
       <div class="view-title-bg">
         <h1 class="view-title-name">Communication View</h1>
       </div>
-      <communication-view-graph />
+      <!-- <communication-view-graph /> -->
     </div>
     <div class="strategy-view">
       <div class="view-header">
@@ -13,16 +13,16 @@
             Parallel Strategy View
           </h1>
         </div>
-        <LegendStrategy />
+        <!-- <LegendStrategy /> -->
       </div>
-      <profile-graph />
-      <AttributePanel />
+      <!-- <profile-graph /> -->
+      <!-- <AttributePanel /> -->
     </div>
     <div class="configuration-view">
       <div class="view-title-bg">
         <h1 class="view-title-name">Configuration View</h1>
       </div>
-      <configure-view />
+      <!-- <configure-view /> -->
     </div>
     <div class="performance-view">
       <div class="view-header">

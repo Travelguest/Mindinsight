@@ -9,8 +9,23 @@
     >
       <div>OpName: {{ hoveredNodeInfo.opName }}</div>
       <div>Device: {{ hoveredNodeInfo.device }}</div>
-      <div>x: {{ hoveredNodeInfo.xValue }}</div>
-      <div>y: {{ hoveredNodeInfo.yValue }}</div>
+      <div v-show="!hoveredNodeInfo.isMareyGraph">
+        x: {{ hoveredNodeInfo.xValue }}
+      </div>
+      <div v-show="!hoveredNodeInfo.isMareyGraph">
+        y: {{ hoveredNodeInfo.yValue }}
+      </div>
+    </div>
+    <div class="brush-switch">
+      <div>Whether to open the brush</div>
+      <a-switch
+        v-model="isOpenSwitch"
+        default-checked
+        @change="handleSwitchChange"
+      >
+        <a-icon slot="checkedChildren" type="check" />
+        <a-icon slot="unCheckedChildren" type="close" />
+      </a-switch>
     </div>
     <svg
       id="marey-graph"
@@ -54,7 +69,7 @@
             :points="data.data"
             :fill="OperatorColor.get(getOperatorType(data.op))"
             fill-opacity="0.5"
-            @mousemove="onNodeMouseover($event, data.op, true)"
+            @mousemove="onNodeMouseover($event, data, true)"
             @mouseout="onNodeMouseout"
           />
         </g>
@@ -69,7 +84,7 @@
             fill-opacity="1"
           />
         </g>
-        <g class="brush"></g>
+        <g v-if="isOpenSwitch" class="brush"></g>
         <!-- flops-chart -->
         <g class="flops-chart" clip-path="url(#clip)">
           <path
@@ -99,6 +114,7 @@
 
 <script>
 import * as d3 from "d3";
+import { Switch, Icon } from "ant-design-vue";
 
 // AllReduce ALlGather ： 集合算子-黄色
 // Send Receive ：点对点通信算子-紫色
@@ -114,6 +130,10 @@ const InnerLayer = "InnerLayer";
 
 export default {
   name: "MareyGraph",
+  components: {
+    "a-switch": Switch,
+    "a-icon": Icon,
+  },
   props: {
     stepNumber: Number,
     stageDeviceArr: Array,
@@ -168,6 +188,7 @@ export default {
 
       hoveredNodeInfo: {
         show: false,
+        isMareyGraph: false,
         x: 0,
         y: 0,
         opName: "",
@@ -177,6 +198,7 @@ export default {
       },
       brush: null,
       OperatorColor: new Map(),
+      isOpenSwitch: true,
     };
   },
   computed: {
@@ -661,6 +683,7 @@ export default {
         const { opName, device, x: xValue, y: yValue } = data[index];
         this.hoveredNodeInfo = {
           show: true,
+          isMareyGraph,
           x: layerX + 15,
           y: layerY - 55,
           opName,
@@ -669,12 +692,30 @@ export default {
           yValue,
         };
       } else {
-        console.log("看看", data);
+        const { op: opName, data: d, device, type } = data || {};
+        this.hoveredNodeInfo = {
+          show: true,
+          isMareyGraph: true,
+          x: layerX + 15,
+          y: layerY - 55,
+          opName,
+          device: device.join("-"),
+          xValue: null,
+          yValue: null,
+        };
       }
     },
 
     onNodeMouseout() {
       this.hoveredNodeInfo.show = false;
+    },
+    handleSwitchChange() {
+      if (!this.isOpenSwitch) {
+        return;
+      }
+      this.$nextTick(() => {
+        this.g.select(".brush").call(this.brush); //重新启用；
+      });
     },
     // mouseMoveEvent(event, data) {
     //   const { layerX, layerY } = event || {};
@@ -747,5 +788,16 @@ export default {
 }
 .brush {
   pointer-events: none;
+}
+.brush-switch {
+  position: absolute;
+  top: 0;
+  right: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.brush-switch div {
+  margin-right: 4px;
 }
 </style>
