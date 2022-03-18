@@ -20,16 +20,16 @@
     </div>
     <div class="bottom">
       <div class="left">
-        <!-- <LineChart
+        <LineChart
           :overViewData="overViewData"
           @getStepNumber="getStepNumber"
-        /> -->
+        />
       </div>
       <div class="right">
-        <!-- <StackedColumnChart
+        <StackedColumnChart
           :overViewData="overViewData"
           :stepNumber="stepNumber"
-        /> -->
+        />
       </div>
     </div>
   </div>
