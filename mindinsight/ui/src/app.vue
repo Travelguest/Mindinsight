@@ -16,11 +16,9 @@ limitations under the License.
 
 <template>
   <div id="app">
-    <div v-if="showWarmText"
-         class="warm-content">
-      <span class="warm-text">{{ $t('public.browserWarning') }}</span>
-      <span class="cancel-icon"
-            @click="cancelWarmText"></span>
+    <div v-if="showWarmText" class="warm-content">
+      <span class="warm-text">{{ $t("public.browserWarning") }}</span>
+      <span class="cancel-icon" @click="cancelWarmText"></span>
     </div>
     <!-- <Header></Header> -->
     <div :class="['cl-center', showWarmText ? 'cl-center-height' : '']">
@@ -29,7 +27,8 @@ limitations under the License.
   </div>
 </template>
 <script>
-import Header from '@/components/header.vue';
+// import Header from '@/components/header.vue';
+
 export default {
   data() {
     return {
@@ -40,7 +39,7 @@ export default {
   mounted() {
     // Check the browser
     this.showWarmText = this.$warmBrowser;
-    this.$bus.$on('showWarmText', (val) => {
+    this.$bus.$on("showWarmText", (val) => {
       this.showWarmText = val;
     });
   },
@@ -53,10 +52,10 @@ export default {
     },
   },
   destroyed() {
-    this.$bus.$off('showWarmText');
+    this.$bus.$off("showWarmText");
   },
   components: {
-    Header,
+    // Header,
   },
 };
 </script>
@@ -88,7 +87,8 @@ export default {
 .warm-content .cancel-icon {
   width: 12px;
   height: 40px;
-  background: url('./assets/images/cancel-warm-text.png') no-repeat center/12px 12px;
+  background: url("./assets/images/cancel-warm-text.png") no-repeat center/12px
+    12px;
   cursor: pointer;
   float: right;
   display: block;
@@ -123,5 +123,12 @@ export default {
   padding-right: 32px;
   flex: 1;
   text-align: right;
+}
+.icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
 }
 </style>

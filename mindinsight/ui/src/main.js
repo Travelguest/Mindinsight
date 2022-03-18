@@ -13,78 +13,81 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Vue from 'vue';
-import App from './app.vue';
-import router from './router';
-import store from './store';
+import Vue from "vue";
+import App from "./app.vue";
+import router from "./router";
+import store from "./store";
 
-import ElementUI from 'element-ui';
-import './assets/css/element.css';
-import './assets/css/reset.css';
-import './assets/css/theme-config.css';
-import i18n from './i18n';
-import $ from 'jquery';
-import locale from 'element-ui/lib/locale/lang/en';
-import localezh from 'element-ui/lib/locale/lang/zh-CN';
-import {basePath} from '@/services/fetcher';
-import CommonProperty from './common/common-property';
+import ElementUI from "element-ui";
+import "./assets/css/element.css";
+import "./assets/css/reset.css";
+import "./assets/css/theme-config.css";
+import i18n from "./i18n";
+import $ from "jquery";
+import locale from "element-ui/lib/locale/lang/en";
+import localezh from "element-ui/lib/locale/lang/zh-CN";
+import { basePath } from "@/services/fetcher";
+import CommonProperty from "./common/common-property";
 
-import 'ant-design-vue/dist/antd.css';
-import TreeSelect from 'ant-design-vue/lib/tree-select';
-import Input from 'ant-design-vue/lib/input';
+import "ant-design-vue/dist/antd.css";
+import TreeSelect from "ant-design-vue/lib/tree-select";
+import Input from "ant-design-vue/lib/input";
+
+import "./assets/iconfont/iconfont";
+
 Vue.component(TreeSelect.name, TreeSelect);
 Vue.component(Input.name, Input);
 
-let language = window.localStorage.getItem('milang');
-const languageList = ['zh-cn', 'en-us'];
+let language = window.localStorage.getItem("milang");
+const languageList = ["zh-cn", "en-us"];
 if (!language) {
   let tempLang = navigator.language || navigator.userLanguage;
   tempLang = tempLang.substr(0, 2);
-  if (tempLang === 'zh') {
+  if (tempLang === "zh") {
     language = languageList[0];
   } else {
     language = languageList[1];
   }
-  window.localStorage.setItem('milang', language);
+  window.localStorage.setItem("milang", language);
 } else {
   if (!languageList.includes(language)) {
     // set English if no default language
     language = languageList[1];
-    window.localStorage.setItem('milang', language);
+    window.localStorage.setItem("milang", language);
   }
 }
-store.commit('setLanguage', language);
+store.commit("setLanguage", language);
 
 if (language !== languageList[0]) {
-  Vue.use(ElementUI, {locale});
+  Vue.use(ElementUI, { locale });
 } else {
-  Vue.use(ElementUI, {localezh});
+  Vue.use(ElementUI, { localezh });
 }
 window.$ = window.jQuery = $;
 
 Vue.prototype.$bus = new Vue();
 
 // theme color
-let themeIndex = localStorage.getItem('miTheme');
-if (!['0', '1'].includes(themeIndex)) {
-  themeIndex = '0';
+let themeIndex = localStorage.getItem("miTheme");
+if (!["0", "1"].includes(themeIndex)) {
+  themeIndex = "0";
 }
-store.commit('setThemeIndex', themeIndex);
+store.commit("setThemeIndex", themeIndex);
 initThemeColor(themeIndex);
 
 // Route interception
 router.beforeEach((to, from, next) => {
-  if (!window.enableDebugger && to.path === '/debugger') {
-    next('/');
+  if (!window.enableDebugger && to.path === "/debugger") {
+    next("/");
     return;
   }
   // cancel request
-  if (from.path !== '/') {
-    store.commit('clearToken');
+  if (from.path !== "/") {
+    store.commit("clearToken");
   }
 
   // deter refresh
-  store.commit('setIsReload', false);
+  store.commit("setIsReload", false);
   next();
 });
 router.onError((error) => {
@@ -105,12 +108,12 @@ function isBrowserSupport() {
   if (!isChrome || isEdge) {
     return true;
   } else {
-    const arr = navigator.userAgent.split(' ');
-    let chromeVersion = '';
+    const arr = navigator.userAgent.split(" ");
+    let chromeVersion = "";
     for (let i = 0; i < arr.length; i++) {
       if (/chrome/i.test(arr[i])) chromeVersion = arr[i];
     }
-    chromeVersion = Number(chromeVersion.split('/')[1].split('.')[0]);
+    chromeVersion = Number(chromeVersion.split("/")[1].split(".")[0]);
     if (chromeVersion < 65) {
       return true;
     }
@@ -127,7 +130,7 @@ function appInstantiation() {
       store,
       i18n,
       render: (h) => h(App),
-    }).$mount('#app');
+    }).$mount("#app");
   }, 100);
 }
 /**
@@ -137,7 +140,7 @@ function appInstantiation() {
 function initThemeColor(colorIndex) {
   let colorArr = [];
   if (!colorIndex) {
-    colorArr = CommonProperty.themes['0'];
+    colorArr = CommonProperty.themes["0"];
   } else {
     colorArr = CommonProperty.themes[colorIndex];
   }
@@ -157,14 +160,14 @@ function setThemeColor(colorArr) {
 }
 
 window.enableDebugger = true;
-window.onload = function(e) {
+window.onload = function (e) {
   if (isBrowserSupport()) {
     Vue.prototype.$warmBrowser = true;
   }
   $.ajax({
     url: `${basePath}v1/mindinsight/ui-config`,
-    type: 'GET',
-    dataType: 'json',
+    type: "GET",
+    dataType: "json",
     success: (data) => {
       if (data) {
         window.enableDebugger = data.enable_debugger;

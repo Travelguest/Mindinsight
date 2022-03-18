@@ -23,21 +23,6 @@
         :transform="`translate(${margin.left}, ${margin.top})`"
         @dblclick="handleDblclick"
       >
-        <!-- stage device name -->
-        <g class="stage-device-name">
-          <text
-            v-for="name in stageDeviceArr"
-            :key="name"
-            :transform="`translate(-50, ${yScale(name)})`"
-            dominant-baseline="middle"
-          >
-            {{
-              name.startsWith("stage")
-                ? name
-                : parseInt(name.replace("device", ""), 10) + 1
-            }}
-          </text>
-        </g>
         <!-- 定位线 -->
         <g class="stage-device-line">
           <rect
@@ -130,12 +115,17 @@ const InnerLayer = "InnerLayer";
 export default {
   name: "MareyGraph",
   props: {
-    timeLineData: Object,
     stepNumber: Number,
+    stageDeviceArr: Array,
+    timeLineData: Object,
     FLOPsData: Object,
     MemoryDataProps: Object,
   },
   watch: {
+    stageDeviceArr: function () {
+      this.stageMareyGraphRender();
+      this.mareyGraphReRender();
+    },
     timeLineData: function () {
       this.stageDataProcessing();
       this.timeLineDataProcessing();
@@ -153,7 +143,7 @@ export default {
     return {
       svg: null,
       g: null,
-      margin: { top: 50, right: 50, bottom: 10, left: 70 },
+      margin: { top: 50, right: 50, bottom: 10, left: 20 },
       width: 1000,
       height: 200,
       offset: 8,
@@ -161,13 +151,12 @@ export default {
       data: null,
       deviceName: null,
       stageName: null,
-      stageDeviceArr: null,
       minT: Number.MAX_VALUE,
       maxT: Number.MIN_VALUE,
       constantMinT: 0,
       constantMaxT: 0,
       timeStack: [], //存储每次brush的[minT, maxT],双击退回
-      isStageExpand: new Map(), //是否展开判断数组
+      // isStageExpand: new Map(), //是否展开判断数组
       displayedData: null, //算子op与[{x1,x2,y}]的映射
       stageDisplayedData: null,
       polygonData: [],
@@ -261,6 +250,9 @@ export default {
       this.OperatorColor.set(OuterLayer, "#B4CFB0");
     },
     stageMareyGraphRender(left = Number.MIN_VALUE, right = Number.MAX_VALUE) {
+      if (!this.stageDisplayedData) {
+        return;
+      }
       let stagePolygonData = [];
       const offset = 100; //brush偏移值
       Object.keys(this.stageDisplayedData).forEach((op) => {
@@ -299,6 +291,9 @@ export default {
       // console.log("stagePolygonData", stagePolygonData);
     },
     mareyGraphReRender(left = Number.MIN_VALUE, right = Number.MAX_VALUE) {
+      if (!this.displayedData) {
+        return;
+      }
       let polygonData = [];
       const offset = 100; //brush偏移值
 
@@ -310,7 +305,11 @@ export default {
         for (let i = 0; i < curOpDeviceData.length; i++) {
           const dt = curOpDeviceData[i];
           //不在brush范围内，直接跳过
-          if (dt.x1 < left - offset || dt.x2 > right + offset) {
+          if (
+            dt.x1 < left - offset ||
+            dt.x2 > right + offset ||
+            !this.stageDeviceArr.includes(dt.y)
+          ) {
             continue;
           }
           // 处理设备块内的区域
@@ -505,19 +504,8 @@ export default {
       const stageDisplayedData = {};
       let minT = Infinity,
         maxT = -Infinity;
-      const stageDeviceArr = [];
       stages.forEach((stageName) => {
-        this.isStageExpand.set(stageName, true); //默认不展开
         const curStageData = stage_data[stageName].data;
-        //等待展开功能写好添加这段————————————————————————————————————————————————————————————————————————
-        stageDeviceArr.push(stageName);
-        const curStageDevice = stage_data[stageName].devices;
-        curStageDevice.forEach((device) => {
-          if (this.isStageExpand.get(stageName)) {
-            stageDeviceArr.push(device);
-          }
-        });
-        //等待展开功能写好添加这段————————————————————————————————————————————————————————————————————————
         Object.keys(curStageData).forEach((op) => {
           if (!op.startsWith("Stream") && !op.startsWith("AtomicAddrClean")) {
             if (!stageDisplayedData[op]) stageDisplayedData[op] = [];
@@ -539,7 +527,6 @@ export default {
         });
       });
 
-      this.stageDeviceArr = stageDeviceArr;
       if (minT < this.minT) {
         this.minT = minT;
       }
@@ -547,7 +534,6 @@ export default {
         this.maxT = maxT;
       }
       this.stageDisplayedData = stageDisplayedData;
-      // console.log("stageDeviceArr", stageDeviceArr);
     },
 
     getOperatorType(op) {
