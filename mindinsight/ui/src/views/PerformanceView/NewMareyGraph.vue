@@ -88,7 +88,9 @@
         <!-- flops-chart -->
         <g class="flops-chart" clip-path="url(#clip)">
           <path
-            v-for="(d, i) in MFLOPsData"
+            v-for="(d, i) in MFLOPsData.filter((_, index) =>
+              stageDeviceArr.includes(`device${index}`)
+            )"
             :key="`FLOPs-Chart-${i}`"
             :d="MFLOPsLinePath(d)"
             class="performance-cls-2"
@@ -99,7 +101,9 @@
         <!--memory-chart  -->
         <g class="memory-chart" clip-path="url(#clip)">
           <path
-            v-for="(d, i) in MemoryData"
+            v-for="(d, i) in MemoryData.filter((_, index) =>
+              stageDeviceArr.includes(`device${index}`)
+            )"
             :key="`Memory-Chart-${i}`"
             :d="MemoryLinePath(d)"
             class="performance-cls-3"
@@ -153,10 +157,10 @@ export default {
       this.mareyGraphReRender();
     },
     FLOPsData: function () {
-      // this.timeLineData && this.FLOPsDataProcessing();
+      this.timeLineData && this.FLOPsDataProcessing();
     },
     MemoryDataProps: function () {
-      // this.timeLineData && this.MemoryDataProcessing();
+      this.timeLineData && this.MemoryDataProcessing();
     },
   },
   data() {
@@ -181,9 +185,9 @@ export default {
       stageDisplayedData: null,
       polygonData: [],
       stagePolygonData: [],
-      MFLOPsData: null,
+      MFLOPsData: [],
       MFLOPs: { min: 0, max: 0 },
-      MemoryData: null,
+      MemoryData: [],
       Memory: { min: 0, max: 0 },
 
       hoveredNodeInfo: {
@@ -477,7 +481,6 @@ export default {
         this.polygonData = polygonData;
       }
     },
-
     timeLineDataProcessing() {
       const { maps } = this.timeLineData || {};
       this.data = maps;
@@ -599,6 +602,7 @@ export default {
         MFLOPsData.push(curDeviceMFIPsData);
       });
       this.MFLOPsData = MFLOPsData; //保存每个device的FLOPs折线图数据
+      // console.log("MFLOPsData", MFLOPsData);
       this.MFLOPs.min = min;
       this.MFLOPs.max = max;
     },
@@ -717,23 +721,6 @@ export default {
         this.g.select(".brush").call(this.brush); //重新启用；
       });
     },
-    // mouseMoveEvent(event, data) {
-    //   const { layerX, layerY } = event || {};
-    //   const bisect = d3.bisector((d) => d.x).left;
-    //   const x = this.xScale.invert(layerX - 50);
-    //   const index = bisect(data, x);
-    //   const selectedData = data[index];
-
-    //   d3.select("#marey-graph-tooltip")
-    //     .style("left", layerX + 10 + "px")
-    //     .style("top", layerY + 10 + "px")
-    //     .style("display", "block")
-    //     .html(selectedData);
-    // },
-
-    // mouseOutEvent() {
-    //   // d3.select("#marey-graph-tooltip").style("display", "none");
-    // },
   },
 };
 </script>
