@@ -67,7 +67,7 @@ export default {
   },
   watch: {
     stageDeviceRelationship: function () {
-      console.log("stageDeviceRelationship", this.stageDeviceRelationship);
+      // console.log("stageDeviceRelationship", this.stageDeviceRelationship);
       this.treeLineProcessing();
     },
   },
@@ -132,7 +132,6 @@ export default {
         }
       });
       this.treeLineData = treeLineData;
-      console.log("treeLineData", treeLineData);
     },
   },
 };

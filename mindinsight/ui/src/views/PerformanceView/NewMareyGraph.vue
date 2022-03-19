@@ -8,7 +8,7 @@
       }"
     >
       <div>OpName: {{ hoveredNodeInfo.opName }}</div>
-      <div>Device: {{ hoveredNodeInfo.device }}</div>
+      <div>Class: {{ hoveredNodeInfo.class }}</div>
       <div v-show="!hoveredNodeInfo.isMareyGraph">
         x: {{ hoveredNodeInfo.xValue }}
       </div>
@@ -69,12 +69,12 @@
             :points="data.data"
             :fill="OperatorColor.get(getOperatorType(data.op))"
             fill-opacity="0.5"
-            @mousemove="onNodeMouseover($event, data, true)"
+            @mousemove="onNodeMouseover($event, data, 'device')"
             @mouseout="onNodeMouseout"
           />
         </g>
         <!-- stage-marey-graph -->
-        <g class="stage-marey-graph">
+        <g class="stage-marey-graph" clip-path="url(#clip)">
           <polygon
             v-for="(data, index) in stagePolygonData"
             class="stage-marey-graph-polygon"
@@ -82,6 +82,8 @@
             :points="data.data"
             :fill="OperatorColor.get(data.type)"
             fill-opacity="1"
+            @mousemove="onNodeMouseover($event, data, 'stage')"
+            @mouseout="onNodeMouseout"
           />
         </g>
         <g v-if="isOpenSwitch" class="brush"></g>
@@ -196,7 +198,7 @@ export default {
         x: 0,
         y: 0,
         opName: "",
-        device: "",
+        class: "",
         xValue: 0,
         yValue: 0,
       },
@@ -309,6 +311,7 @@ export default {
               op,
               data: area,
               type,
+              stage: d.y,
             });
           }
         }
@@ -559,6 +562,7 @@ export default {
         this.maxT = maxT;
       }
       this.stageDisplayedData = stageDisplayedData;
+      // console.log("stageDisplayedData", stageDisplayedData);
     },
 
     getOperatorType(op) {
@@ -656,7 +660,7 @@ export default {
       if (!extent) return;
 
       const [left, right] = extent.map((d) => this.xScale.invert(d));
-      console.log("extent", extent, left, right);
+      // console.log("extent", extent, left, right);
       //改变minT,maxT，进而改变xScale.domain引起FLOPs和memory刷新
       this.timeStack.push([this.minT, this.maxT]); //缓存
       this.minT = left;
@@ -677,35 +681,46 @@ export default {
       this.stageMareyGraphRender(preMinT, preMaxT);
       this.mareyGraphReRender(preMinT, preMaxT);
     },
-    onNodeMouseover(e, data, isMareyGraph = false) {
+    onNodeMouseover(e, data, type = "") {
       const { layerX, layerY } = e || {};
-      if (!isMareyGraph) {
-        const bisect = d3.bisector((d) => d.x).left;
-        const x = this.xScale.invert(layerX - 50);
-        const index = bisect(data, x);
-        const selectedData = data[index];
-        const { opName, device, x: xValue, y: yValue } = data[index];
-        this.hoveredNodeInfo = {
-          show: true,
-          isMareyGraph,
-          x: layerX + 15,
-          y: layerY - 55,
-          opName,
-          device,
-          xValue,
-          yValue,
-        };
-      } else {
-        const { op: opName, data: d, device, type } = data || {};
+      if (type === "stage") {
+        const { op: opName, stage } = data || {};
         this.hoveredNodeInfo = {
           show: true,
           isMareyGraph: true,
           x: layerX + 15,
           y: layerY - 55,
           opName,
-          device: device.join("-"),
+          class: stage,
           xValue: null,
           yValue: null,
+        };
+      } else if (type === "device") {
+        const { op: opName, device } = data || {};
+        this.hoveredNodeInfo = {
+          show: true,
+          isMareyGraph: true,
+          x: layerX + 15,
+          y: layerY - 55,
+          opName,
+          class: device.join("-"),
+          xValue: null,
+          yValue: null,
+        };
+      } else {
+        const bisect = d3.bisector((d) => d.x).left;
+        const x = this.xScale.invert(layerX - 50);
+        const index = bisect(data, x);
+        const { opName, device, x: xValue, y: yValue } = data[index];
+        this.hoveredNodeInfo = {
+          show: true,
+          isMareyGraph: false,
+          x: layerX + 15,
+          y: layerY - 55,
+          opName,
+          class: device,
+          xValue,
+          yValue,
         };
       }
     },

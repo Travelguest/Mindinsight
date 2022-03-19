@@ -131,7 +131,6 @@ export default {
         .catch(console.error);
     },
     handleclickArrowIcon(stage) {
-      console.log("点击了", stage);
       this.isStageExpand.set(stage, !this.isStageExpand.get(stage));
       this.stageDeviceArrProcessing();
     },
