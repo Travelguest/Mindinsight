@@ -425,9 +425,6 @@
                       (v) => v.x !== undefined
                     )"
                     :key="'mini_opNode_group_g' + node.id"
-                    @click="onNodeClick(node)"
-                    @mouseover="onNodeMouseover($event, node)"
-                    @mouseout="onNodeMouseout"
                     :class="clickedNodeId === node.id ? 'active' : ''"
                   >
                     <circle
