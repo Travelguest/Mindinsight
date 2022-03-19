@@ -279,7 +279,7 @@ export default {
 
         grid: {
           top: "5%",
-          left: "10%",
+          left: "15%",
           right: "20%",
           bottom: "5%",
           containLabel: true,
@@ -322,6 +322,19 @@ export default {
             color: "#cecfd1",
             showSymbol: false,
             data: communicationList,
+            markLine: {
+              symbol: "none", //去掉警戒线最后面的箭头
+              label: {
+                position: "start", //将警示值放在哪个位置，三个值“start”,"middle","end"  开始  中点 结束
+              },
+              data: [
+                {
+                  silent: false, //鼠标悬停事件  true没有，false有
+                  type: "max",
+                  name: "最大值",
+                },
+              ],
+            },
           },
           {
             name: "waiting cost",
@@ -330,6 +343,19 @@ export default {
             color: "#cecfd1",
             showSymbol: false,
             data: waitingList,
+            markLine: {
+              symbol: "none", //去掉警戒线最后面的箭头
+              label: {
+                position: "start", //将警示值放在哪个位置，三个值“start”,"middle","end"  开始  中点 结束
+              },
+              data: [
+                {
+                  silent: false, //鼠标悬停事件  true没有，false有
+                  type: "max",
+                  name: "最大值",
+                },
+              ],
+            },
           },
         ],
       };
