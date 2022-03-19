@@ -1,7 +1,5 @@
 <template>
-  <div
-        class="training-pipeline-container"
-      >
+  <div class="training-pipeline-container">
     <!-- pipeline stage legend -->
     <div class="training-pipeline-legend">
       <svg width="100%" height="100%">
@@ -27,7 +25,9 @@
     </div>
     <!-- pipeline stage graph -->
     <div class="training-pipeline-graph">
-      <svg v-if="pipelineNodeInfo !== null"
+      <svg
+        id="training-pipeline-graph-svg"
+        v-if="pipelineNodeInfo !== null"
         :width="getPipelineNodePosition(0, pipelineNodeInfo[0].length, 0)[0]"
         height="100%"
       >
@@ -47,7 +47,7 @@
             :style="{ cursor: 'pointer' }"
           ></rect>
         </defs>
-        <g id="pipeline_edges">
+        <g id="pipeline_edges_test">
           <path
             v-for="(edge, index) in pipelineEdgeInfo"
             :key="`${index}_pipeline_edge`"
@@ -62,15 +62,18 @@
           >
             <g
               v-if="blockIndex % 2 === 0"
-              :transform="
-                `translate(${getPipelineNodePosition(1, block.length - 1, 0)
-                  .map((v, i) => {
-                    if (i === 0) return v + 12;
-                    if (i === 1) return v - 15;
-                    return v;
-                  })
-                  .join(',')}), rotate(90), scale(0.08)`
-              "
+              :transform="`translate(${getPipelineNodePosition(
+                1,
+                block.length - 1,
+                0,
+                true
+              )
+                .map((v, i) => {
+                  if (i === 0) return v + 12;
+                  if (i === 1) return v - 15;
+                  return v;
+                })
+                .join(',')}), rotate(90), scale(0.05)`"
             >
               <PipelineLink />
             </g>
@@ -80,34 +83,28 @@
             >
               <g
                 v-if="colIndex % 2 === 1 && colIndex !== block.length - 1"
-                :transform="
-                  `translate(${getPipelineNodePosition(
-                    blockIndex,
-                    colIndex,
-                    Math.floor(col.length / 2)
-                  )
-                    .map((v, i) => {
-                      if (i === 0) return v + 30;
-                      if (i === 1) return v - 10;
-                    })
-                    .join(',')}), scale(0.05)`
-                "
+                :transform="`translate(${getPipelineNodePosition(
+                  blockIndex,
+                  colIndex,
+                  Math.floor(col.length / 2)
+                )
+                  .map((v, i) => {
+                    if (i === 0) return v + 30;
+                    if (i === 1) return v - 10;
+                  })
+                  .join(',')}), scale(0.05)`"
               >
                 <PipelineLink />
               </g>
               <g
                 v-for="(node, index) in col"
                 :key="`${node}_pipeline_node`"
-                @click="
-                  clickPipelineRect(node, Math.floor((colIndex + 1) / 2))
-                "
-                :transform="
-                  `translate(${getPipelineNodePosition(
-                    blockIndex,
-                    colIndex,
-                    index
-                  ).join(',')})`
-                "
+                @click="clickPipelineRect(node, Math.floor((colIndex + 1) / 2))"
+                :transform="`translate(${getPipelineNodePosition(
+                  blockIndex,
+                  colIndex,
+                  index
+                ).join(',')})`"
               >
                 <use
                   :xlink:href="
@@ -132,25 +129,28 @@
       </svg>
     </div>
     <!-- stages checkbox -->
-    <div v-for="(stage, index) in showStageIdOptions" :key="index" class="checkbox-container">
+    <div
+      v-for="(stage, index) in showStageIdOptions"
+      :key="index"
+      class="checkbox-container"
+    >
       <!-- input 需要加 @click="showRankIdChange" -->
       <input
-        :id="'checkbox-'+stage.value"
+        :id="'checkbox-' + stage.value"
         type="checkbox"
         class="custom-checkbox"
         v-model="showStageId[index]"
-      >
-      <label class="custom-checkbox-label" :for="'checkbox-'+stage.value">
+      />
+      <label class="custom-checkbox-label" :for="'checkbox-' + stage.value">
         {{ stage.label }}
       </label>
     </div>
-    
   </div>
 </template>
 
 <script>
 import { buildPipelinedStageInfo, changeShowRankId } from "@/js/build-graph.js";
-import PipelineLink from '@/assets/images/svg/link.svg';
+import PipelineLink from "@/assets/images/svg/link.svg";
 import { buildGraph } from "@/js/profile-graph/build-graph.js";
 
 export default {
@@ -162,10 +162,10 @@ export default {
     return {
       pipelineRectWidth: 10,
       pipelineRectMargin: 2,
-      
-      pipelineSendRectColor: '#e9a39d',
-      pipelineReceiveRectColor: '#8fc6ad',
-      pipelineArrowColor: '#e4e4e4',
+
+      pipelineSendRectColor: "#e9a39d",
+      pipelineReceiveRectColor: "#8fc6ad",
+      pipelineArrowColor: "#e4e4e4",
       pipelinedStageInfo: null,
       pipelineNodeInfo: null,
       pipelineEdgeInfo: null,
@@ -180,21 +180,18 @@ export default {
       this.graphData = val;
       this.fetchData();
     },
-    "showStageId": function (val) {
+    showStageId: function (val) {
       //TODO：切换显示对应的计算图
-      console.log(val)
+      console.log(val);
     },
   },
   methods: {
-    fetchData(){
+    fetchData() {
       const res = this.graphData.graphs;
       console.log(res);
 
-      const {
-        pipelinedStageInfo,
-        pipelineNodeInfo,
-        pipelineEdgeInfo,
-      } = buildPipelinedStageInfo(res);
+      const { pipelinedStageInfo, pipelineNodeInfo, pipelineEdgeInfo } =
+        buildPipelinedStageInfo(res);
       this.pipelinedStageInfo = pipelinedStageInfo;
       this.pipelineNodeInfo = pipelineNodeInfo;
       this.pipelineEdgeInfo = pipelineEdgeInfo;
@@ -206,30 +203,44 @@ export default {
         return {
           value: key,
           label: "stage" + key,
-          rank_ids: stages.rank_ids.join('-'),
+          rank_ids: stages.rank_ids.join("-"),
         };
       });
-      for (let index=0; index < this.showStageIdOptions.length; index++) {
+      for (let index = 0; index < this.showStageIdOptions.length; index++) {
         this.showStageId[index] = true;
       }
       // console.log(this.showStageId);
     },
 
-    getPipelineNodePosition(firstIndex, secondIndex, thirdIndex) {
+    getPipelineNodePosition(firstIndex, secondIndex, thirdIndex, isLink) {
       if (this.pipelineNodeInfo === null) return;
       const rectWidth = this.pipelineRectWidth;
       const rectMargin = 2 * this.pipelineRectMargin;
-      const textWidth = 10;
-      const stageBetween = 40;
+      const textWidth = 20;
+
+      // console.log(
+      //   "width",
+      //   document.getElementsByClassName("training-pipeline-graph")[0]
+      //     .clientWidth
+      // );
+
       const nodeBetween = 30;
       const blockBetween = 20;
       const viewMargin = 10;
+      const stageBetween =
+        document.getElementsByClassName("training-pipeline-graph")[0]
+          .clientWidth -
+        2 * textWidth -
+        2 * rectWidth -
+        2 * rectMargin -
+        nodeBetween;
+      //TODO
       const maxFirstBlockItemCount = this.pipelineNodeInfo[0].reduce(
-          (pre, cur) => {
-            if (cur.length > pre) return cur.length;
-            else return pre;
-          },
-          0,
+        (pre, cur) => {
+          if (cur.length > pre) return cur.length;
+          else return pre;
+        },
+        0
       );
       let x = 0;
       let y = 0;
@@ -242,6 +253,12 @@ export default {
         y += blockBetween + maxFirstBlockItemCount * (rectWidth + rectMargin);
       }
       y += thirdIndex * (rectWidth + rectMargin);
+      if (isLink) {
+        x =
+          0.5 *
+          document.getElementsByClassName("training-pipeline-graph")[0]
+            .clientWidth;
+      }
       return [x, y];
     },
     genPipelinePath(edge) {
@@ -277,15 +294,15 @@ export default {
           endPos[0] + 4,
           endPos[1] + this.pipelineRectWidth / 2,
         ];
-        return `M${startPos.join(' ')} C ${startControlPoint.join(
-            ' ',
-        )}, ${endControlPoint.join(' ')}, ${endPos.join(
-            ' ',
-        )} L ${arrowPointPos.join(' ')} L ${shiftEndPos.join(
-            ' ',
-        )} C ${shiftEndControlPoint.join(' ')}, ${shiftStartControlPoint.join(
-            ' ',
-        )}, ${shiftStartPos.join(' ')}`;
+        return `M${startPos.join(" ")} C ${startControlPoint.join(
+          " "
+        )}, ${endControlPoint.join(" ")}, ${endPos.join(
+          " "
+        )} L ${arrowPointPos.join(" ")} L ${shiftEndPos.join(
+          " "
+        )} C ${shiftEndControlPoint.join(" ")}, ${shiftStartControlPoint.join(
+          " "
+        )}, ${shiftStartPos.join(" ")}`;
       } else {
         const startPos = this.getPipelineNodePosition(...start);
         startPos[0] += -this.pipelineRectMargin;
@@ -314,19 +331,19 @@ export default {
           endPos[0] - 4,
           endPos[1] + this.pipelineRectWidth / 2,
         ];
-        return `M${startPos.join(' ')} C ${startControlPoint.join(
-            ' ',
-        )}, ${endControlPoint.join(' ')}, ${endPos.join(
-            ' ',
-        )} L ${arrowPointPos.join(' ')} L ${shiftEndPos.join(
-            ' ',
-        )} C ${shiftEndControlPoint.join(' ')}, ${shiftStartControlPoint.join(
-            ' ',
-        )}, ${shiftStartPos.join(' ')}`;
+        return `M${startPos.join(" ")} C ${startControlPoint.join(
+          " "
+        )}, ${endControlPoint.join(" ")}, ${endPos.join(
+          " "
+        )} L ${arrowPointPos.join(" ")} L ${shiftEndPos.join(
+          " "
+        )} C ${shiftEndControlPoint.join(" ")}, ${shiftStartControlPoint.join(
+          " "
+        )}, ${shiftStartPos.join(" ")}`;
       }
     },
     clickPipelineRect(nodeID, stageID) {
-      this.showRankId = stageID + '';
+      this.showRankId = stageID + "";
       changeShowRankId(this.showRankId);
       this.getDisplayedGraph(this.showNodeType, this.showRankId);
       setTimeout(() => {
@@ -334,7 +351,7 @@ export default {
       }, 200);
     },
   },
-}
+};
 </script>
 
 <style scoped>
@@ -350,44 +367,43 @@ export default {
     background: #f40;
 } */
 input[type="checkbox"] {
-        width: 12px;
-        height: 12px;
-        display: inline-block;
-        text-align: center;
-        vertical-align: middle;
-        line-height: 12px;
-        position: relative;
-    }
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 12px;
+  position: relative;
+}
 
-    input[type="checkbox"]::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        background: #fff;
-        width: 100%;
-        height: 100%;
-        border-radius: 2px;
-        border: 1px solid #999;
-    }
+input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #fff;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  border: 1px solid #999;
+}
 
-    input[type="checkbox"]:checked::before {
-        content: "\2713";
-        background-color: #256eb7;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        border-radius:2px;
-        color: white;
-        font-size: 10px;
-        border: none;
-    }
+input[type="checkbox"]:checked::before {
+  content: "\2713";
+  background-color: #256eb7;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  border-radius: 2px;
+  color: white;
+  font-size: 10px;
+  border: none;
+}
 
-    .checkbox-container {
-      position: relative;
-      float: left;
-      margin-right: 10px;
-    }
-  
+.checkbox-container {
+  position: relative;
+  float: left;
+  margin-right: 10px;
+}
 </style>

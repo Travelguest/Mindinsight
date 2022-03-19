@@ -231,7 +231,7 @@
       <template slot="g">
         <template v-for="(value, nodeId) in nodeAttrMap">
           <strategy-matrix
-            v-if="visNodeMap.get(nodeId) && value.strategy!== undefined"
+            v-if="visNodeMap.get(nodeId) && value.strategy !== undefined"
             :key="nodeId"
             v-bind="value"
             :x="visNodeMap.get(nodeId).x"
@@ -256,10 +256,10 @@
     <div
       class="training-pipeline-container"
       ref="pipeline-container"
-      style="background: #EDF0F5;"
+      style="background: #edf0f5"
     >
       <div class="training-pipeline-title">
-        {{this.$t('profiling.trainingPipeline')}}
+        {{ this.$t("profiling.trainingPipeline") }}
       </div>
       <div class="training-pipeline-legend">
         <svg width="100%" height="100%">
@@ -284,10 +284,7 @@
         </svg>
       </div>
       <div class="training-pipeline-graph">
-        <svg v-if="pipelineNodeInfo !== null"
-          :width="getPipelineNodePosition(0, pipelineNodeInfo[0].length, 0)[0]"
-          height="100%"
-        >
+        <svg v-if="pipelineNodeInfo !== null" width="100%" height="100%">
           <defs>
             <rect
               id="send"
@@ -304,7 +301,7 @@
               :style="{ cursor: 'pointer' }"
             ></rect>
           </defs>
-          <g id="pipeline_edges">
+          <g id="pipeline_edges_new">
             <path
               v-for="(edge, index) in pipelineEdgeInfo"
               :key="`${index}_pipeline_edge`"
@@ -319,15 +316,17 @@
             >
               <g
                 v-if="blockIndex % 2 === 0"
-                :transform="
-                  `translate(${getPipelineNodePosition(1, block.length - 1, 0)
-                    .map((v, i) => {
-                      if (i === 0) return v + 12;
-                      if (i === 1) return v - 45;
-                      return v;
-                    })
-                    .join(',')}), rotate(90), scale(0.05)`
-                "
+                :transform="`translate(${getPipelineNodePosition(
+                  1,
+                  block.length - 1,
+                  0
+                )
+                  .map((v, i) => {
+                    if (i === 0) return v + 12;
+                    if (i === 1) return v - 45;
+                    return v;
+                  })
+                  .join(',')}), rotate(90), scale(0.05)`"
               >
                 <PipelineLink />
               </g>
@@ -337,18 +336,16 @@
               >
                 <g
                   v-if="colIndex % 2 === 1 && colIndex !== block.length - 1"
-                  :transform="
-                    `translate(${getPipelineNodePosition(
-                      blockIndex,
-                      colIndex,
-                      Math.floor(col.length / 2)
-                    )
-                      .map((v, i) => {
-                        if (i === 0) return v + 30;
-                        if (i === 1) return v - 10;
-                      })
-                      .join(',')}), scale(0.05)`
-                  "
+                  :transform="`translate(${getPipelineNodePosition(
+                    blockIndex,
+                    colIndex,
+                    Math.floor(col.length / 2)
+                  )
+                    .map((v, i) => {
+                      if (i === 0) return v + 30;
+                      if (i === 1) return v - 10;
+                    })
+                    .join(',')}), scale(0.05)`"
                 >
                   <PipelineLink />
                 </g>
@@ -358,13 +355,11 @@
                   @click="
                     clickPipelineRect(node, Math.floor((colIndex + 1) / 2))
                   "
-                  :transform="
-                    `translate(${getPipelineNodePosition(
-                      blockIndex,
-                      colIndex,
-                      index
-                    ).join(',')})`
-                  "
+                  :transform="`translate(${getPipelineNodePosition(
+                    blockIndex,
+                    colIndex,
+                    index
+                  ).join(',')})`"
                 >
                   <use
                     :xlink:href="
@@ -392,10 +387,10 @@
 
     <!-- Right Menu -->
     <div class="selector-title">
-      {{this.$t('profiling.rankSelector')}}
+      {{ this.$t("profiling.rankSelector") }}
     </div>
-    <div class="selector-title" style="top: 50px;">
-      {{this.$t('profiling.bipartiteExtractSelector')}}
+    <div class="selector-title" style="top: 50px">
+      {{ this.$t("profiling.bipartiteExtractSelector") }}
     </div>
     <div class="selector-container">
       <el-select v-model="showRankId" @change="showRankIdChange">
@@ -407,7 +402,7 @@
         ></el-option>
       </el-select>
     </div>
-    <div class="selector-container" style="top: 50px;">
+    <div class="selector-container" style="top: 50px">
       <el-select v-model="showNodeType" @change="showNodeTypeChange">
         <el-option
           v-for="option in showNodeTypeOptions"
@@ -420,31 +415,31 @@
     <div class="draggable-container">
       <div
         class="draggable-item"
-        style="font-size: 15px; font-weight: 500; cursor: auto;"
+        style="font-size: 15px; font-weight: 500; cursor: auto"
       >
-        {{this.$t('profiling.cutEdgesPrior')}}
+        {{ this.$t("profiling.cutEdgesPrior") }}
       </div>
       <div class="draggable-item-container">
-      <draggable
-        v-model="edgeTypesArray"
-        v-bind="dragOptions"
-        @start="onDragStart"
-        @end="onDragEnd"
-      >
-        <transition-group
-          type="transition"
-          :name="!isDrag ? 'flip-list' : null"
+        <draggable
+          v-model="edgeTypesArray"
+          v-bind="dragOptions"
+          @start="onDragStart"
+          @end="onDragEnd"
         >
-          <div
-            class="draggable-item"
-            v-for="element in edgeTypesArray"
-            :key="element.type"
+          <transition-group
+            type="transition"
+            :name="!isDrag ? 'flip-list' : null"
           >
-            <div class="item">{{ 'type:' + element.type }}</div>
-            <div class="item">{{ 'count: ' + element.cnt}}</div>
-          </div>
-        </transition-group>
-      </draggable>
+            <div
+              class="draggable-item"
+              v-for="element in edgeTypesArray"
+              :key="element.type"
+            >
+              <div class="item">{{ "type:" + element.type }}</div>
+              <div class="item">{{ "count: " + element.cnt }}</div>
+            </div>
+          </transition-group>
+        </draggable>
       </div>
       <el-button
         :style="{
@@ -457,7 +452,7 @@
           marginTop: '10px',
         }"
         @click="clickUpdateEdgeTypeBtn"
-        >{{this.$t('profiling.updateButton')}}</el-button
+        >{{ this.$t("profiling.updateButton") }}</el-button
       >
     </div>
     <div
@@ -466,7 +461,7 @@
         height: infoHeight,
       }"
     >
-      <div class="title">{{this.$t('profiling.nodeAttribute')}}</div>
+      <div class="title">{{ this.$t("profiling.nodeAttribute") }}</div>
       <template v-if="selectedNode">
         <div class="node-name" :title="selectedNode.name">
           {{ selectedNode.name }}
@@ -562,15 +557,15 @@
         </div>
       </template>
       <template v-else>
-        <div class="title">{{this.$t('profiling.noneNodesTips')}}</div>
+        <div class="title">{{ this.$t("profiling.noneNodesTips") }}</div>
       </template>
     </div>
   </div>
 </template>
 
 <script>
-import draggable from 'vuedraggable';
-import elkGraph from '@/mixins/elk-graph';
+import draggable from "vuedraggable";
+import elkGraph from "@/mixins/elk-graph";
 import {
   expandStackedNode,
   querySingleNode,
@@ -579,35 +574,35 @@ import {
   changeShowNodeType,
   changeShowRankId,
   edgeIdMap,
-} from '../../js/build-graph';
+} from "../../js/build-graph";
 import {
   IN_PORT_SUFFIX,
   OUT_PORT_SUFFIX,
   EDGE_SEPARATOR,
   NODE_TYPE,
-} from '../../js/const';
-import SvgElContainer from '@/components/svg-el-container.vue';
-import scopeNode from './graph-nodes/scope-node.vue';
-import operatorNodeVue from './graph-nodes/operator-node.vue';
-import GraphEdge from './graph-edge.vue';
-import ParallelBar from './parallel-bar.vue';
-import stackedStructureNodeVue from './graph-nodes/stacked-structure-node.vue';
-import {dataNodeMap, getEdge} from '../../js/create-elk-graph';
-import StrategyMatrix from './graph-nodes/strategy-matrix.vue';
-import PipelineOpenBtn from '@/assets/images/svg/pipeline-open.svg';
-import PipelineCloseBtn from '@/assets/images/svg/pipeline-close.svg';
-import PipelineLink from '@/assets/images/svg/link.svg';
+} from "../../js/const";
+import SvgElContainer from "@/components/svg-el-container.vue";
+import scopeNode from "./graph-nodes/scope-node.vue";
+import operatorNodeVue from "./graph-nodes/operator-node.vue";
+import GraphEdge from "./graph-edge.vue";
+import ParallelBar from "./parallel-bar.vue";
+import stackedStructureNodeVue from "./graph-nodes/stacked-structure-node.vue";
+import { dataNodeMap, getEdge } from "../../js/create-elk-graph";
+import StrategyMatrix from "./graph-nodes/strategy-matrix.vue";
+import PipelineOpenBtn from "@/assets/images/svg/pipeline-open.svg";
+import PipelineCloseBtn from "@/assets/images/svg/pipeline-close.svg";
+import PipelineLink from "@/assets/images/svg/link.svg";
 const CONNECTED_OPACITY = 1;
 const UNCONNECTED_OPACITY = 0.4;
 const COMM_LIST = new Set([
-  'AllReduce',
-  'AllGather',
-  'AllToAll',
-  'ReduceScatter',
+  "AllReduce",
+  "AllGather",
+  "AllToAll",
+  "ReduceScatter",
 ]);
 
 export default {
-  name: 'graph-conatiner',
+  name: "graph-conatiner",
 
   components: {
     draggable,
@@ -639,10 +634,10 @@ export default {
       bipartite: true,
       isClickOperatorNode: new Map(),
       clickTimer: null,
-      infoHeight: '82px',
-      inputInfoHeight: '',
-      outputInfoHeight: '',
-      attributeInfoHeight: '',
+      infoHeight: "82px",
+      inputInfoHeight: "",
+      outputInfoHeight: "",
+      attributeInfoHeight: "",
       selectedNode: null,
       notShowTypes: Object.keys(NODE_TYPE),
 
@@ -663,20 +658,20 @@ export default {
       rectNumInEachColumn: 0,
       pipelineArrowPadding: 16,
 
-      pipelineSendRectColor: '#e9a39d',
-      pipelineReceiveRectColor: '#8fc6ad',
-      pipelineArrowColor: '#e4e4e4',
+      pipelineSendRectColor: "#e9a39d",
+      pipelineReceiveRectColor: "#8fc6ad",
+      pipelineArrowColor: "#e4e4e4",
 
       isPipelineContainerShow: false,
-      curPipelineBtn: 'PipelineOpenBtn',
+      curPipelineBtn: "PipelineOpenBtn",
 
       isDrag: false,
 
       dragOptions: {
         animation: 200,
-        group: 'description',
+        group: "description",
         disabled: false,
-        ghostClass: 'ghost',
+        ghostClass: "ghost",
       },
     };
   },
@@ -704,13 +699,13 @@ export default {
     instanceType2Class(extraAttr) {
       if (extraAttr && extraAttr.type) {
         switch (extraAttr.type) {
-          case 'GradientAggregation':
-            return 'outline-y';
+          case "GradientAggregation":
+            return "outline-y";
           default:
-            return 'outline-g';
+            return "outline-g";
         }
       }
-      return '';
+      return "";
     },
     getPipelineNodePosition(firstIndex, secondIndex, thirdIndex) {
       if (this.pipelineNodeInfo === null) return;
@@ -722,11 +717,11 @@ export default {
       const blockBetween = 50;
       const viewMargin = 10;
       const maxFirstBlockItemCount = this.pipelineNodeInfo[0].reduce(
-          (pre, cur) => {
-            if (cur.length > pre) return cur.length;
-            else return pre;
-          },
-          0,
+        (pre, cur) => {
+          if (cur.length > pre) return cur.length;
+          else return pre;
+        },
+        0
       );
       let x = 0;
       let y = 0;
@@ -774,15 +769,15 @@ export default {
           endPos[0] + 4,
           endPos[1] + this.pipelineRectWidth / 2,
         ];
-        return `M${startPos.join(' ')} C ${startControlPoint.join(
-            ' ',
-        )}, ${endControlPoint.join(' ')}, ${endPos.join(
-            ' ',
-        )} L ${arrowPointPos.join(' ')} L ${shiftEndPos.join(
-            ' ',
-        )} C ${shiftEndControlPoint.join(' ')}, ${shiftStartControlPoint.join(
-            ' ',
-        )}, ${shiftStartPos.join(' ')}`;
+        return `M${startPos.join(" ")} C ${startControlPoint.join(
+          " "
+        )}, ${endControlPoint.join(" ")}, ${endPos.join(
+          " "
+        )} L ${arrowPointPos.join(" ")} L ${shiftEndPos.join(
+          " "
+        )} C ${shiftEndControlPoint.join(" ")}, ${shiftStartControlPoint.join(
+          " "
+        )}, ${shiftStartPos.join(" ")}`;
       } else {
         const startPos = this.getPipelineNodePosition(...start);
         startPos[0] += -this.pipelineRectMargin;
@@ -811,21 +806,21 @@ export default {
           endPos[0] - 4,
           endPos[1] + this.pipelineRectWidth / 2,
         ];
-        return `M${startPos.join(' ')} C ${startControlPoint.join(
-            ' ',
-        )}, ${endControlPoint.join(' ')}, ${endPos.join(
-            ' ',
-        )} L ${arrowPointPos.join(' ')} L ${shiftEndPos.join(
-            ' ',
-        )} C ${shiftEndControlPoint.join(' ')}, ${shiftStartControlPoint.join(
-            ' ',
-        )}, ${shiftStartPos.join(' ')}`;
+        return `M${startPos.join(" ")} C ${startControlPoint.join(
+          " "
+        )}, ${endControlPoint.join(" ")}, ${endPos.join(
+          " "
+        )} L ${arrowPointPos.join(" ")} L ${shiftEndPos.join(
+          " "
+        )} C ${shiftEndControlPoint.join(" ")}, ${shiftStartControlPoint.join(
+          " "
+        )}, ${shiftStartPos.join(" ")}`;
       }
     },
     getBindPropertyOfNode(node) {
       switch (node.type) {
         case NODE_TYPE.aggregate_scope:
-          return {...node, stackedCount: this.getStackedCount(node)};
+          return { ...node, stackedCount: this.getStackedCount(node) };
         default:
           return node;
       }
@@ -847,9 +842,9 @@ export default {
       const attributeInfoHeight = this.selectedNode.attribute
         ? Object.keys(this.selectedNode.attribute).length * 16
         : 0;
-      this.inputInfoHeight = inputInfoHeight + 'px';
-      this.outputInfoHeight = outputInfoHeight + 'px';
-      this.attributeInfoHeight = attributeInfoHeight + 'px';
+      this.inputInfoHeight = inputInfoHeight + "px";
+      this.outputInfoHeight = outputInfoHeight + "px";
+      this.attributeInfoHeight = attributeInfoHeight + "px";
       this.infoHeight =
         inputInfoHeight +
         outputInfoHeight +
@@ -859,7 +854,7 @@ export default {
         24 * 4 +
         16 +
         8 +
-        'px';
+        "px";
     },
 
     clickNode(node) {
@@ -873,7 +868,7 @@ export default {
 
     dbClickScope(event, opt) {
       clearTimeout(this.clickTimer);
-      const {stacked} = opt;
+      const { stacked } = opt;
       if (stacked) {
         this.doubleClickStackedNode(event, opt);
       } else {
@@ -881,7 +876,7 @@ export default {
       }
     },
 
-    doubleClickStackedNode(event, {id}) {
+    doubleClickStackedNode(event, { id }) {
       event.stopPropagation();
       this.hoverEdges = [];
       this.resetPathSearch();
@@ -890,7 +885,7 @@ export default {
       this.updateVisGraph(visGraph);
     },
 
-    dblClickOperatorNode(event, {id}) {
+    dblClickOperatorNode(event, { id }) {
       clearTimeout(this.clickTimer);
       event.stopPropagation();
       if (this.isClickOperatorNode.get(id)) return;
@@ -927,7 +922,7 @@ export default {
       });
     },
 
-    mouseEnterOperatorNode(event, {id}) {
+    mouseEnterOperatorNode(event, { id }) {
       event.stopPropagation();
       if (!COMM_LIST.has(getSingleNode(id).type)) return;
       // console.log("mouse enter " + id);
@@ -966,7 +961,7 @@ export default {
 
         const start = this.visPortMap.get(`${inputID}${OUT_PORT_SUFFIX}`);
         const end = this.visPortMap.get(
-            `${dataNodeMap.get(inputID).root}${OUT_PORT_SUFFIX}`,
+          `${dataNodeMap.get(inputID).root}${OUT_PORT_SUFFIX}`
         );
         if (!start || !end) return;
         start.opacity = CONNECTED_OPACITY;
@@ -995,7 +990,7 @@ export default {
         }
 
         const start = this.visPortMap.get(
-            `${dataNodeMap.get(outputID).root}${IN_PORT_SUFFIX}`,
+          `${dataNodeMap.get(outputID).root}${IN_PORT_SUFFIX}`
         );
         const end = this.visPortMap.get(`${outputID}${IN_PORT_SUFFIX}`);
         if (!start || !end) return;
@@ -1010,7 +1005,7 @@ export default {
       });
     },
 
-    mouseLeaveOperatorNode(event, {id}) {
+    mouseLeaveOperatorNode(event, { id }) {
       event.stopPropagation();
       if (!COMM_LIST.has(getSingleNode(id).type)) return;
       // console.log("mouse leave " + id);
@@ -1030,17 +1025,17 @@ export default {
     },
     hoverStrategyNode(name, nodeId) {
       const hoverEdges = [];
-      const key = name + '->' + nodeId;
+      const key = name + "->" + nodeId;
       const id = edgeIdMap[key];
       if (this.visEdgeMap.has(id)) {
         hoverEdges.push(this.visEdgeMap.get(id));
       } else {
-        const [source, target] = id.split('->');
+        const [source, target] = id.split("->");
         const edges = getEdge(source, target, this.conceptual);
-        if (edges === 'HIDDEN') {
+        if (edges === "HIDDEN") {
           this.showHiddenEdges(
-              this.visPortMap.get(target + IN_PORT_SUFFIX),
-              source,
+            this.visPortMap.get(target + IN_PORT_SUFFIX),
+            source
           );
         } else {
           edges.forEach((edge) => {
@@ -1066,7 +1061,7 @@ export default {
 
     calcPipelineParas() {
       this.rectNumInEachColumn = Object.keys(
-          this.pipelinedStageInfo['0-1'],
+        this.pipelinedStageInfo["0-1"]
       ).length;
       this.pipelineRectWidth =
         (this.pipelineGraphHeight -
@@ -1102,23 +1097,23 @@ export default {
         this.pipelineStageReceiveInfo_rtl.push([]);
       }
       Object.keys(this.pipelinedStageInfo).forEach((key) => {
-        const tmp = key.split('-');
+        const tmp = key.split("-");
         const sender = Number(tmp[0]);
         const receiver = Number(tmp[1]);
         for (const tag in this.pipelinedStageInfo[key]) {
           if (sender < receiver) {
             this.pipelineStageSendInfo_ltr[sender].push(
-                this.pipelinedStageInfo[key][tag][0],
+              this.pipelinedStageInfo[key][tag][0]
             );
             this.pipelineStageReceiveInfo_ltr[receiver].push(
-                this.pipelinedStageInfo[key][tag][1],
+              this.pipelinedStageInfo[key][tag][1]
             );
           } else {
             this.pipelineStageSendInfo_rtl[sender].push(
-                this.pipelinedStageInfo[key][tag][0],
+              this.pipelinedStageInfo[key][tag][0]
             );
             this.pipelineStageReceiveInfo_rtl[receiver].push(
-                this.pipelinedStageInfo[key][tag][1],
+              this.pipelinedStageInfo[key][tag][1]
             );
           }
         }
@@ -1135,7 +1130,7 @@ export default {
     },
 
     clickPipelineRect(nodeID, stageID) {
-      this.showRankId = stageID + '';
+      this.showRankId = stageID + "";
       changeShowRankId(this.showRankId);
       this.getDisplayedGraph(this.showNodeType, this.showRankId);
       setTimeout(() => {
@@ -1145,13 +1140,13 @@ export default {
 
     clickPipelineBtn() {
       if (!this.isPipelineContainerShow) {
-        this.$refs['pipeline-button'].style.left = '560px';
-        this.$refs['pipeline-container'].style.left = '12px';
-        this.curPipelineBtn = 'PipelineCloseBtn';
+        this.$refs["pipeline-button"].style.left = "560px";
+        this.$refs["pipeline-container"].style.left = "12px";
+        this.curPipelineBtn = "PipelineCloseBtn";
       } else {
-        this.$refs['pipeline-button'].style.left = '30px';
-        this.$refs['pipeline-container'].style.left = '-560px';
-        this.curPipelineBtn = 'PipelineOpenBtn';
+        this.$refs["pipeline-button"].style.left = "30px";
+        this.$refs["pipeline-container"].style.left = "-560px";
+        this.curPipelineBtn = "PipelineOpenBtn";
       }
       this.isPipelineContainerShow = !this.isPipelineContainerShow;
     },
@@ -1167,7 +1162,11 @@ export default {
 
     clickUpdateEdgeTypeBtn() {
       console.log(this.edgeTypesArray);
-      this.getDisplayedGraph(this.showNodeType, this.showRankId, this.edgeTypesArray);
+      this.getDisplayedGraph(
+        this.showNodeType,
+        this.showRankId,
+        this.edgeTypesArray
+      );
     },
   },
 };
@@ -1433,7 +1432,7 @@ export default {
   width: 240px;
   top: 12px;
   right: 260px;
-  
+
   border-top: 1px solid #d3d3d3;
 }
 
