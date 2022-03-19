@@ -24,7 +24,7 @@ Lasso.prototype.bind = function () {
         var id = d3.select(d).attr("id");
         newNodes[id] = 1;
       });
-      // console.log(newNodes);
+      console.log(newNodes);
       if (Object.keys(newNodes).length != 0) {
         //   window.graph.delete(newNodes);
         var m = new Matrix();
@@ -36,4 +36,6 @@ Lasso.prototype.bind = function () {
     });
   this.svg.call(this.lasso);
 };
-Lasso.prototype.unbind = function () {};
+Lasso.prototype.unbind = function () {
+  d3.select(".lasso").remove();
+};

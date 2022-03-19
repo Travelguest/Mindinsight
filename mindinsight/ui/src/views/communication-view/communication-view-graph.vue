@@ -226,8 +226,8 @@ export default {
 
       // window.graph.create(dataLink, dataNode);
       // window.paths.create(dataLink);
-      window.lasso = new Lasso();
-      window.lasso.bind();
+      // window.lasso = new Lasso();
+      // window.lasso.bind();
     },
 
     //折线图

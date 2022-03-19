@@ -51,19 +51,17 @@ Matrix.prototype.create = function (node, linkSelect = false) {
     // // window.graph.pushNode(node);
   });
   this.nodeData = window.graph.getNodesData(node);
-  // console.log(this.nodeData);
-  var _this = this;
+
   for (var i in node) {
     this.nodes.push(node[i]);
-    // window.matrix_node.push(node[i]);
   }
 
   this.num_nodes = node.length;
   var originData = window.graph.getLinks();
-  // console.log(originData);
-  originData.forEach(function (d) {
-    if (node.includes(d.source.id) && node.includes(d.target.id)) {
-      _this.edges.push(d);
+
+  originData.forEach((d) => {
+    if (node.includes(d.source) && node.includes(d.target)) {
+      this.edges.push(d);
     }
   });
 
@@ -74,9 +72,10 @@ Matrix.prototype.create = function (node, linkSelect = false) {
     }
   }
   // console.log(this.edges);
+  // console.log(this.nodes);
   for (var i in this.edges) {
-    var x = this.nodes.indexOf(this.edges[i].source.id);
-    var y = this.nodes.indexOf(this.edges[i].target.id);
+    var x = this.nodes.indexOf(this.edges[i].source);
+    var y = this.nodes.indexOf(this.edges[i].target);
     // console.log(this.edges[i].op_traffic.join());
     this.adj_matrix[x][y] = {
       exist: true,
