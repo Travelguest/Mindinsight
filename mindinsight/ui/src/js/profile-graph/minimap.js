@@ -40,6 +40,7 @@ Minimap.prototype.create = function () {
   this.store.setMiniBox(this.bigWidth, bigHeight);
 
   var container = d3.select(".svgCanvas>.minimap");
+  container.attr("clip-path", "url(#minimapClipPath)");
 
   container.attr(
     "transform",
@@ -69,6 +70,9 @@ Minimap.prototype.create = function () {
         -box.y +
         ")"
     );
+  // d3.select(".svgCanvas>defs")
+  //   .append("clipPath")
+  //   .attr("id", "minimap-clipPath");
   this.generateFrame();
 };
 
@@ -110,7 +114,6 @@ Minimap.prototype.generateFrame = function () {
     this.store.changeMinimap(this.transform);
   };
   frameEl.onwheel = (e) => {
-    console.log("hello");
     this.transform = this.store.getTransform();
     let delta = e.wheelDelta && (e.wheelDelta > 0 ? 1 : -1);
     if (delta > 0) {
@@ -155,44 +158,8 @@ Minimap.prototype.generateFrame = function () {
       dragging = false;
     }
   };
-  frameEl.onmousemove = (e) => {
+  frameEl.onmouseleave = (e) => {
     if (dragging) {
-      var tmpT = [0, 0, this.transform[2]];
-      tmpT[0] = this.transform[0] + (e.offsetX - offsetX);
-      tmpT[1] = this.transform[1] + (e.offsetY - offsetY);
-
-      frame.attr(
-        "transform",
-        "translate(" +
-          [tmpT[0], tmpT[1]].join(" ") +
-          ")" +
-          "scale(" +
-          tmpT[2] +
-          ")"
-      );
-    }
-  };
-  minimapEl.onmousemove = (e) => {
-    if (dragging) {
-      var tmpT = [0, 0, this.transform[2]];
-      tmpT[0] = this.transform[0] + (e.offsetX - offsetX);
-      tmpT[1] = this.transform[1] + (e.offsetY - offsetY);
-
-      frame.attr(
-        "transform",
-        "translate(" +
-          [tmpT[0], tmpT[1]].join(" ") +
-          ")" +
-          "scale(" +
-          tmpT[2] +
-          ")"
-      );
-    }
-  };
-  minimapEl.onmouseup = (e) => {
-    // console.log("mouseup");
-    if (dragging) {
-      // console.log(this.transform);
       this.transform = this.store.getTransform();
       this.transform[0] = this.transform[0] + (e.offsetX - offsetX);
       this.transform[1] = this.transform[1] + (e.offsetY - offsetY);
@@ -210,6 +177,61 @@ Minimap.prototype.generateFrame = function () {
       dragging = false;
     }
   };
+  frameEl.onmousemove = (e) => {
+    if (dragging) {
+      var tmpT = [0, 0, this.transform[2]];
+      tmpT[0] = this.transform[0] + (e.offsetX - offsetX);
+      tmpT[1] = this.transform[1] + (e.offsetY - offsetY);
+
+      frame.attr(
+        "transform",
+        "translate(" +
+          [tmpT[0], tmpT[1]].join(" ") +
+          ")" +
+          "scale(" +
+          tmpT[2] +
+          ")"
+      );
+    }
+  };
+  // minimapEl.onmousemove = (e) => {
+  //   if (dragging) {
+  //     var tmpT = [0, 0, this.transform[2]];
+  //     tmpT[0] = this.transform[0] + (e.offsetX - offsetX);
+  //     tmpT[1] = this.transform[1] + (e.offsetY - offsetY);
+
+  //     frame.attr(
+  //       "transform",
+  //       "translate(" +
+  //         [tmpT[0], tmpT[1]].join(" ") +
+  //         ")" +
+  //         "scale(" +
+  //         tmpT[2] +
+  //         ")"
+  //     );
+  //   }
+  // };
+  // minimapEl.onmouseup = (e) => {
+  //   // console.log("mouseup");
+  //   if (dragging) {
+  //     // console.log(this.transform);
+  //     this.transform = this.store.getTransform();
+  //     this.transform[0] = this.transform[0] + (e.offsetX - offsetX);
+  //     this.transform[1] = this.transform[1] + (e.offsetY - offsetY);
+
+  //     frame.attr(
+  //       "transform",
+  //       "translate(" +
+  //         [this.transform[0], this.transform[1]].join(" ") +
+  //         ")" +
+  //         "scale(" +
+  //         this.transform[2] +
+  //         ")"
+  //     );
+  //     this.store.changeMinimap(this.transform);
+  //     dragging = false;
+  //   }
+  // };
   // minimapEl.onmousemove = (e) => {
   //   if (dragging) {
   //     // this.transform = this.store.getTransform();
