@@ -205,4 +205,12 @@ export default {
 .config-sub-title h2 {
   margin-bottom: 0;
 }
+
+.ant-select-open .ant-select-selection {
+  border-color: #fff !important;
+}
+.ant-select-dropdown {
+  /* border-shadow: */
+  box-shadow: 0 0 !important;
+}
 </style>
