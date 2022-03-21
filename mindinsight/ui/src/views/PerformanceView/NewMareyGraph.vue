@@ -83,6 +83,10 @@
             :points="data.data"
             :fill="OperatorColor.get(data.type)"
             fill-opacity="1"
+            :stroke="
+              highLightOpSet && highLightOpSet.has(data.op) ? 'black' : ''
+            "
+            stroke-width="2px"
             @mousemove="onNodeMouseover($event, data, 'stage')"
             @mouseout="onNodeMouseout"
           />
@@ -168,9 +172,28 @@ export default {
     MemoryDataProps: function () {
       requestIdleCallback(this.MemoryDataProcessing);
     },
-    nameScope: function (newVal, oldVal) {
-      console.log("nameScopeToPerformanceView变了", oldVal, newVal);
+    nameScope: function (newVal) {
+      // console.log("nameScopeToPerformanceView变了", oldVal, newVal);
       //聚焦
+      const opArr = this.nameScopeToOp.get(newVal);
+      if (!opArr || !opArr.length) {
+        return;
+      }
+      let minT = Infinity;
+      let maxT = -Infinity;
+      opArr.forEach((op) => {
+        const curOpDeviceData = this.displayedData[op] || [];
+        curOpDeviceData.forEach((dt) => {
+          minT = Math.min(dt.x1, minT);
+          maxT = Math.max(dt.x2, maxT);
+        });
+      });
+      if (minT === Infinity || maxT === -Infinity) {
+        return;
+      }
+      //保存一个高亮集合
+      this.highLightOpSet = new Set(opArr);
+      this.reRenderChart(minT, maxT);
     },
   },
   data() {
@@ -201,6 +224,7 @@ export default {
       Memory: { min: 0, max: 0 },
       nameScopeToOp: null,
       opToNameScope: null,
+      highLightOpSet: null,
 
       hoveredNodeInfo: {
         show: false,
@@ -499,13 +523,17 @@ export default {
     },
     nameScopeProcessing() {
       const { scope_map } = this.timeLineData || {};
-
       const map = new Map(); // nameScope命名空间 - op算子名的映射
       Object.keys(scope_map).forEach((op) => {
-        map.set(scope_map[op], op);
+        const nameScope = scope_map[op];
+        if (!map.has(nameScope)) {
+          map.set(nameScope, []); //初始化为数组
+        }
+        map.get(nameScope).push(op);
       });
       this.opToNameScope = scope_map;
       this.nameScopeToOp = map;
+      console.log("nameScopeToOp", map);
     },
 
     timeLineDataProcessing() {
@@ -548,7 +576,7 @@ export default {
       }
       this.timeStack.push([minT, maxT]);
       this.displayedData = displayedData;
-      // console.log("displayedData", displayedData);
+      console.log("displayedData", displayedData);
     },
     stageDataProcessing() {
       const { stage_data } = this.timeLineData || {};
@@ -605,6 +633,7 @@ export default {
       }
     },
     FLOPsDataProcessing() {
+      if (!this.data) return;
       const MFLOPsData = [];
       let min = Infinity;
       let max = -Infinity;
@@ -634,6 +663,7 @@ export default {
       this.MFLOPs.max = max;
     },
     MemoryDataProcessing() {
+      if (!this.data) return;
       const MemoryData = [];
       let min = Infinity;
       let max = -Infinity;
@@ -683,16 +713,19 @@ export default {
       if (!extent) return;
 
       const [left, right] = extent.map((d) => this.xScale.invert(d));
-      // console.log("extent", extent, left, right);
+      this.reRenderChart(left, right);
+
+      this.g.select(".brush").call(this.brush.move, null); // This remove the grey brush area as soon as the selection has been done
+
+      // this.g.select(".marey-graph").transition().duration(1000);
+    },
+    reRenderChart(left, right) {
       //改变minT,maxT，进而改变xScale.domain引起FLOPs和memory刷新
       this.timeStack.push([this.minT, this.maxT]); //缓存
       this.minT = left;
       this.maxT = right;
       this.stageMareyGraphRender(left, right); //刷新stageMareyGraph
       this.mareyGraphReRender(left, right); //刷新mareyGraph
-      this.g.select(".brush").call(this.brush.move, null); // This remove the grey brush area as soon as the selection has been done
-
-      // this.g.select(".marey-graph").transition().duration(1000);
     },
     handleClick(opName) {
       const nameScope = this.opToNameScope[opName];
@@ -705,6 +738,8 @@ export default {
     },
     handleDblclick() {
       if (!this.timeStack.length) {
+        //回到起点清除高亮
+        // this.highLightOpSet = null;
         return;
       }
       const [preMinT, preMaxT] = this.timeStack.pop();
@@ -713,7 +748,6 @@ export default {
       this.stageMareyGraphRender(preMinT, preMaxT);
       this.mareyGraphReRender(preMinT, preMaxT);
     },
-
     onNodeMouseover(e, data, type = "") {
       const { layerX, layerY } = e || {};
       if (type === "stage") {
