@@ -2,20 +2,38 @@
   <div class="performance-view-container">
     <div class="top">
       <div class="left">
-        <StageTree
-          :stageDeviceArr="stageDeviceArr"
-          :stageDeviceRelationship="stageDeviceRelationship"
-          @clickArrowIcon="handleclickArrowIcon"
-        />
+        <div class="view-header">
+          <div class="view-title-bg">
+            <h1 class="view-title-name">Performance View</h1>
+          </div>
+        </div>
+        <!-- <div class="view-title-bg">
+          <h1 class="view-title-name">Communication View</h1>
+        </div> -->
+        <communication-view-graph />
       </div>
       <div class="right">
-        <MareyGraph
-          :stepNumber="stepNumber"
-          :stageDeviceArr="stageDeviceArr"
-          :timeLineData="timeLineData"
-          :FLOPsData="FLOPsData"
-          :MemoryDataProps="MemoryData"
-        />
+        <div class="legend">
+          <LegendPerformance />
+        </div>
+        <div class="view">
+          <div class="stage-tree">
+            <StageTree
+              :stageDeviceArr="stageDeviceArr"
+              :stageDeviceRelationship="stageDeviceRelationship"
+              @clickArrowIcon="handleclickArrowIcon"
+            />
+          </div>
+          <div class="marey-graph">
+            <MareyGraph
+              :stepNumber="stepNumber"
+              :stageDeviceArr="stageDeviceArr"
+              :timeLineData="timeLineData"
+              :FLOPsData="FLOPsData"
+              :MemoryDataProps="MemoryData"
+            />
+          </div>
+        </div>
       </div>
     </div>
     <div class="bottom">
@@ -40,6 +58,8 @@ import LineChart from "./LineChart.vue";
 import StackedColumnChart from "./StackedColumnChart.vue";
 import MareyGraph from "./NewMareyGraph.vue";
 import StageTree from "./StageTree.vue";
+import CommunicationViewGraph from "../communication-view/communication-view-graph.vue";
+import LegendPerformance from "../PerformanceView/LegendPerformance.vue";
 
 export default {
   name: "PerformanceView",
@@ -48,6 +68,8 @@ export default {
     StackedColumnChart,
     MareyGraph,
     StageTree,
+    CommunicationViewGraph,
+    LegendPerformance,
   },
   computed: {
     stepNumber() {
@@ -153,13 +175,25 @@ export default {
   flex-direction: row;
 }
 .performance-view-container .top .left {
-  flex-basis: 200px;
+  flex-basis: 16%;
 }
 .performance-view-container .top .right {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.performance-view-container .top .right .view {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+}
+.performance-view-container .top .right .view .stage-tree {
+  flex-basis: 200px;
+}
+.performance-view-container .top .right .view .marey-graph {
   flex: 1;
 }
 .performance-view-container .bottom {
-  margin-bottom: 45px;
   display: flex;
   flex-direction: row;
 }
@@ -168,5 +202,21 @@ export default {
 }
 .performance-view-container .bottom .right {
   flex: 1;
+}
+.view-title-bg {
+  border-top: 35px solid #838383;
+  border-right: 50px solid transparent;
+  width: 220px;
+}
+.view-title-name {
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 35px;
+  margin-top: -35px;
+  padding-left: 10px;
+  margin-bottom: 0;
+}
+.view-header {
+  display: flex;
 }
 </style>
