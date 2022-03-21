@@ -82,7 +82,7 @@
             :key="`${stepNumber}-stage-${data.op}-${index}`"
             :points="data.data"
             :fill="OperatorColor.get(data.type)"
-            fill-opacity="1"
+            :fill-opacity="OperatorColorOpacity.get(data.type)"
             :stroke="
               highLightOpSet && highLightOpSet.has(data.op) ? 'black' : ''
             "
@@ -238,6 +238,7 @@ export default {
       },
       brush: null,
       OperatorColor: new Map(),
+      OperatorColorOpacity: new Map(),
       isOpenSwitch: true,
     };
   },
@@ -313,6 +314,9 @@ export default {
       this.OperatorColor.set(InnerLayer, "#789395");
       this.OperatorColor.set(MiddleLayer, "#94B49F");
       this.OperatorColor.set(OuterLayer, "#B4CFB0");
+      this.OperatorColorOpacity.set(InnerLayer, "1");
+      this.OperatorColorOpacity.set(MiddleLayer, "#94B49F");
+      this.OperatorColorOpacity.set(OuterLayer, "#B4CFB0");
     },
     stageMareyGraphRender(left = Number.MIN_VALUE, right = Number.MAX_VALUE) {
       if (!this.stageDisplayedData) {
@@ -533,7 +537,7 @@ export default {
       });
       this.opToNameScope = scope_map;
       this.nameScopeToOp = map;
-      console.log("nameScopeToOp", map);
+      // console.log("nameScopeToOp", map);
     },
 
     timeLineDataProcessing() {
@@ -576,7 +580,7 @@ export default {
       }
       this.timeStack.push([minT, maxT]);
       this.displayedData = displayedData;
-      console.log("displayedData", displayedData);
+      // console.log("displayedData", displayedData);
     },
     stageDataProcessing() {
       const { stage_data } = this.timeLineData || {};
@@ -729,7 +733,7 @@ export default {
     },
     handleClick(opName) {
       const nameScope = this.opToNameScope[opName];
-      console.log("点击", nameScope, opName);
+      // console.log("点击", nameScope, opName);
       if (!nameScope) {
         console.log("没有该命名空间");
         return;
