@@ -168,6 +168,10 @@ export default {
     MemoryDataProps: function () {
       requestIdleCallback(this.MemoryDataProcessing);
     },
+    nameScope: function (newVal, oldVal) {
+      console.log("nameScopeToPerformanceView变了", oldVal, newVal);
+      //聚焦
+    },
   },
   data() {
     return {
@@ -259,6 +263,9 @@ export default {
         .curve(d3.curveCatmullRom)
         .x((d) => this.xScale(d.x))
         .y((d) => this.yScale(d.device) + this.MemoryScale(d.y));
+    },
+    nameScope() {
+      return this.$store.state.nameScopeToPerformanceView;
     },
   },
   mounted() {
@@ -603,7 +610,7 @@ export default {
       let max = -Infinity;
       Object.keys(this.FLOPsData).forEach((device) => {
         const curDeviceMFIPsData = [];
-        const arr = this.FLOPsData[device]["details"];
+        const arr = this.FLOPsData[device]["details"] || [];
         arr.forEach((opInfo) => {
           const opName = opInfo["op_full_name"].split("/").pop();
           const opData = this.data[device][opName];
@@ -633,7 +640,7 @@ export default {
 
       Object.keys(this.MemoryDataProps).forEach((device) => {
         const curDeviceMemoryData = [];
-        const { lines, nodes } =
+        const { lines, nodes = [] } =
           this.MemoryDataProps[device]["details"]["1"] || {};
 
         for (let i = 0; i < nodes.length; i++) {
@@ -689,10 +696,12 @@ export default {
     },
     handleClick(opName) {
       const nameScope = this.opToNameScope[opName];
+      console.log("点击", nameScope, opName);
       if (!nameScope) {
         console.log("没有该命名空间");
+        return;
       }
-      this.$store.commit("setNameScope", nameScope);
+      this.$store.commit("setNameScopeToParallelStrategy", nameScope);
     },
     handleDblclick() {
       if (!this.timeStack.length) {
