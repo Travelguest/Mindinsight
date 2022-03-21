@@ -30,7 +30,6 @@ Store.prototype.changeViewBox = function (viewBox) {
     "translate(" + xtrans + " " + ytrans + ")" + "scale(" + s + ")"
   );
   this.miniTransform = [xtrans, ytrans, s];
-  console.log(this.miniTransform);
 };
 Store.prototype.changeMinimap = function (transform) {
   this.miniTransform = transform;

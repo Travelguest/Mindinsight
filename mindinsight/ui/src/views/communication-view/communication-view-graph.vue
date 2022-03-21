@@ -84,6 +84,12 @@ export default {
   mounted() {
     this.initGraph();
   },
+  watch: {
+    "$store.state.stepNum": function (val) {
+      this.stepNum = val;
+      this.renderNetwork();
+    },
+  },
 
   methods: {
     async initGraph() {
@@ -218,15 +224,16 @@ export default {
       var path_layer = svg.append("g").attr("id", "path");
 
       window.graph = new Graph(width, height);
-      window.paths = new Paths();
-      window.matrix_list = [];
-      window.matrix_node = [];
-      var originData = dataLink;
+      window.graph.init(dataLink, dataNode);
+      // window.paths = new Paths();
+      // window.matrix_list = [];
+      // window.matrix_node = [];
+      // var originData = dataLink;
 
-      window.graph.create(dataLink, dataNode);
-      window.paths.create(dataLink);
-      window.lasso = new Lasso();
-      window.lasso.bind();
+      // window.graph.create(dataLink, dataNode);
+      // window.paths.create(dataLink);
+      // window.lasso = new Lasso();
+      // window.lasso.bind();
     },
 
     //折线图
@@ -278,7 +285,7 @@ export default {
 
         grid: {
           top: "5%",
-          left: "10%",
+          left: "15%",
           right: "20%",
           bottom: "5%",
           containLabel: true,
@@ -329,10 +336,26 @@ export default {
             color: "#cecfd1",
             showSymbol: false,
             data: waitingList,
+            markLine: {
+              symbol: "none", //去掉警戒线最后面的箭头
+              silent: true, //鼠标悬停事件  true没有，false有
+              label: {
+                position: "start", //将警示值放在哪个位置，三个值“start”,"middle","end"  开始  中点 结束
+              },
+              data: [
+                {
+                  type: "max",
+                  name: "最大值",
+                },
+              ],
+            },
           },
         ],
       };
       myChart.setOption(option);
+      myChart.on("click", (param) => {
+        this.$store.commit("setStepNum", Number(param.name));
+      });
     },
   },
 };
