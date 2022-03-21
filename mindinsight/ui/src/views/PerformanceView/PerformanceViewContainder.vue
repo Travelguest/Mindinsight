@@ -49,10 +49,14 @@ export default {
     MareyGraph,
     StageTree,
   },
+  computed: {
+    stepNumber() {
+      return this.$store.state.stepNum;
+    },
+  },
   data() {
     return {
       overViewData: null,
-      stepNumber: 1,
       timeLineData: null,
       FLOPsData: null,
       MemoryData: null,
@@ -78,8 +82,7 @@ export default {
         });
     },
     getStepNumber(stepNumber) {
-      // console.log("获取step", stepNumber);
-      this.stepNumber = stepNumber;
+      this.$store.commit("setStepNum", stepNumber);
       this.getTimeLineData();
     },
     getTimeLineData() {

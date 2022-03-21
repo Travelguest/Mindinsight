@@ -71,6 +71,7 @@
             fill-opacity="0.5"
             @mousemove="onNodeMouseover($event, data, 'device')"
             @mouseout="onNodeMouseout"
+            @click="handleClick(data.op)"
           />
         </g>
         <!-- stage-marey-graph -->
@@ -154,15 +155,18 @@ export default {
     },
     timeLineData: function () {
       this.stageDataProcessing();
-      this.timeLineDataProcessing();
       this.stageMareyGraphRender();
+
+      this.timeLineDataProcessing();
       this.mareyGraphReRender();
+
+      requestIdleCallback(this.nameScopeProcessing);
     },
     FLOPsData: function () {
-      this.timeLineData && this.FLOPsDataProcessing();
+      requestIdleCallback(this.FLOPsDataProcessing);
     },
     MemoryDataProps: function () {
-      this.timeLineData && this.MemoryDataProcessing();
+      requestIdleCallback(this.MemoryDataProcessing);
     },
   },
   data() {
@@ -191,6 +195,8 @@ export default {
       MFLOPs: { min: 0, max: 0 },
       MemoryData: [],
       Memory: { min: 0, max: 0 },
+      nameScopeToOp: null,
+      opToNameScope: null,
 
       hoveredNodeInfo: {
         show: false,
@@ -484,6 +490,17 @@ export default {
         this.polygonData = polygonData;
       }
     },
+    nameScopeProcessing() {
+      const { scope_map } = this.timeLineData || {};
+
+      const map = new Map(); // nameScope命名空间 - op算子名的映射
+      Object.keys(scope_map).forEach((op) => {
+        map.set(scope_map[op], op);
+      });
+      this.opToNameScope = scope_map;
+      this.nameScopeToOp = map;
+    },
+
     timeLineDataProcessing() {
       const { maps } = this.timeLineData || {};
       this.data = maps;
@@ -606,7 +623,6 @@ export default {
         MFLOPsData.push(curDeviceMFIPsData);
       });
       this.MFLOPsData = MFLOPsData; //保存每个device的FLOPs折线图数据
-      // console.log("MFLOPsData", MFLOPsData);
       this.MFLOPs.min = min;
       this.MFLOPs.max = max;
     },
@@ -671,6 +687,13 @@ export default {
 
       // this.g.select(".marey-graph").transition().duration(1000);
     },
+    handleClick(opName) {
+      const nameScope = this.opToNameScope[opName];
+      if (!nameScope) {
+        console.log("没有该命名空间");
+      }
+      this.$store.commit("setNameScope", nameScope);
+    },
     handleDblclick() {
       if (!this.timeStack.length) {
         return;
@@ -681,6 +704,7 @@ export default {
       this.stageMareyGraphRender(preMinT, preMaxT);
       this.mareyGraphReRender(preMinT, preMaxT);
     },
+
     onNodeMouseover(e, data, type = "") {
       const { layerX, layerY } = e || {};
       if (type === "stage") {
@@ -724,7 +748,6 @@ export default {
         };
       }
     },
-
     onNodeMouseout() {
       this.hoveredNodeInfo.show = false;
     },
