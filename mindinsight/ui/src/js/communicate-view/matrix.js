@@ -51,19 +51,17 @@ Matrix.prototype.create = function (node, linkSelect = false) {
     // // window.graph.pushNode(node);
   });
   this.nodeData = window.graph.getNodesData(node);
-  // console.log(this.nodeData);
-  var _this = this;
+
   for (var i in node) {
     this.nodes.push(node[i]);
-    // window.matrix_node.push(node[i]);
   }
 
   this.num_nodes = node.length;
   var originData = window.graph.getLinks();
-  // console.log(originData);
-  originData.forEach(function (d) {
-    if (node.includes(d.source.id) && node.includes(d.target.id)) {
-      _this.edges.push(d);
+
+  originData.forEach((d) => {
+    if (node.includes(d.source) && node.includes(d.target)) {
+      this.edges.push(d);
     }
   });
 
@@ -74,9 +72,10 @@ Matrix.prototype.create = function (node, linkSelect = false) {
     }
   }
   // console.log(this.edges);
+  // console.log(this.nodes);
   for (var i in this.edges) {
-    var x = this.nodes.indexOf(this.edges[i].source.id);
-    var y = this.nodes.indexOf(this.edges[i].target.id);
+    var x = this.nodes.indexOf(this.edges[i].source);
+    var y = this.nodes.indexOf(this.edges[i].target);
     // console.log(this.edges[i].op_traffic.join());
     this.adj_matrix[x][y] = {
       exist: true,
@@ -152,7 +151,7 @@ Matrix.prototype.render = function () {
               return "red";
             }
           }
-          return "black";
+          return "#848484";
         })
         .call(
           d3.drag().on("drag", function (d) {
@@ -227,7 +226,7 @@ Matrix.prototype.render = function () {
           .attr("y1", y)
           .attr("x2", xmax)
           .attr("y2", y)
-          .attr("stroke", "black");
+          .attr("stroke", "#848484");
         boxLayer
           .append("rect")
           .attr("x", x25)
@@ -243,7 +242,7 @@ Matrix.prototype.render = function () {
             .attr("y1", y - 0.5 * _this.barHight)
             .attr("x2", value)
             .attr("y2", y + 0.5 * _this.barHight)
-            .attr("stroke", "black");
+            .attr("stroke", "#848484");
         });
 
         _this.locallayer
@@ -307,7 +306,7 @@ Matrix.prototype.render = function () {
           .attr("y1", y)
           .attr("x2", xmax)
           .attr("y2", y)
-          .attr("stroke", "black");
+          .attr("stroke", "#848484");
         boxLayer
           .append("rect")
           .attr("x", x25)
@@ -323,7 +322,7 @@ Matrix.prototype.render = function () {
             .attr("y1", y - 0.5 * _this.barHight)
             .attr("x2", value)
             .attr("y2", y + 0.5 * _this.barHight)
-            .attr("stroke", "black");
+            .attr("stroke", "#848484");
         });
 
         var boxLayer = _this.locallayer
@@ -370,7 +369,7 @@ Matrix.prototype.render = function () {
           .attr("y1", y)
           .attr("x2", xmax)
           .attr("y2", y)
-          .attr("stroke", "black");
+          .attr("stroke", "#848484");
         boxLayer
           .append("rect")
           .attr("x", x25)
@@ -386,7 +385,7 @@ Matrix.prototype.render = function () {
             .attr("y1", y - 0.5 * _this.barHight)
             .attr("x2", value)
             .attr("y2", y + 0.5 * _this.barHight)
-            .attr("stroke", "black");
+            .attr("stroke", "#848484");
         });
       }
     }
@@ -399,7 +398,7 @@ Matrix.prototype.render = function () {
       .attr("y", _this.y + this.unitsize * i + this.barHight)
       .attr("width", Math.log(c_cost))
       .attr("height", _this.barHight * 2)
-      .style("fill", "gray");
+      .style("fill", "#848484");
     _this.locallayer
       .append("rect")
       .attr("class", this.nodes[i] + "-barchart")
@@ -407,7 +406,7 @@ Matrix.prototype.render = function () {
       .attr("y", _this.y + this.unitsize * i + 5 * this.barHight)
       .attr("width", Math.log(w_cost))
       .attr("height", _this.barHight * 2)
-      .style("fill", "gray");
+      .style("fill", "#848484");
   }
   // console.log(max_ccost, max_wcost);
   for (var i in this.nodes) {

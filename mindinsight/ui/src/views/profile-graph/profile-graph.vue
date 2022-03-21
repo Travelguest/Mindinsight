@@ -21,7 +21,7 @@
           <div class="right">
             <div
               v-for="(scope, index) in hoveredNodeInfo.node.scope.split('/')"
-              :key="scope + index"
+              :key="'host_tooltip' + scope + index"
               v-html="`${scope}/`"
             ></div>
           </div>
@@ -31,7 +31,7 @@
           <div class="right">
             <div
               v-for="input in hoveredNodeInfo.node.input"
-              :key="input"
+              :key="'host_hoveredNode_input' + input"
               v-html="
                 `${input}${
                   !isNaN(input)
@@ -47,7 +47,7 @@
           <div class="right">
             <div
               v-for="output in hoveredNodeInfo.node.output"
-              :key="output"
+              :key="'host_hoveredNode_output' + output"
               v-html="
                 `${output}${
                   !isNaN(output)
@@ -72,7 +72,7 @@
                 <radialGradient
                   v-for="namespace in selectNamespaces"
                   :id="namespace + '_halo'"
-                  :key="namespace + '_halo'"
+                  :key="'host' + namespace + '_halo'"
                   x1="0"
                   x2="0"
                   y1="0"
@@ -87,7 +87,7 @@
                 <g id="pipeline-extra-container" v-if="isPipelineLayout">
                   <text
                     v-for="(opNode, index) in opNodes"
-                    :key="index"
+                    :key="'host_extra' + index"
                     :x="bgdRectBlocks[0].x - 200"
                     :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
                     style="font-size: 40; font-weight: bold"
@@ -96,7 +96,7 @@
                   </text>
                   <rect
                     v-for="(bgdRectBlock, index) in bgdRectBlocks"
-                    :key="`${index}_bgdRectBlock`"
+                    :key="'host' + `${index}_bgdRectBlock`"
                     :x="bgdRectBlock.x"
                     :y="bgdRectBlock.y"
                     :width="bgdRectBlock.width"
@@ -110,11 +110,11 @@
                 <g id="graph-halo-container">
                   <g
                     v-for="([namespace, nodeGroup], index) in haloInfo"
-                    :key="namespace + index"
+                    :key="'host_haloInfo' + namespace + index"
                   >
                     <circle
                       v-for="node in nodeGroup.filter((v) => v !== undefined)"
-                      :key="node.id + 'halo' + index"
+                      :key="'host' + node.id + 'halo' + index"
                       :cx="node.x"
                       :cy="node.y"
                       r="50"
@@ -127,11 +127,11 @@
                   <g id="normal-edge-container">
                     <g
                       v-for="(normalEdgesGroup, groupIndex) in normalEdges"
-                      :key="groupIndex"
+                      :key="'host_normalEdge_group' + groupIndex"
                     >
                       <line
                         v-for="(edge, index) in normalEdgesGroup"
-                        :key="index"
+                        :key="'host_normal_edge' + index"
                         :x1="edge.source.x"
                         :y1="edge.source.y"
                         :x2="edge.target.x"
@@ -141,16 +141,16 @@
                   </g>
                   <g
                     v-for="(specialEdgesGroup, groupIndex) in specialEdges"
-                    :key="groupIndex"
+                    :key="'host_specialEdge_group' + groupIndex"
                   >
                     <g
                       v-for="cls in Object.keys(specialEdgesGroup)"
-                      :key="cls"
+                      :key="'host_special_edge' + cls"
                       v-show="specialEdgesGroup[cls].display"
                     >
                       <path
                         v-for="(edge, index) in specialEdgesGroup[cls].values"
-                        :key="index"
+                        :key="'host_special_path' + index"
                         :class="cls"
                         :d="
                           specialEdgesGroup[cls].path(edge.source, edge.target)
@@ -161,10 +161,13 @@
                 </g>
 
                 <g id="graph-extra-edge-container">
-                  <g v-for="(value, key) in extraEdges" :key="key">
+                  <g
+                    v-for="(value, key) in extraEdges"
+                    :key="'host_extra_edge' + key"
+                  >
                     <line
                       v-for="(edge, index) in value"
-                      :key="index"
+                      :key="'host_extra_line' + index"
                       :x1="edge[0]"
                       :y1="edge[1]"
                       :x2="edge[2]"
@@ -177,7 +180,7 @@
                   <g
                     id="isomorphic-subgraph-circle-g"
                     v-for="(circle, circleIndex) in isomorphicSubgraphCircles"
-                    :key="circleIndex"
+                    :key="'host_isomorphic_circle' + circleIndex"
                   >
                     <ellipse
                       class="isomorphic-subgraph-circle"
@@ -196,13 +199,13 @@
                   </g>
                   <g
                     v-for="(opNodesGroup, groupIndex) in opNodes"
-                    :key="groupIndex"
+                    :key="'host_opNode' + groupIndex"
                   >
                     <g
                       v-for="node in opNodesGroup.filter(
                         (v) => v.x !== undefined
                       )"
-                      :key="node.id"
+                      :key="'host_opNode_g' + node.id"
                       @click="onNodeClick(node)"
                       @mouseover="onNodeMouseover($event, node)"
                       @mouseout="onNodeMouseout"
@@ -246,15 +249,15 @@
                 <g id="parallel-strategy-container">
                   <g
                     v-for="(value, key) in parallelStrategyParas"
-                    :key="`${key}_strategy_group`"
+                    :key="'host' + `${key}_strategy_group`"
                   >
                     <g
                       v-for="(item, index) in value"
-                      :key="`${key}_${index}_strategy`"
+                      :key="'host' + `${key}_${index}_strategy`"
                     >
                       <g
                         v-for="(rect, index1) in item.rects"
-                        :key="`${key}_${index}_${index1}_rect`"
+                        :key="'host' + `${key}_${index}_${index1}_rect`"
                         :transform="`rotate(${item.theta},${item.rotateCenter[0]},${item.rotateCenter[1]})`"
                       >
                         <rect
@@ -290,7 +293,7 @@
               <radialGradient
                 v-for="namespace in selectNamespaces"
                 :id="namespace + '_halo'"
-                :key="namespace + '_halo'"
+                :key="'mini_' + namespace + '_halo'"
                 x1="0"
                 x2="0"
                 y1="0"
@@ -305,7 +308,7 @@
               <g id="pipeline-extra-container" v-if="isPipelineLayout">
                 <text
                   v-for="(opNode, index) in opNodes"
-                  :key="index"
+                  :key="'mini_extra_' + index"
                   :x="bgdRectBlocks[0].x - 200"
                   :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
                   style="font-size: 40; font-weight: bold"
@@ -314,7 +317,7 @@
                 </text>
                 <rect
                   v-for="(bgdRectBlock, index) in bgdRectBlocks"
-                  :key="`${index}_bgdRectBlock`"
+                  :key="'mini_' + `${index}_bgdRectBlock`"
                   :x="bgdRectBlock.x"
                   :y="bgdRectBlock.y"
                   :width="bgdRectBlock.width"
@@ -328,11 +331,11 @@
               <g id="graph-halo-container">
                 <g
                   v-for="([namespace, nodeGroup], index) in haloInfo"
-                  :key="namespace + index"
+                  :key="'mini_haloInfo_group' + namespace + index"
                 >
                   <circle
                     v-for="node in nodeGroup.filter((v) => v !== undefined)"
-                    :key="node.id + 'halo' + index"
+                    :key="'mini_' + node.id + 'halo' + index"
                     :cx="node.x"
                     :cy="node.y"
                     r="50"
@@ -345,11 +348,11 @@
                 <g id="normal-edge-container">
                   <g
                     v-for="(normalEdgesGroup, groupIndex) in normalEdges"
-                    :key="groupIndex"
+                    :key="'mini_normal_group_' + groupIndex"
                   >
                     <line
                       v-for="(edge, index) in normalEdgesGroup"
-                      :key="index"
+                      :key="'mini_normal_edge_' + index"
                       :x1="edge.source.x"
                       :y1="edge.source.y"
                       :x2="edge.target.x"
@@ -359,16 +362,16 @@
                 </g>
                 <g
                   v-for="(specialEdgesGroup, groupIndex) in specialEdges"
-                  :key="groupIndex"
+                  :key="'mini_special_group' + groupIndex"
                 >
                   <g
                     v-for="cls in Object.keys(specialEdgesGroup)"
-                    :key="cls"
+                    :key="'mini_special_group_g' + cls"
                     v-show="specialEdgesGroup[cls].display"
                   >
                     <path
                       v-for="(edge, index) in specialEdgesGroup[cls].values"
-                      :key="index"
+                      :key="'mini_special_edge' + index"
                       :class="cls"
                       :d="specialEdgesGroup[cls].path(edge.source, edge.target)"
                     ></path>
@@ -377,10 +380,13 @@
               </g>
 
               <g id="graph-extra-edge-container">
-                <g v-for="(value, key) in extraEdges" :key="key">
+                <g
+                  v-for="(value, key) in extraEdges"
+                  :key="'mini_extra_group' + key"
+                >
                   <line
                     v-for="(edge, index) in value"
-                    :key="index"
+                    :key="'mini_extra_edge' + index"
                     :x1="edge[0]"
                     :y1="edge[1]"
                     :x2="edge[2]"
@@ -393,7 +399,7 @@
                 <g
                   id="isomorphic-subgraph-circle-g"
                   v-for="(circle, circleIndex) in isomorphicSubgraphCircles"
-                  :key="circleIndex"
+                  :key="'mini_isomorphic_circle' + circleIndex"
                 >
                   <ellipse
                     class="isomorphic-subgraph-circle"
@@ -412,16 +418,13 @@
                 </g>
                 <g
                   v-for="(opNodesGroup, groupIndex) in opNodes"
-                  :key="groupIndex"
+                  :key="'mini_opNode_group' + groupIndex"
                 >
                   <g
                     v-for="node in opNodesGroup.filter(
                       (v) => v.x !== undefined
                     )"
-                    :key="node.id"
-                    @click="onNodeClick(node)"
-                    @mouseover="onNodeMouseover($event, node)"
-                    @mouseout="onNodeMouseout"
+                    :key="'mini_opNode_group_g' + node.id"
                     :class="clickedNodeId === node.id ? 'active' : ''"
                   >
                     <circle
@@ -462,15 +465,15 @@
               <g id="parallel-strategy-container">
                 <g
                   v-for="(value, key) in parallelStrategyParas"
-                  :key="`${key}_strategy_group`"
+                  :key="'mini_' + `${key}_strategy_group`"
                 >
                   <g
                     v-for="(item, index) in value"
-                    :key="`${key}_${index}_strategy`"
+                    :key="`'mini_'+${key}_${index}_strategy`"
                   >
                     <g
                       v-for="(rect, index1) in item.rects"
-                      :key="`${key}_${index}_${index1}_rect`"
+                      :key="`'mini_'+${key}_${index}_${index1}_rect`"
                       :transform="`rotate(${item.theta},${item.rotateCenter[0]},${item.rotateCenter[1]})`"
                     >
                       <rect

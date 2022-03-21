@@ -31,18 +31,28 @@ Graph.prototype.init = function (links, nodes) {
   initDefs(this.svg);
   var minR = 1,
     maxR = 0;
-  nodes.forEach((d) => {
+  this.nodes.forEach((d) => {
     d.time_ratio = d.c_cost / (d.c_cost + d.w_cost);
+    d.showable = true;
     minR = Math.min(d.time_ratio, minR);
     maxR = Math.max(d.time_ratio, maxR);
-    this.forceNodes.push(d);
   });
   this.min_ratio = minR;
   this.max_ratio = maxR;
-  links.forEach((d) => {
-    this.forceLinks.push(d);
-  });
+
+  this.renderNet();
+};
+Graph.prototype.getMatrixSize = function () {
+  return this.matrix_size;
+};
+
+Graph.prototype.renderNet = function () {
+  this.layer.select("#networklayer").remove();
   var network = this.layer.append("g").attr("id", "networklayer");
+  var forceLinks = _.cloneDeep(this.links);
+  var forceNodes = _.cloneDeep(this.nodes);
+  d3.selectAll("#matrix > *").remove();
+
   var simulation = d3
     .forceSimulation()
     .force(
@@ -61,104 +71,183 @@ Graph.prototype.init = function (links, nodes) {
     .force("x", d3.forceX(this.w))
     .force("y", d3.forceY(this.h));
 
-  simulation.nodes(this.forceNodes);
-  simulation.force("link").links(this.forceLinks);
-  simulation
-    .on("tick", function () {
-      console.log("communicate view forcing");
-    })
-    .on("end", () => {
-      this.netNodes = _.cloneDeep(this.forceNodes);
-      this.netLinks = _.cloneDeep(this.forceLinks);
-      this.forceNodes.forEach((n) => {
-        if (n.x <= this.matrix_size && n.y <= this.matrix_size) {
-          if (n.x > n.y) {
-            n.x = this.matrix_size + n.x * 0.5;
-          } else {
-            n.y = this.matrix_size + n.y * 0.5;
-          }
-        }
-      });
-      this.staticLinks = _.cloneDeep(this.forceLinks);
-      this.staticNodes = _.cloneDeep(this.forceNodes);
-      initLinks(this.netLinks, network);
-      initNodes(this.netNodes, network, minR, maxR);
-      initLabels(this.netNodes, network);
-      window.lasso = new Lasso();
-      window.lasso.bind();
-    });
-};
-Graph.prototype.getMatrixSize = function () {
-  return this.matrix_size;
-};
-
-Graph.prototype.renderNet = function () {
-  d3.selectAll("#matrix > *").remove();
-  var network = this.layer.select("#networklayer");
-  initLinks(this.netLinks, network);
-  initNodes(this.netNodes, network, this.min_ratio, this.max_ratio);
-  initLabels(this.netNodes, network);
+  simulation.nodes(forceNodes).on("tick", (d) => {
+    handleTick(node, link, label);
+  });
+  simulation.force("link").links(forceLinks);
+  var link = initLinks(forceLinks, network);
+  var node = initNodes(
+    forceNodes,
+    network,
+    this.min_ratio,
+    this.max_ratio,
+    simulation
+  );
+  var label = initLabels(forceNodes, network);
   window.lasso = new Lasso();
   window.lasso.bind();
 };
 
 Graph.prototype.renderMatrix = function (matrixNodes) {
-  var network = this.layer.select("#networklayer");
+  this.layer.select("#networklayer").remove();
+  d3.selectAll("#matrix > *").remove();
+  var network = this.layer.append("g").attr("id", "networklayer");
+  var forceLinks = _.cloneDeep(this.links);
+  var forceNodes = _.cloneDeep(this.nodes);
 
-  // var renderLinks = _.cloneDeep(this.staticLinks);
-  var renderLinks = [];
-  var renderNodes = [];
-  this.staticNodes.forEach((n) => {
-    if (Object.keys(matrixNodes).indexOf(n.id) <= -1) {
-      renderNodes.push(_.cloneDeep(n));
-    }
-  });
-  // console.log(renderNodes);
-  // console.log(Object.keys(matrixNodes).length);
-  // var box=d3.select("#mainsvg").select("")
-  // var box = d3.select("#matrixBox").node().getBBox();
-  // console.log(box);
+  // console.log(forceNodes);
+  // console.log(matrixNodes);
+  var newNodes = [];
+  var newLinks = [];
   var matrixNodeNum = Object.keys(matrixNodes).length;
-  this.staticLinks.forEach((l, index) => {
-    var sourceIndex = Object.keys(matrixNodes).indexOf(l.source.id);
-    var targetIndex = Object.keys(matrixNodes).indexOf(l.target.id);
-    if (sourceIndex <= -1 && targetIndex <= -1) {
-      renderLinks.push(_.cloneDeep(l));
-    } else if (sourceIndex > -1 && targetIndex > -1) {
-    } else if (sourceIndex > -1) {
-      var newLink = _.cloneDeep(l);
-      if (l.target.x > l.target.y) {
-        newLink.source.x = this.matrix_size;
-        newLink.source.y =
-          (this.matrix_size / matrixNodeNum) * (sourceIndex + 0.5);
-        // newLink.source.x=this.matrix_size/Object.keys(matrixNodes).length
-      } else {
-        newLink.source.y = this.matrix_size;
-        newLink.source.x =
-          (this.matrix_size / matrixNodeNum) * (sourceIndex + 0.5);
-      }
-      renderLinks.push(newLink);
-    } else if (targetIndex > -1) {
-      var newLink = _.cloneDeep(l);
-      if (l.source.x > l.source.y) {
-        newLink.target.x = this.matrix_size;
-        newLink.target.y =
-          (this.matrix_size / matrixNodeNum) * (targetIndex + 0.5);
-        // newLink.source.x=this.matrix_size/Object.keys(matrixNodes).length
-      } else {
-        newLink.target.y = this.matrix_size;
-        newLink.target.x =
-          (this.matrix_size / matrixNodeNum) * (targetIndex + 0.5);
-      }
-      renderLinks.push(newLink);
+  forceNodes.forEach((n) => {
+    var copyNode = _.cloneDeep(n);
+    var index = Object.keys(matrixNodes).indexOf(copyNode.id);
+    if (index <= -1) {
+      copyNode.showable = true;
+      newNodes.push(copyNode);
+    } else {
+      copyNode.showable = false;
+      var nodeBottom = _.cloneDeep(copyNode),
+        nodeRight = _.cloneDeep(copyNode);
+      nodeBottom.id = copyNode.id + "-bottom";
+      nodeBottom.fx = (this.matrix_size / matrixNodeNum) * (index + 0.5);
+      nodeBottom.fy = this.matrix_size;
+      newNodes.push(nodeBottom);
+      nodeRight.id = copyNode.id + "-right";
+      nodeRight.fx = this.matrix_size;
+      nodeRight.fy = (this.matrix_size / matrixNodeNum) * (index + 0.5);
+      newNodes.push(nodeRight);
     }
   });
-  initLinks(renderLinks, network);
-  initNodes(renderNodes, network, this.min_ratio, this.max_ratio);
-  initLabels(renderNodes, network);
+  forceLinks.forEach((l) => {
+    var sourceIndex = Object.keys(matrixNodes).indexOf(l.source);
+    var targetIndex = Object.keys(matrixNodes).indexOf(l.target);
+    if (sourceIndex <= -1 && targetIndex <= -1) {
+      newLinks.push(_.cloneDeep(l));
+    } else if (sourceIndex > -1 && targetIndex <= -1) {
+      var newLink = _.cloneDeep(l);
+      if (parseInt(newLink.target.substring(6)) % 2 == 0) {
+        newLink.source = newLink.source + "-bottom";
+      } else {
+        newLink.source = newLink.source + "-right";
+      }
+      newLinks.push(newLink);
+    } else if (sourceIndex <= -1 && targetIndex > -1) {
+      var newLink = _.cloneDeep(l);
+      if (parseInt(newLink.source.substring(6)) % 2 == 0) {
+        newLink.target = newLink.target + "-bottom";
+      } else {
+        newLink.target = newLink.target + "-right";
+      }
+      newLinks.push(newLink);
+    }
+  });
+
+  var simulation = d3
+    .forceSimulation()
+    .force(
+      "link",
+      d3
+        .forceLink()
+        .id(function (d) {
+          return d.id;
+        })
+        .distance(function (d) {
+          return 100;
+        })
+    )
+    .force("charge", d3.forceManyBody())
+    .force("center", d3.forceCenter(this.w / 2, this.h / 2))
+    .force("x", d3.forceX(this.w))
+    .force("y", d3.forceY(this.h));
+
+  simulation.nodes(newNodes).on("tick", (d) => {
+    handleTick(node, link, label);
+  });
+  simulation.force("link").links(newLinks);
+  var link = initLinks(newLinks, network);
+  var node = initNodes(
+    newNodes,
+    network,
+    this.min_ratio,
+    this.max_ratio,
+    simulation
+  );
+  var label = initLabels(newNodes, network);
   window.lasso = new Lasso();
   window.lasso.bind();
 };
+
+function handleTick(node, link, label) {
+  // console.log("tick");
+  link.attr("d", function (d) {
+    var x1 = d.source.x,
+      y1 = d.source.y,
+      x2 = d.target.x,
+      y2 = d.target.y,
+      dx = x2 - x1,
+      dy = y2 - y1,
+      dr = Math.sqrt(dx * dx + dy * dy),
+      // Defaults for normal edge.
+      drx = dr,
+      dry = dr,
+      xRotation = 0, // degrees
+      largeArc = 0, // 1 or 0
+      sweep = 1; // 1 or 0
+    // Self edge.
+    if (x1 === x2 && y1 === y2) {
+      // console.log(d3.select("#links").)
+      xRotation = 45;
+      largeArc = 1;
+      drx = 20;
+      dry = 20;
+      x2 = x2 + 1;
+      y2 = y2 + 1;
+    }
+
+    return (
+      "M" +
+      x1 +
+      "," +
+      y1 +
+      "A" +
+      drx +
+      "," +
+      dry +
+      " " +
+      xRotation +
+      "," +
+      largeArc +
+      "," +
+      sweep +
+      " " +
+      x2 +
+      "," +
+      y2
+    );
+  });
+  label
+    .attr("x", function (d) {
+      return d.x + 10;
+    })
+    .attr("y", function (d) {
+      return d.y + 3;
+    });
+  node
+    .attr("cx", function (d) {
+      // window.paths.data.forEach(function (dd) {
+      //   if (dd.force_id == d.id) {
+      //     dd.pos_end.x = d.x;
+      //     dd.pos_end.y = d.y;
+      //   }
+      // });
+      return d.x;
+    })
+    .attr("cy", function (d) {
+      return d.y;
+    });
+}
 
 function initLabels(nodesData, network) {
   // console.log(initLabels);
@@ -175,18 +264,18 @@ function initLabels(nodesData, network) {
       return "l" + d.id;
     })
     .text(function (d) {
-      return d.label;
-    })
-    .attr("x", function (d) {
-      return d.x + 10;
-    })
-    .attr("y", function (d) {
-      return d.y + 3;
+      if (d.showable) {
+        return d.label;
+      } else {
+        return "";
+      }
     });
+  return label;
 }
 
-function initNodes(nodesData, network, minR, maxR) {
+function initNodes(nodesData, network, minR, maxR, simulation) {
   network.select(".nodes").remove();
+
   var node = network
     .append("g")
     .attr("class", "nodes")
@@ -194,6 +283,13 @@ function initNodes(nodesData, network, minR, maxR) {
     .data(nodesData)
     .enter()
     .append("circle")
+    .attr("visibility", function (d) {
+      if (!d.showable) {
+        return "hidden";
+      } else {
+        return "visible";
+      }
+    })
     .attr("r", function (d) {
       return Math.log(d.c_cost + d.w_cost);
     })
@@ -202,21 +298,39 @@ function initNodes(nodesData, network, minR, maxR) {
     })
     .style("fill", function (d) {
       return gradientColor("#fbe7d5", "#e6882e", minR, maxR, d.time_ratio);
-      //   return "#bbb";
     })
     .attr("pointer-events", "all")
-    .on("mouseover", function (d) {
+    .on("mouseenter", function (d) {
       d3.select(this).attr("stroke", "red");
     })
-    .on("mouseout", function (d) {
+    .on("mouseleave", function (d) {
       d3.select(this).attr("stroke", "none");
     })
-    .attr("cx", function (d) {
-      return d.x;
-    })
-    .attr("cy", function (d) {
-      return d.y;
-    });
+    .call(
+      d3
+        .drag()
+        .on("start", function (d) {
+          if (d.showable) {
+            if (!d3.event.active) simulation.alphaTarget(0.1).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          }
+        })
+        .on("drag", function (d) {
+          if (d.showable) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+          }
+        })
+        .on("end", function (d) {
+          if (d.showable) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          }
+        })
+    );
+  return node;
 }
 
 function initLinks(linksData, network) {
@@ -229,9 +343,6 @@ function initLinks(linksData, network) {
     .data(linksData)
     .enter()
     .append("path")
-    // .attr("class", function (d) {
-    //   return d.link_type;
-    // })
     .style("fill", "none")
     .style("stroke", function (d) {
       if (d.link_type == "SDMA") return "#cecfd1";
@@ -246,56 +357,7 @@ function initLinks(linksData, network) {
     })
     .attr("pointer-events", "all")
     .style("cursor", "pointer")
-    .attr("cx", function (d) {
-      return d.x;
-    })
-    .attr("d", (d) => {
-      var x1 = d.source.x,
-        y1 = d.source.y,
-        x2 = d.target.x,
-        y2 = d.target.y,
-        dx = x2 - x1,
-        dy = y2 - y1,
-        dr = Math.sqrt(dx * dx + dy * dy),
-        // Defaults for normal edge.
-        drx = dr,
-        dry = dr,
-        xRotation = 0, // degrees
-        largeArc = 0, // 1 or 0
-        sweep = 1; // 1 or 0
-      // Self edge.
-      if (x1 === x2 && y1 === y2) {
-        xRotation = 45;
-        largeArc = 1;
-        drx = 20;
-        dry = 20;
-        x2 = x2 + 1;
-        y2 = y2 + 1;
-      }
-
-      return (
-        "M" +
-        x1 +
-        "," +
-        y1 +
-        "A" +
-        drx +
-        "," +
-        dry +
-        " " +
-        xRotation +
-        "," +
-        largeArc +
-        "," +
-        sweep +
-        " " +
-        x2 +
-        "," +
-        y2
-      );
-    })
     .on("mousedown", (d) => {
-      // console.log(d);
       let id1 = d.source.id;
       let id2 = d.target.id;
       var newNodes = {};
@@ -306,6 +368,8 @@ function initLinks(linksData, network) {
       window.graph.renderMatrix(newNodes);
       m.create(Object.keys(newNodes), true);
     });
+
+  return link;
 }
 
 function initDefs(svg) {
@@ -337,7 +401,6 @@ function initDefs(svg) {
   arrowMarkerOther.append("path").attr("d", arrow_path).attr("fill", "#a1a1a1");
 }
 
-// Graph.prototype.node = [];
 Graph.prototype.getLinks = function () {
   return this.links;
 };

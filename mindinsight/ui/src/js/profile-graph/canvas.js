@@ -171,12 +171,10 @@ Canvas.prototype.generateDefs = function () {
     .append("clipPath")
     .attr("id", "minimapClipPath")
     .attr("class", "minimap clipPath")
-    .attr("width", this.width)
-    .attr("height", this.height)
     .append("rect")
     .attr("class", "background")
     .attr("width", this.width)
-    .attr("height", this.height);
+    .attr("height", this.svgHeight * 0.1);
   var filter = svgDefs
     .append("svg:filter")
     .attr("id", "minimapDropShadow")
