@@ -51,6 +51,17 @@
             }}
           </text>
         </g>
+        <g class="FLOP-map">
+          <rect
+            v-for="data in FLOPMapData"
+            :key="`${data.y}-${data.x}`"
+            :x="xScale(data.x) - offset"
+            :y="yScale(data.y) - offset"
+            :width="offset * 2"
+            :height="offset * 2"
+            fill="red"
+          ></rect>
+        </g>
       </g>
     </svg>
   </div>
@@ -64,10 +75,11 @@ export default {
   props: {
     stageDeviceArr: Array,
     stageDeviceRelationship: Object,
+    FLOPsData: Object,
   },
   watch: {
     stageDeviceRelationship: function () {
-      // console.log("stageDeviceRelationship", this.stageDeviceRelationship);
+      console.log("stageDeviceRelationship", this.stageDeviceRelationship);
       this.treeLineProcessing();
     },
   },
@@ -75,18 +87,28 @@ export default {
     return {
       svg: null,
       g: null,
-      margin: { top: 50, right: 10, bottom: 10, left: 20 },
+      margin: { top: 50, right: 0, bottom: 10, left: 20 },
       width: 200,
       height: 200,
       offset: 8,
 
       treeLineData: null,
+      FLOPMapData: null,
       stageName: null,
     };
   },
   computed: {
     innerHeight() {
       return this.height - this.margin.top - this.margin.bottom;
+    },
+    innerWidth() {
+      return this.width - this.margin.left - this.margin.right;
+    },
+    xScale() {
+      return d3
+        .scaleBand()
+        .domain(["FLOPs", "FLOPS"])
+        .range([100, this.innerWidth]);
     },
     yScale() {
       return d3
@@ -115,6 +137,8 @@ export default {
     },
     treeLineProcessing() {
       const treeLineData = [];
+      const FLOPMapData = [];
+
       const stageName = Object.keys(this.stageDeviceRelationship);
       this.stageName = stageName;
       stageName.forEach((stage) => {
@@ -124,14 +148,54 @@ export default {
             childArr[childArr.length - 1]
           )}Z`;
           treeLineData.push({ father: stage, d: d1 });
+          let stageFLOPSSum = 0;
+          let stageFLOPsSum = 0;
           for (let i = 0; i < childArr.length; i++) {
             const device = childArr[i];
+
             const d = `M0,${this.yScale(device)}H15Z`;
             treeLineData.push({ father: stage, d });
+
+            //在这计算热力图
+            const { FLOPS, FLOPs, abnomalContent, isAnomaly } =
+              this.FLOPsData[device].summary || {};
+            FLOPMapData.push(
+              {
+                x: "FLOPS",
+                y: device,
+                value: FLOPS,
+                isAnomaly,
+                abnomalContent,
+              },
+              {
+                x: "FLOPs",
+                y: device,
+                value: FLOPs,
+                isAnomaly,
+                abnomalContent,
+              }
+            );
+            stageFLOPSSum += FLOPS;
+            stageFLOPsSum += FLOPs;
           }
+          FLOPMapData.push(
+            {
+              x: "FLOPS",
+              y: stage,
+              value: stageFLOPSSum / childArr.length,
+            },
+            {
+              x: "FLOPs",
+              y: stage,
+              value: stageFLOPsSum / childArr.length,
+            }
+          );
         }
       });
+      console.log("treeLineData", treeLineData);
+      console.log("FLOPMapData", FLOPMapData);
       this.treeLineData = treeLineData;
+      this.FLOPMapData = FLOPMapData;
     },
   },
 };

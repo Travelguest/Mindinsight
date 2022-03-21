@@ -21,6 +21,7 @@
             <StageTree
               :stageDeviceArr="stageDeviceArr"
               :stageDeviceRelationship="stageDeviceRelationship"
+              :FLOPsData="FLOPsData"
               @clickArrowIcon="handleclickArrowIcon"
             />
           </div>
@@ -141,6 +142,13 @@ export default {
       this.stageDeviceArr = stageDeviceArr;
       this.stageDeviceRelationship = stageDeviceRelationship;
     },
+    // FLOPMapDataProcessing() {
+    //   const FLOPMapData = {};
+    //   Object.keys(this.FLOPsData).forEach((device) => {
+    //     const data = this.FLOPsData[device].summary;
+    //     FLOPMapData[device].
+    //   });
+    // },
     getFLOPsData() {
       RequestService.getFLOPsData()
         .then(({ data }) => {
