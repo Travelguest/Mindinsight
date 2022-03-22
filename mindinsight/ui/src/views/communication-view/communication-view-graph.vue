@@ -89,6 +89,10 @@ export default {
       this.stepNum = val;
       this.renderNetwork();
     },
+    "$store.state.selectCommunicateOpnode": function (val) {
+      console.log(val);
+      this.recieveOpnode(val[0], val[1]);
+    },
   },
 
   methods: {
@@ -111,6 +115,7 @@ export default {
           new_node.name = device;
           new_node.communication_cost = step_info["communication_cost"];
           new_node.wait_cost = step_info["wait_cost"];
+          new_node.opNodes = step_info["communication_operator_cost"];
           if (!this.communicateNodes.hasOwnProperty(step_info["step_num"])) {
             this.communicateNodes[step_info["step_num"]] = [];
           }
@@ -225,15 +230,39 @@ export default {
 
       window.graph = new Graph(width, height);
       window.graph.init(dataLink, dataNode);
-      // window.paths = new Paths();
-      // window.matrix_list = [];
-      // window.matrix_node = [];
-      // var originData = dataLink;
+    },
 
-      // window.graph.create(dataLink, dataNode);
-      // window.paths.create(dataLink);
-      // window.lasso = new Lasso();
-      // window.lasso.bind();
+    recieveOpnode(type, index) {
+      // console.log(type, index);
+      // console.log(this.communicateNodes[this.stepNum]);
+      var nodeData = [];
+      this.communicateNodes[this.stepNum].forEach((device) => {
+        // var opNodes = this.communicateNodes[this.stepNum][device];
+        // console.log(device.opNodes);
+        Object.keys(device.opNodes).forEach((nodeName, i) => {
+          var nameList = nodeName.split("_");
+          if (
+            nameList[0].toLowerCase() == type.toLowerCase() &&
+            Number(nameList[1]) == index
+          ) {
+            // console.log(nodeName, device.opNodes[nodeName]);
+            if (device.opNodes[nodeName][3] != {}) {
+              Object.keys(device.opNodes[nodeName][3]).forEach((link) => {
+                var link_type = Object.keys(
+                  device.opNodes[nodeName][3][link]
+                )[0];
+                var linkList = link.split("-");
+                nodeData.push({
+                  source: "device" + linkList[0],
+                  target: "device" + linkList[1],
+                  opValue: device.opNodes[nodeName][3][link][link_type],
+                });
+              });
+            }
+          }
+        });
+      });
+      window.graph.showOpNode(nodeData);
     },
 
     //折线图
