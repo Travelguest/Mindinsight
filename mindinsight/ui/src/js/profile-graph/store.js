@@ -1,10 +1,11 @@
 import * as d3 from "d3";
-export function Store() {
+export function Store(canvas) {
   this.viewBox = [0, 0, 0, 0];
   this.miniTransform = [0, 0, 1];
   this.miniScale = 1;
   this.miniWidth = 0;
   this.miniHeight = 0;
+  this.canvas = canvas;
 }
 Store.prototype.setMiniScale = function (scale) {
   this.miniScale = scale;
@@ -38,11 +39,8 @@ Store.prototype.changeMinimap = function (transform) {
   viewBox[1] = transform[1] / this.miniScale;
   viewBox[2] = transform[2] * this.miniWidth;
   viewBox[3] = transform[2] * this.miniHeight;
-  // console.log(viewBox);
-  d3.select(".wrapperInner")
-    .select("#profile-graph")
-    .attr("viewBox", viewBox.join(" "));
   this.viewBox = viewBox;
+  this.canvas.changeViewBox(this.viewBox, false);
 };
 
 Store.prototype.getViewBox = function () {
