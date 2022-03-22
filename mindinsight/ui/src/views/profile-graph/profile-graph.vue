@@ -552,6 +552,7 @@ export default {
       graphData: {},
       clickedNodeId: "",
       isomorphicSubgraphCircles: [],
+      canvas: null,
     };
   },
 
@@ -570,6 +571,7 @@ export default {
     },
     "$store.state.profileNamespaces": function (val) {
       this.selectNamespaces = val;
+      this.onNameScopeChanged();
     },
     "$store.state.profileTreeData": function (val) {
       this.treeData = val;
@@ -593,6 +595,9 @@ export default {
       this.$nextTick(() => {
         this.initMiniMap();
       });
+    },
+    "$store.state.nameScopeToParallelStrategy": function (val) {
+      console.log(val);
     },
   },
 
@@ -636,16 +641,17 @@ export default {
   methods: {
     initMiniMap() {
       console.log("initMiniMap");
-      var c = new Canvas();
-      c.create();
+      this.canvas = new Canvas();
+      this.canvas.create();
     },
 
     haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
 
     onNodeClick(node) {
-      console.log(node, this);
+      // console.log(node);
       // d3.select(node).style("stroke", "red");
       this.clickedNodeId = node.id;
+      this.$store.commit("setNameScopeToPerformanceView", node.scope);
       this.$store.commit("setSelectedGraphNode", node);
     },
 
@@ -668,6 +674,29 @@ export default {
       nodeGroup.push(this.opNodes[rankID][this.idToIndexs[rankID][tree.id]]);
       for (const child of tree.children) {
         this.preOrder(child, nodeGroup, rankID);
+      }
+    },
+
+    onNameScopeChanged() {
+      var newHaloInfo = this.haloInfo;
+      if (newHaloInfo.length != 0) {
+        var viewBox = this.canvas.getViewBox();
+        var minX = Number.MAX_VALUE,
+          minY = Number.MAX_VALUE;
+
+        newHaloInfo.forEach(([namescope, nodeGroup], index) => {
+          nodeGroup
+            .filter((v) => v !== undefined)
+            .forEach((node) => {
+              if (node.x < minX) {
+                minX = node.x;
+                if (node.y < minY) {
+                  minY = node.y;
+                }
+              }
+            });
+        });
+        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
       }
     },
 

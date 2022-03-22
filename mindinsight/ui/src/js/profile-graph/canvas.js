@@ -13,7 +13,7 @@ export function Canvas() {
   this.zoom = null;
   this.viewBox = [0, 0, 0, 0];
   this.lastTransform = { k: 1, x: 0, y: 0 };
-  this.store = new Store();
+  this.store = new Store(this);
 }
 
 Canvas.prototype.create = function () {
@@ -117,44 +117,28 @@ Canvas.prototype.create = function () {
       this.viewBox[1] = this.viewBox[1] - e.offsetY + offsetY;
       offsetX = e.offsetX;
       offsetY = e.offsetY;
-      innerWrapper
-        .select("#profile-graph")
-        .attr("viewBox", this.viewBox.join(" "));
+      this.changeViewBox(this.viewBox, true);
       dragging = false;
-      this.store.changeViewBox(this.viewBox);
+
       // minimap.update();
     }
   };
-  // innerEl.onmouseup = (e) => {
-  //   dragging = false;
-  // };
+};
 
-  // innerWrapper.call(
-  //   d3
-  //     .zoom()
-  //     .scaleExtent([0.005, 2])
-  //     .on("zoom", () => {
-  //       // console.log(d3.event.transform);
-  //       let transform = d3.event.transform;
-  //       // let xtrans = -transform.x;
-  //       // let ytrans = -transform.y;
-  //       this.viewBox[0] = this.viewBox[0] + this.lastTransform.x - transform.x;
-  //       this.viewBox[1] = this.viewBox[1] + this.lastTransform.y - transform.y;
-  //       this.viewBox[2] =
-  //         (this.viewBox[2] * this.lastTransform.k) / transform.k;
-  //       this.viewBox[3] =
-  //         (this.viewBox[3] * this.lastTransform.k) / transform.k;
-  //       innerWrapper
-  //         .select("#profile-graph")
-  //         .attr("viewBox", this.viewBox.join(" "));
-  //       this.lastTransform = transform;
-  //       minimap.update(this.viewBox);
-  //     })
-  // );
-  // innerWrapper.onMouseDown = function () {
-  //   console.log("down");
-  // };
-  // console.log(panCanvas.node.getBBox);
+Canvas.prototype.getViewBox = function () {
+  return this.viewBox;
+};
+
+Canvas.prototype.changeViewBox = function (newViewBox, changeMinimap) {
+  this.viewBox = newViewBox;
+  d3.select(".svgCanvas")
+    .select(".wrapperOuter")
+    .select(".wrapperInner")
+    .select("#profile-graph")
+    .attr("viewBox", this.viewBox.join(" "));
+  if (changeMinimap == true) {
+    this.store.changeViewBox(this.viewBox);
+  }
 };
 
 Canvas.prototype.generateDefs = function () {
