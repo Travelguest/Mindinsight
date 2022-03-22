@@ -7,13 +7,13 @@
             Parallel Strategy View
           </h1>
         </div>
-        <!-- <LegendStrategy /> -->
+        <LegendStrategy />
       </div>
-      <!-- <profile-graph /> -->
-      <!-- <AttributePanel /> -->
+      <profile-graph />
+      <AttributePanel />
     </div>
     <div class="configuration-view">
-      <!-- <configure-view /> -->
+      <configure-view />
     </div>
     <div class="performance-view">
       <PerformanceView />

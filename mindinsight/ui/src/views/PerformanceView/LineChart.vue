@@ -66,7 +66,59 @@ export default {
         series.push(obj);
       });
       // console.log("series", series);
-      this.option.series = series;
+      this.option.series.push(...series);
+      // console.log(this.option);
+      this.renderUpdate();
+    },
+    communicateNodes: function () {
+      const communicationList = [];
+      const waitingList = [];
+      for (let i in this.communicateNodes) {
+        let totCommunication = 0;
+        let totWaiting = 0;
+        for (let j in this.communicateNodes[i]) {
+          totCommunication += this.communicateNodes[i][j].communication_cost;
+          totWaiting += this.communicateNodes[i][j].wait_cost;
+        }
+        communicationList.push(
+          totCommunication / this.communicateNodes[i].length
+        );
+        waitingList.push(totWaiting / this.communicateNodes[i].length);
+      }
+      const series = [
+        {
+          name: "communication cost",
+          yAxisIndex: 1,
+          type: "line",
+          stack: "Total",
+          color: "#cecfd1",
+          showSymbol: false,
+          data: communicationList,
+        },
+        {
+          name: "waiting cost",
+          yAxisIndex: 1,
+          type: "line",
+          stack: "Total",
+          color: "#cecfd1",
+          showSymbol: false,
+          data: waitingList,
+          markLine: {
+            symbol: "none", //去掉警戒线最后面的箭头
+            silent: true, //鼠标悬停事件  true没有，false有
+            label: {
+              position: "middle", //将警示值放在哪个位置，三个值“start”,"middle","end"  开始  中点 结束
+            },
+            data: [
+              {
+                type: "max",
+                name: "最大值",
+              },
+            ],
+          },
+        },
+      ];
+      this.option.series.push(...series);
       // console.log(this.option);
       this.renderUpdate();
     },
@@ -75,7 +127,11 @@ export default {
     this.renderInit();
     this.renderUpdate();
   },
-  computed: {},
+  computed: {
+    communicateNodes() {
+      return this.$store.state.communicateNodes;
+    },
+  },
   methods: {
     renderInit() {
       const chartDom = document.getElementById("line-chart-container");
@@ -116,30 +172,54 @@ export default {
           },
           data: [],
         },
-        yAxis: {
-          type: "value",
-          name: "time(ms)",
-          // min: 5000000,
-          axisLine: {
-            symbol: ["none", "triangle"],
-            show: true,
-            symbolSize: 10,
-            symbolOffset: 5,
+        yAxis: [
+          {
+            type: "value",
+            name: "time(ms)",
+            axisLine: {
+              symbol: ["none", "triangle"],
+              show: true,
+              symbolSize: 10,
+              symbolOffset: 5,
+            },
+            axisLabel: {
+              show: true,
+            },
+            splitLine: {
+              show: false,
+            },
+            nameTextStyle: {
+              fontStyle: "normal",
+              fontWeight: "bold",
+              fontSize: 16,
+              align: "center",
+              verticalAlign: "bottom",
+            },
           },
-          axisLabel: {
-            show: true,
+          {
+            type: "value",
+            name: "time(ms)",
+            nameTextStyle: {
+              fontStyle: "normal",
+              fontWeight: "bold",
+              fontSize: 16,
+              align: "center",
+              verticalAlign: "bottom",
+            },
+            axisLine: {
+              symbol: ["none", "triangle"],
+              show: true,
+              symbolSize: 10,
+              symbolOffset: 5,
+            },
+            splitLine: {
+              show: false,
+            },
+            axisLabel: {
+              show: true,
+            },
           },
-          splitLine: {
-            show: false,
-          },
-          nameTextStyle: {
-            fontStyle: "normal",
-            fontWeight: "bold",
-            fontSize: 16,
-            align: "center",
-            verticalAlign: "bottom",
-          },
-        },
+        ],
         dataZoom: [
           {
             type: "inside",
@@ -154,12 +234,12 @@ export default {
             top: "85%",
           },
         ],
-        series: null,
+        series: [],
       };
       this.option = option;
     },
     renderUpdate() {
-      if (!this.option.series) return;
+      if (!this.option.series || this.option.series.length < 2) return;
 
       this.lineChart.setOption(this.option);
       this.lineChart.on("click", (params) => {
