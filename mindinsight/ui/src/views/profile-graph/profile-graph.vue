@@ -597,7 +597,7 @@ export default {
       });
     },
     "$store.state.nameScopeToParallelStrategy": function (val) {
-      console.log(val);
+      this.onRecieveOneScope(val);
     },
   },
 
@@ -696,6 +696,32 @@ export default {
               }
             });
         });
+        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
+      }
+    },
+
+    onRecieveOneScope(scope) {
+      // console.log(this.opNodes);
+      console.log(scope);
+      var scopeStr = scope.substring(1);
+      var minX = Number.MAX_VALUE,
+        minY = Number.MAX_VALUE;
+      var exist = false;
+      var viewBox = this.canvas.getViewBox();
+      this.opNodes.forEach((nodeGroup) => {
+        nodeGroup.forEach((node) => {
+          if (node.name.startsWith(scopeStr)) {
+            if (node.x < minX) {
+              minX = node.x;
+              if (node.y < minY) {
+                minY = node.y;
+              }
+            }
+            exist = true;
+          }
+        });
+      });
+      if (exist) {
         this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
       }
     },
