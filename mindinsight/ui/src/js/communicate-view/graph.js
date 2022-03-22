@@ -366,11 +366,35 @@ function initLinks(linksData, network) {
 
       var m = new Matrix();
       window.graph.renderMatrix(newNodes);
+      // console.log(newNodes);
       m.create(Object.keys(newNodes), true);
     });
 
   return link;
 }
+
+Graph.prototype.showOpNode = function (nodeData) {
+  // console.log(nodeData);
+  // var matrixNodes = {},newDict={}
+  var matrixNodes = {};
+  nodeData.forEach((node) => {
+    matrixNodes[node.source] = true;
+    matrixNodes[node.target] = true;
+  });
+  var deviceList = Object.keys(matrixNodes);
+  var nodeValue = [];
+  nodeData.forEach((node) => {
+    nodeValue.push({
+      source: deviceList.indexOf(node.source),
+      target: deviceList.indexOf(node.target),
+      value: node.opValue,
+    });
+  });
+
+  var m = new Matrix();
+  window.graph.renderMatrix(matrixNodes);
+  m.create(Object.keys(matrixNodes), false, nodeValue);
+};
 
 function initDefs(svg) {
   var defs = svg.append("defs");

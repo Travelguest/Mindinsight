@@ -648,11 +648,34 @@ export default {
     haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
 
     onNodeClick(node) {
-      // console.log(node);
+      // console.log(node.type);
+      if (
+        ["send", "receive", "allreduce", "allgather", "reducescatter"].includes(
+          node.type.toLowerCase()
+        )
+      ) {
+        // console.log(node, "是通信节点");
+        var index = this.findNodeIndex(node);
+        this.$store.commit("setSelectCommunicateOpnode", [node.type, index]);
+      }
       // d3.select(node).style("stroke", "red");
       this.clickedNodeId = node.id;
       this.$store.commit("setNameScopeToPerformanceView", node.scope);
       this.$store.commit("setSelectedGraphNode", node);
+    },
+
+    findNodeIndex(node) {
+      var nodeId = Number(node.id);
+      var index = 0;
+      this.opNodes.forEach((nodeGroup) => {
+        nodeGroup.forEach((n) => {
+          if (node.type == n.type && Number(n.id) <= nodeId) {
+            // console.log(n);
+            index++;
+          }
+        });
+      });
+      return index;
     },
 
     onNodeMouseover(e, node) {
