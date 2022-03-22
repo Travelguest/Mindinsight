@@ -324,7 +324,6 @@ export default {
       this.closeCircleData = closeCircleData;
       this.valueFLOPS = valueFLOPS;
       this.valueFLOPS = valueFLOPS;
-      console.log("closeCircleData", closeCircleData);
     },
     treeLineProcessing() {
       if (!this.stageDeviceRelationship) return;
