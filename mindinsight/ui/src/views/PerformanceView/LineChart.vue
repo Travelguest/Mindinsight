@@ -85,14 +85,14 @@ export default {
         tooltip: {
           trigger: "axis",
         },
-        legend: {
-          data: [],
-        },
+        // legend: {
+        //   data: [],
+        // },
         grid: {
-          top: "21%",
+          top: "20%",
           left: "5%",
           right: "10%",
-          bottom: "30%",
+          bottom: "16%",
           containLabel: true,
         },
         xAxis: {
@@ -104,8 +104,15 @@ export default {
             alignWithLabel: true,
           },
           axisLine: {
-            symbol: ["none", "arrow"],
+            symbol: ["none", "triangle"],
             show: true,
+            symbolSize: 10,
+            symbolOffset: 5,
+          },
+          nameTextStyle: {
+            fontStyle: "normal",
+            fontWeight: "bold",
+            fontSize: 16,
           },
           data: [],
         },
@@ -114,14 +121,23 @@ export default {
           name: "time(ms)",
           // min: 5000000,
           axisLine: {
-            symbol: ["none", "arrow"],
+            symbol: ["none", "triangle"],
             show: true,
+            symbolSize: 10,
+            symbolOffset: 5,
           },
           axisLabel: {
-            show: false,
+            show: true,
           },
           splitLine: {
             show: false,
+          },
+          nameTextStyle: {
+            fontStyle: "normal",
+            fontWeight: "bold",
+            fontSize: 16,
+            align: "center",
+            verticalAlign: "bottom",
           },
         },
         dataZoom: [
@@ -135,6 +151,7 @@ export default {
             start: 0,
             end: 100,
             moveHandleSize: 1,
+            top: "85%",
           },
         ],
         series: null,
@@ -156,7 +173,7 @@ export default {
 
 <style scoped>
 #line-chart-container {
-  height: 200px;
+  height: 250px;
   width: 100%;
   /* background: rebeccapurple; */
   /* border: 1px solid red; */

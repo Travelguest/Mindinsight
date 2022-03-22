@@ -1,0 +1,23 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "12089099",
+      "name": "下箭头",
+      "font_class": "arrow_down_fat",
+      "unicode": "e62a",
+      "unicode_decimal": 58922
+    },
+    {
+      "icon_id": "12089102",
+      "name": "右箭头",
+      "font_class": "arrow_right_fat",
+      "unicode": "e62c",
+      "unicode_decimal": 58924
+    }
+  ]
+}

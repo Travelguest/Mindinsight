@@ -57,6 +57,8 @@ export default new Vuex.Store({
     nodeMaps: [],
 
     stepNum: 1,
+    nameScopeToParallelStrategy: "", //传给ParallelStrategyScope
+    nameScopeToPerformanceView: "", //传给PerformanceView的nameScope
   },
   mutations: {
     // set cancelTokenArr
@@ -136,6 +138,12 @@ export default new Vuex.Store({
     },
     setStepNum(state, val) {
       state.stepNum = val;
+    },
+    setNameScopeToParallelStrategy(state, val) {
+      state.nameScopeToParallelStrategy = val;
+    },
+    setNameScopeToPerformanceView(state, val) {
+      state.nameScopeToPerformanceView = val;
     },
   },
   actions: {
