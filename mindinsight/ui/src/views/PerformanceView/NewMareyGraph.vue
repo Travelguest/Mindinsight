@@ -163,8 +163,7 @@ export default {
 
       this.timeLineDataProcessing();
       this.mareyGraphReRender();
-
-      requestIdleCallback(this.nameScopeProcessing);
+      this.nameScopeProcessing();
     },
     FLOPsData: function () {
       requestIdleCallback(this.FLOPsDataProcessing);
@@ -172,10 +171,12 @@ export default {
     MemoryDataProps: function () {
       requestIdleCallback(this.MemoryDataProcessing);
     },
-    nameScope: function (newVal) {
+    nameScope: function (newVal, oldVal) {
       // console.log("nameScopeToPerformanceView变了", oldVal, newVal);
       //聚焦
-      const opArr = this.nameScopeToOp.get(newVal);
+      const opArr = this.nameScopeToOp.get("/" + newVal);
+      // console.log("看看", this.nameScopeToOp);
+      // console.log("对应opArr", opArr);
       if (!opArr || !opArr.length) {
         return;
       }
@@ -431,7 +432,7 @@ export default {
         }
       });
 
-      // console.log("polygonData.length", polygonData.length);
+      // console.log("合并前", polygonData.length);
       // console.log("polygonData1", polygonData);
 
       // 限制图形数量，超过就合并
@@ -518,7 +519,7 @@ export default {
             }
           }
         }
-        // console.log("filterRes.length", filterRes.length);
+        // console.log("合并后", filterRes.length);
         // console.log("filterRes", filterRes);
         this.polygonData = filterRes;
       } else {
@@ -743,7 +744,7 @@ export default {
     handleDblclick() {
       if (!this.timeStack.length) {
         //回到起点清除高亮
-        // this.highLightOpSet = null;
+        this.highLightOpSet = null;
         return;
       }
       const [preMinT, preMaxT] = this.timeStack.pop();

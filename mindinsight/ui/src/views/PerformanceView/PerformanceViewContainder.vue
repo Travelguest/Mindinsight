@@ -22,7 +22,8 @@
               :stageDeviceArr="stageDeviceArr"
               :stageDeviceRelationship="stageDeviceRelationship"
               :FLOPsData="FLOPsData"
-              @clickArrowIcon="handleclickArrowIcon"
+              :deviceToStage="deviceToStage"
+              @clickArrowIcon="handleClickArrowIcon"
             />
           </div>
           <div class="marey-graph">
@@ -86,6 +87,7 @@ export default {
       stageDeviceArr: [],
       isStageExpand: new Map(), //是否展开判断数组
       stageDeviceRelationship: null,
+      deviceToStage: null, //device - stage的映射
     };
   },
   mounted() {
@@ -125,6 +127,7 @@ export default {
     stageDeviceArrProcessing() {
       const stageDeviceArr = [];
       const stageDeviceRelationship = {};
+      const deviceToStage = new Map(); 
       const { stage_data } = this.timeLineData || {};
       Object.keys(stage_data).forEach((stageName) => {
         stageDeviceArr.push(stageName);
@@ -133,6 +136,7 @@ export default {
           stageDeviceRelationship[stageName] = [];
         }
         curStageDevice.forEach((device) => {
+          deviceToStage.set(device, stageName);
           if (this.isStageExpand.get(stageName)) {
             stageDeviceArr.push(device);
             stageDeviceRelationship[stageName].push(device);
@@ -141,6 +145,7 @@ export default {
       });
       this.stageDeviceArr = stageDeviceArr;
       this.stageDeviceRelationship = stageDeviceRelationship;
+      this.deviceToStage = deviceToStage;
     },
     // FLOPMapDataProcessing() {
     //   const FLOPMapData = {};
@@ -163,7 +168,7 @@ export default {
         })
         .catch(console.error);
     },
-    handleclickArrowIcon(stage) {
+    handleClickArrowIcon(stage) {
       this.isStageExpand.set(stage, !this.isStageExpand.get(stage));
       this.stageDeviceArrProcessing();
     },
@@ -196,7 +201,7 @@ export default {
   flex-direction: row;
 }
 .performance-view-container .top .right .view .stage-tree {
-  flex-basis: 200px;
+  flex-basis: 250px;
 }
 .performance-view-container .top .right .view .marey-graph {
   flex: 1;
