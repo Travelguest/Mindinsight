@@ -437,24 +437,24 @@ Matrix.prototype.render = function (nodeValue = []) {
           });
       }
     }
-    var c_cost = this.nodeData[this.nodes[i]].c_cost;
-    var w_cost = this.nodeData[this.nodes[i]].w_cost;
-    _this.locallayer
-      .append("rect")
-      .attr("class", this.nodes[i] + "-barchart")
-      .attr("x", _this.x + this.unitsize * this.nodes.length)
-      .attr("y", _this.y + this.unitsize * i + this.barHight)
-      .attr("width", Math.log(c_cost))
-      .attr("height", _this.barHight * 2)
-      .style("fill", "#848484");
-    _this.locallayer
-      .append("rect")
-      .attr("class", this.nodes[i] + "-barchart")
-      .attr("x", _this.x + this.unitsize * this.nodes.length)
-      .attr("y", _this.y + this.unitsize * i + 5 * this.barHight)
-      .attr("width", Math.log(w_cost))
-      .attr("height", _this.barHight * 2)
-      .style("fill", "#848484");
+    // var c_cost = this.nodeData[this.nodes[i]].c_cost;
+    // var w_cost = this.nodeData[this.nodes[i]].w_cost;
+    // _this.locallayer
+    //   .append("rect")
+    //   .attr("class", this.nodes[i] + "-barchart")
+    //   .attr("x", _this.x + this.unitsize * this.nodes.length)
+    //   .attr("y", _this.y + this.unitsize * i + this.barHight)
+    //   .attr("width", Math.log(c_cost))
+    //   .attr("height", _this.barHight * 2)
+    //   .style("fill", "#848484");
+    // _this.locallayer
+    //   .append("rect")
+    //   .attr("class", this.nodes[i] + "-barchart")
+    //   .attr("x", _this.x + this.unitsize * this.nodes.length)
+    //   .attr("y", _this.y + this.unitsize * i + 5 * this.barHight)
+    //   .attr("width", Math.log(w_cost))
+    //   .attr("height", _this.barHight * 2)
+    //   .style("fill", "#848484");
   }
   // console.log(max_ccost, max_wcost);
   for (var i in this.nodes) {
