@@ -40,16 +40,27 @@ export default {
   watch: {
     stepNumber() {
       this.clearRender();
+      this.overViewDataProcessing();
+      this.communicationDataProcessing();
       this.renderUpdate();
     },
     overViewData: function () {
+      this.overViewDataProcessing();
+      this.renderUpdate();
+    },
+    communicationData: function () {
+      this.communicationDataProcessing();
       this.renderUpdate();
     },
   },
   mounted() {
     this.renderInit();
   },
-  computed: {},
+  computed: {
+    communicationData() {
+      return this.$store.state.communicationData;
+    },
+  },
   methods: {
     renderInit() {
       const chartDom = document.getElementById("stacked-column-container");
@@ -91,12 +102,12 @@ export default {
             show: true,
             alignWithLabel: true,
           },
-          axisLine: {
-            symbol: ["none", "triangle"],
-            show: true,
-            symbolSize: 10,
-            symbolOffset: 5,
-          },
+          // axisLine: {
+          //   symbol: ["none", "triangle"],
+          //   show: true,
+          //   symbolSize: 10,
+          //   symbolOffset: 5,
+          // },
           nameTextStyle: {
             fontStyle: "normal",
             fontWeight: "bold",
@@ -104,29 +115,54 @@ export default {
           },
           data: [],
         },
-        yAxis: {
-          type: "value",
-          name: "time(ms)",
-          axisLine: {
-            symbol: ["none", "triangle"],
-            show: true,
-            symbolSize: 10,
-            symbolOffset: 5,
+        yAxis: [
+          {
+            type: "value",
+            name: "time(ms)",
+            axisLine: {
+              symbol: ["none", "triangle"],
+              show: true,
+              symbolSize: 10,
+              symbolOffset: 5,
+            },
+            axisLabel: {
+              show: true,
+            },
+            splitLine: {
+              show: false,
+            },
+            nameTextStyle: {
+              fontStyle: "normal",
+              fontWeight: "bold",
+              fontSize: 16,
+              align: "center",
+              verticalAlign: "bottom",
+            },
           },
-          axisLabel: {
-            show: true,
+          {
+            type: "value",
+            name: "time(ms)",
+            axisLine: {
+              symbol: ["none", "triangle"],
+              show: true,
+              symbolSize: 10,
+              symbolOffset: 5,
+            },
+            axisLabel: {
+              show: true,
+            },
+            splitLine: {
+              show: false,
+            },
+            nameTextStyle: {
+              fontStyle: "normal",
+              fontWeight: "bold",
+              fontSize: 16,
+              align: "center",
+              verticalAlign: "bottom",
+            },
           },
-          splitLine: {
-            show: false,
-          },
-          nameTextStyle: {
-            fontStyle: "normal",
-            fontWeight: "bold",
-            fontSize: 16,
-            align: "center",
-            verticalAlign: "bottom",
-          },
-        },
+        ],
         series: [
           {
             name: "Step Interval",
@@ -139,7 +175,7 @@ export default {
             data: [],
           },
           {
-            name: "Forward and Backward Propagaion",
+            name: "Forward and Backward Propagation",
             type: "bar",
             stack: "Time",
             emphasis: {
@@ -156,14 +192,31 @@ export default {
             },
             data: [],
           },
+          {
+            name: "communication cost",
+            yAxisIndex: 1,
+            type: "line",
+            // stack: "Total",
+            color: "#E6882F",
+            showSymbol: false,
+            data: [],
+          },
+          {
+            name: "waiting cost",
+            yAxisIndex: 1,
+            type: "line",
+            stack: "Total",
+            color: "#E6882F",
+            showSymbol: false,
+            data: [],
+          },
         ],
       };
       this.option = option;
     },
-    renderUpdate() {
+    overViewDataProcessing() {
       //处理数据
-      const [intervalObj, propagaionObj, tailObj] = this.option.series;
-      //只展示了step1的
+      const [intervalObj, propagationObj, tailObj] = this.option.series;
       const curStep = this.stepNumber - 1; //下标从0开始
       this.option.title.text = `Current Step: ${this.stepNumber}`;
       Object.keys(this.overViewData).forEach((device) => {
@@ -172,19 +225,56 @@ export default {
         }
         const curStepInfo = this.overViewData[device][curStep];
         intervalObj.data.push(parseInt(curStepInfo["iteration_interval"], 10));
-        propagaionObj.data.push(parseInt(curStepInfo["fp_and_bp"], 10));
+        propagationObj.data.push(parseInt(curStepInfo["fp_and_bp"], 10));
         tailObj.data.push(parseInt(curStepInfo["tail"], 10));
       });
       if (!this.isxAisData) {
         this.isxAisData = true;
       }
+    },
+    communicationDataProcessing() {
+      const [_1, _2, _3, communicationCost, waitingCost] = this.option.series;
+      const curStep = this.stepNumber - 1; //下标从0开始
+      Object.keys(this.communicationData).forEach((device) => {
+        const curStepInfo = this.communicationData[device][curStep];
+        communicationCost.data.push(
+          parseInt(curStepInfo["communication_cost"], 10)
+        );
+        waitingCost.data.push(parseInt(curStepInfo["49.03871999999999"], 10));
+      });
+    },
+    renderUpdate() {
+      const [
+        intervalObj,
+        propagationObj,
+        tailObj,
+        communicationCost,
+        waitingCost,
+      ] = this.option.series;
+      if (
+        !intervalObj.data.length ||
+        !propagationObj.data.length ||
+        !tailObj.data.length ||
+        !communicationCost.data.length ||
+        !waitingCost.data.length
+      ) {
+        return;
+      }
       this.stackedColumnChart.setOption(this.option);
     },
     clearRender() {
-      const [intervalObj, propagaionObj, tailObj] = this.option.series;
+      const [
+        intervalObj,
+        propagationObj,
+        tailObj,
+        communicationCost,
+        waitingCost,
+      ] = this.option.series;
       intervalObj.data = [];
-      propagaionObj.data = [];
+      propagationObj.data = [];
       tailObj.data = [];
+      communicationCost.data = [];
+      waitingCost.data = [];
     },
   },
 };

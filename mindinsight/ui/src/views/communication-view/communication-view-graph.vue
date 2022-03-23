@@ -100,6 +100,8 @@ export default {
       await this.fetchData();
       //发送communicateNodes 给LineChart
       this.$store.commit('setCommunicateNodes',this.communicateNodes);
+      this.$store.commit('setCommunicationData',this.communicateGraphData);
+
       // this.generateGraph();
       this.renderNetwork();
       // this.generateCanvas();
