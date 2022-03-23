@@ -36,19 +36,12 @@ Matrix.prototype.barHight = 6; //6*5+(6/2)*6=48
 //   // })
 // };
 
-Matrix.prototype.create = function (node, linkSelect = false) {
+Matrix.prototype.create = function (node, linkSelect = false, nodeValue = []) {
   this.linkSelect = linkSelect;
   this.locallayer.on("contextmenu", function (d) {
     d3.event.preventDefault();
     window.graph.renderNet();
-    // // console.log(window.matrix_list);
-    // window.matrix_list.
     d3.selectAll("#matrix > *").remove();
-    // d3.select("#path").remove();
-    // d3.select("#mainsvg").append("g").attr("id", "path");
-    // window.graph.pushNode();
-    // // // console.log("click matrix");
-    // // window.graph.pushNode(node);
   });
   this.nodeData = window.graph.getNodesData(node);
 
@@ -112,7 +105,7 @@ Matrix.prototype.create = function (node, linkSelect = false) {
   }
   // console.log(this.adj_matrix);
   // window.matrix_list.push(this);
-  this.render();
+  this.render(nodeValue);
   // if (window.paths.created) {
   //   for (var i in node) {
   //     window.paths.push(node[i]);
@@ -120,7 +113,7 @@ Matrix.prototype.create = function (node, linkSelect = false) {
   // }
 };
 
-Matrix.prototype.render = function () {
+Matrix.prototype.render = function (nodeValue = []) {
   // d3.selectAll("#mat" + this.id + ">*").remove();
   var _this = this;
   // var max_ccost = 0,
@@ -150,6 +143,10 @@ Matrix.prototype.render = function () {
             if (j == 0 && i == 1) {
               return "red";
             }
+          } else if (
+            nodeValue.filter((n) => n.source == j && n.target == i).length != 0
+          ) {
+            return "red";
           }
           return "#848484";
         })
@@ -192,6 +189,7 @@ Matrix.prototype.render = function () {
         var x25 = 0,
           x75 = 0,
           xmid = 0;
+        var k = 0;
         if (
           _this.adj_matrix[j][i].box_duration.max ==
           _this.adj_matrix[j][i].box_duration.min
@@ -199,8 +197,9 @@ Matrix.prototype.render = function () {
           x25 = xmin;
           x75 = xmax;
           xmid = (xmin + xmax) / 2;
+          k = 0;
         } else {
-          var k =
+          k =
             (xmax - xmin) /
             (_this.adj_matrix[j][i].box_duration.max -
               _this.adj_matrix[j][i].box_duration.min);
@@ -244,6 +243,21 @@ Matrix.prototype.render = function () {
             .attr("y2", y + 0.5 * _this.barHight)
             .attr("stroke", "#848484");
         });
+        nodeValue
+          .filter((n) => n.source == j && n.target == i)
+          .forEach((n) => {
+            var value = n.value[0];
+            var xvalue =
+              xmin + k * (value - _this.adj_matrix[j][i].box_duration.min);
+            boxLayer
+              .append("line")
+              .attr("class", "box-node-line")
+              .attr("x1", xvalue)
+              .attr("y1", y - 0.5 * _this.barHight)
+              .attr("x2", xvalue)
+              .attr("y2", y + 0.5 * _this.barHight)
+              .attr("stroke", "red");
+          });
 
         _this.locallayer
           .append("rect")
@@ -272,6 +286,7 @@ Matrix.prototype.render = function () {
         var x25 = 0,
           x75 = 0,
           xmid = 0;
+        var k = 0;
         if (
           _this.adj_matrix[j][i].box_traffic.max ==
           _this.adj_matrix[j][i].box_traffic.min
@@ -279,8 +294,9 @@ Matrix.prototype.render = function () {
           x25 = xmin;
           x75 = xmax;
           xmid = (xmin + xmax) / 2;
+          k = 0;
         } else {
-          var k =
+          k =
             (xmax - xmin) /
             (_this.adj_matrix[j][i].box_traffic.max -
               _this.adj_matrix[j][i].box_traffic.min);
@@ -324,6 +340,21 @@ Matrix.prototype.render = function () {
             .attr("y2", y + 0.5 * _this.barHight)
             .attr("stroke", "#848484");
         });
+        nodeValue
+          .filter((n) => n.source == j && n.target == i)
+          .forEach((n) => {
+            var value = n.value[1];
+            var xvalue =
+              xmin + k * (value - _this.adj_matrix[j][i].box_traffic.min);
+            boxLayer
+              .append("line")
+              .attr("class", "box-node-line")
+              .attr("x1", xvalue)
+              .attr("y1", y - 0.5 * _this.barHight)
+              .attr("x2", xvalue)
+              .attr("y2", y + 0.5 * _this.barHight)
+              .attr("stroke", "red");
+          });
 
         var boxLayer = _this.locallayer
           .append("g")
@@ -335,6 +366,7 @@ Matrix.prototype.render = function () {
         var x25 = 0,
           x75 = 0,
           xmid = 0;
+        var k = 0;
         if (
           _this.adj_matrix[j][i].box_bandWidth.max ==
           _this.adj_matrix[j][i].box_bandWidth.min
@@ -342,8 +374,9 @@ Matrix.prototype.render = function () {
           x25 = xmin;
           x75 = xmax;
           xmid = (xmin + xmax) / 2;
+          k = 0;
         } else {
-          var k =
+          k =
             (xmax - xmin) /
             (_this.adj_matrix[j][i].box_bandWidth.max -
               _this.adj_matrix[j][i].box_bandWidth.min);
@@ -387,6 +420,21 @@ Matrix.prototype.render = function () {
             .attr("y2", y + 0.5 * _this.barHight)
             .attr("stroke", "#848484");
         });
+        nodeValue
+          .filter((n) => n.source == j && n.target == i)
+          .forEach((n) => {
+            var value = n.value[1];
+            var xvalue =
+              xmin + k * (value - _this.adj_matrix[j][i].box_duration.min);
+            boxLayer
+              .append("line")
+              .attr("class", "box-node-line")
+              .attr("x1", xvalue)
+              .attr("y1", y - 0.5 * _this.barHight)
+              .attr("x2", xvalue)
+              .attr("y2", y + 0.5 * _this.barHight)
+              .attr("stroke", "red");
+          });
       }
     }
     var c_cost = this.nodeData[this.nodes[i]].c_cost;
