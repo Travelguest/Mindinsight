@@ -50,6 +50,7 @@ export default {
         const obj = {
           name: device,
           type: "line",
+          color: "#A1A1A1",
           data: [],
         };
         for (let i = 0; i < this.overViewData[device].length; i++) {
@@ -91,7 +92,7 @@ export default {
           yAxisIndex: 1,
           type: "line",
           stack: "Total",
-          color: "#cecfd1",
+          color: "#E6882F",
           showSymbol: false,
           data: communicationList,
         },
@@ -100,22 +101,9 @@ export default {
           yAxisIndex: 1,
           type: "line",
           stack: "Total",
-          color: "#cecfd1",
+          color: "#E6882F",
           showSymbol: false,
           data: waitingList,
-          markLine: {
-            symbol: "none", //去掉警戒线最后面的箭头
-            silent: true, //鼠标悬停事件  true没有，false有
-            label: {
-              position: "middle", //将警示值放在哪个位置，三个值“start”,"middle","end"  开始  中点 结束
-            },
-            data: [
-              {
-                type: "max",
-                name: "最大值",
-              },
-            ],
-          },
         },
       ];
       this.option.series.push(...series);
@@ -142,7 +130,28 @@ export default {
           trigger: "axis",
         },
         // legend: {
-        //   data: [],
+        //   formatter: function (name) {
+        //     return name.startsWith("device")
+        //       ? 'Total training time of a rank"'
+        //       : "Average communication and waiting time of ranks";
+        //   },
+        //   data: [
+        //     // {
+        //     //   name: "Total training time of a rank",
+        //     //   icon: "rect",
+        //     //   textStyle: {
+        //     //     color: "#A1A1A1",
+        //     //   },
+        //     // },
+        //     // {
+        //     //   // name: "Average communication and waiting time of ranks",
+        //     //   name: "communication cost",
+        //     //   icon: "rect",
+        //     //   textStyle: {
+        //     //     color: "#E6882F",
+        //     //   },
+        //     // },
+        //   ],
         // },
         grid: {
           top: "20%",
@@ -159,12 +168,12 @@ export default {
             show: true,
             alignWithLabel: true,
           },
-          axisLine: {
-            symbol: ["none", "triangle"],
-            show: true,
-            symbolSize: 10,
-            symbolOffset: 5,
-          },
+          // axisLine: {
+          //   symbol: ["none", "triangle"],
+          //   show: false,
+          //   symbolSize: 10,
+          //   symbolOffset: 5,
+          // },
           nameTextStyle: {
             fontStyle: "normal",
             fontWeight: "bold",
@@ -253,7 +262,7 @@ export default {
 
 <style scoped>
 #line-chart-container {
-  height: 250px;
+  height: 100%;
   width: 100%;
   /* background: rebeccapurple; */
   /* border: 1px solid red; */

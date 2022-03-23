@@ -61,9 +61,9 @@ export default new Vuex.Store({
     nameScopeToPerformanceView: "", //传给PerformanceView的nameScope
 
     communicateNodes: null, //LineChart依赖数据
+    communicationData: null, //getCommunicationData的数据
 
     selectCommunicateOpnode: ["", 0],
-
   },
   mutations: {
     // set cancelTokenArr
@@ -155,6 +155,9 @@ export default new Vuex.Store({
     },
     setSelectCommunicateOpnode(state, val) {
       state.selectCommunicateOpnode = val;
+    },
+    setCommunicationData(state, val) {
+      state.communicationData = val;
     },
   },
   actions: {

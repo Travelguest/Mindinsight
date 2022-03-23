@@ -813,7 +813,7 @@ export default {
 
     initGraph() {
       this.fetchData();
-      console.log("initGraph");
+      // console.log("initGraph");
       for (let i = 0; i < this.nodeMaps.length; i++) {
         const nodeMap = this.nodeMaps[i];
         const [normalEdgesBackup, { specialEdges, normalEdges, opNodes }] =

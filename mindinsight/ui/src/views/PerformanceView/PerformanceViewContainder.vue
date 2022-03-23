@@ -207,6 +207,7 @@ export default {
   flex: 1;
 }
 .performance-view-container .bottom {
+  flex-basis: 250px;
   display: flex;
   flex-direction: row;
 }
