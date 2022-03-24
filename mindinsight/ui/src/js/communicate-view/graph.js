@@ -48,6 +48,7 @@ Graph.prototype.getMatrixSize = function () {
 
 Graph.prototype.renderNet = function () {
   this.layer.select("#networklayer").remove();
+  d3.select("#mainsvg > g.matrix-lable").remove();
   var network = this.layer.append("g").attr("id", "networklayer");
   var forceLinks = _.cloneDeep(this.links);
   var forceNodes = _.cloneDeep(this.nodes);
@@ -91,6 +92,7 @@ Graph.prototype.renderNet = function () {
 Graph.prototype.renderMatrix = function (matrixNodes) {
   this.layer.select("#networklayer").remove();
   d3.selectAll("#matrix > *").remove();
+  d3.select("#mainsvg > g.matrix-lable").remove();
   var network = this.layer.append("g").attr("id", "networklayer");
   var forceLinks = _.cloneDeep(this.links);
   var forceNodes = _.cloneDeep(this.nodes);
@@ -99,10 +101,14 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
   // console.log(matrixNodes);
   var newNodes = [];
   var newLinks = [];
+  // console.log(matrixNodes);
+
+  // console.log(matrixNodes);
   var matrixNodeNum = Object.keys(matrixNodes).length;
   forceNodes.forEach((n) => {
     var copyNode = _.cloneDeep(n);
     var index = Object.keys(matrixNodes).indexOf(copyNode.id);
+    // console.log(n, index);
     if (index <= -1) {
       copyNode.showable = true;
       newNodes.push(copyNode);
@@ -376,6 +382,11 @@ function initLinks(linksData, network) {
       newNodes[id2] = true;
 
       var m = new Matrix();
+      var nodeList = Object.keys(newNodes).sort();
+      newNodes = {};
+      nodeList.forEach((n) => {
+        newNodes[n] = true;
+      });
       window.graph.renderMatrix(newNodes);
       // console.log(newNodes);
       m.create(Object.keys(newNodes), true);
@@ -403,6 +414,11 @@ Graph.prototype.showOpNode = function (nodeData) {
   });
 
   var m = new Matrix();
+  var nodeList = Object.keys(matrixNodes).sort();
+  matrixNodes = {};
+  nodeList.forEach((n) => {
+    matrixNodes[n] = true;
+  });
   window.graph.renderMatrix(matrixNodes);
   m.create(Object.keys(matrixNodes), false, nodeValue);
 };

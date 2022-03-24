@@ -360,31 +360,71 @@ Matrix.prototype.render = function (nodeValue = []) {
     }
   }
   // console.log(max_ccost, max_wcost);
-  for (var i in this.nodes) {
-    _this.locallayer
-      .append("text")
-      .attr("class", "text" + _this.id)
-      .text(this.nodes[i].replace("device", ""))
-      .style("text-anchor", "end")
-      .attr("x", this.x - 5)
-      .attr("y", this.y + i * this.unitsize + 24);
-    _this.locallayer
-      .append("text")
-      .attr("class", "text" + _this.id)
-      .text(this.nodes[i].replace("device", ""))
-      .style("text-anchor", "end")
-      .attr("x", this.x + i * this.unitsize + 24)
-      .attr("y", this.y - 5);
-  }
+  // for (var i in this.nodes) {
+  //   _this.locallayer
+  //     .append("text")
+  //     .attr("class", "text" + _this.id)
+  //     .text(this.nodes[i].replace("device", ""))
+  //     .style("text-anchor", "end")
+  //     .attr("x", this.x - 5)
+  //     .attr("y", this.y + i * this.unitsize + 24);
+  //   _this.locallayer
+  //     .append("text")
+  //     .attr("class", "text" + _this.id)
+  //     .text(this.nodes[i].replace("device", ""))
+  //     .style("text-anchor", "end")
+  //     .attr("x", this.x + i * this.unitsize + 24)
+  //     .attr("y", this.y - 5);
+  // }
   // this.locallayer.attr("transform", "translate(20,20)");
-  var xtrans = -this.locallayer.node().getBBox().x;
-  var ytrans = -this.locallayer.node().getBBox().y;
-  var scale = this.matrix_size / this.locallayer.node().getBBox().height;
+  var xtrans = -this.locallayer.node().getBBox().x + 15;
+  var ytrans = -this.locallayer.node().getBBox().y + 15;
+  var scale = (this.matrix_size - 15) / this.locallayer.node().getBBox().height;
 
   this.locallayer.attr(
     "transform",
     "scale(" + scale + ")" + "translate(" + xtrans + "," + ytrans + ")"
   );
+
+  d3.select("#mainsvg > g.matrix-lable").remove();
+
+  var labelWrapper = d3
+    .select("#networkPlot > #mainsvg")
+    .append("g")
+    .attr("class", "matrix-lable");
+  // console.log(this.matrix_size / this.nodes.length);
+  this.nodes.forEach((nodename, index) => {
+    var y = 10 + (index + 0.5) * (this.matrix_size / this.nodes.length);
+    labelWrapper
+      .append("text")
+      .text(nodename.replace("device", ""))
+      .attr("x", 0)
+      .attr("y", y);
+
+    labelWrapper
+      .append("text")
+      .text(nodename.replace("device", ""))
+      .attr("x", y - 5)
+      .attr("y", 10);
+  });
+  // for (var i in range(0, this.nodes.length - 1)) {
+  //   var y = 10 + (i + 0.5) * (this.matrix_size / this.nodes.length);
+  //   labelWrapper
+  //     .append("text")
+  //     .text(this.nodes[i].replace("device", ""))
+  //     .attr("x", 0)
+  //     .attr("y", y);
+  // }
+  // for (var i in this.nodes) {
+  //   var y = 10 + (i + 0.5) * (this.matrix_size / this.nodes.length);
+
+  //   console.log(y);
+  //   labelWrapper
+  //     .append("text")
+  //     .text(this.nodes[i].replace("device", ""))
+  //     .attr("x", 0)
+  //     .attr("y", y);
+  // }
 };
 
 Matrix.prototype.renderBoxPlot = function (
