@@ -1,13 +1,26 @@
 <template>
-  <div class="communication-graph-box">
-    <div id="networkPlot"></div>
-    <div id="communication-line-chart-container">
-      <div id="communication-line-chart"></div>
+  <div style="height: 100%">
+    <div class="communication-sub-title">
+      <svg class="subtitle-svg" width="100%" height="100%">
+        <g class="subtitle-container"></g>
+      </svg>
+    </div>
+    <div class="communication-graph-box">
+      <div id="networkPlot"></div>
+      <div id="communication-line-chart-container">
+        <div id="communication-line-chart"></div>
+      </div>
     </div>
   </div>
 </template>
 
 <style>
+.communication-sub-title {
+  width: 90%;
+  height: 15%;
+  padding-top: 5px;
+  margin: 0 auto;
+}
 .communication-view {
   height: 100%;
 }
@@ -19,7 +32,7 @@
 }
 .communication-graph-box {
   position: relative;
-  width: 100%;
+  width: 85%;
   height: 305px;
 }
 .el-icon-magic-stick {
@@ -29,7 +42,7 @@
   z-index: 999;
 }
 #communication-line-chart-container {
-  height: 30%;
+  height: 20%;
   width: 100%;
 }
 #communication-line-chart {
@@ -82,6 +95,7 @@ export default {
     };
   },
   mounted() {
+    this.initSubtitle();
     this.initGraph();
   },
   watch: {
@@ -96,6 +110,16 @@ export default {
   },
 
   methods: {
+    initSubtitle() {
+      var layer = d3.select(".subtitle-container");
+      layer
+        .append("text")
+        .attr("id", "title-line1")
+        .attr("x", 0)
+        .attr("y", 0)
+        .text("The Proportion of communication time:");
+    },
+
     async initGraph() {
       await this.fetchData();
       // this.generateGraph();
