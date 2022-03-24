@@ -5,21 +5,21 @@
       <svg width="100%" height="100%">
         <g>
           <rect
-            x="50"
+            x="0"
             y="8"
             width="10"
             height="10"
             :fill="pipelineReceiveRectColor"
           ></rect>
-          <text x="65" y="19" font-size="12">Receive_op</text>
+          <text x="15" y="19" font-size="12">Receive_op</text>
           <rect
-            x="150"
+            x="100"
             y="8"
             width="10"
             height="10"
             :fill="pipelineSendRectColor"
           ></rect>
-          <text x="165" y="19" font-size="12">Send_op</text>
+          <text x="115" y="19" font-size="12">Send_op</text>
         </g>
       </svg>
     </div>
