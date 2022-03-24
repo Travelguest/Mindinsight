@@ -1,16 +1,39 @@
 <template>
   <div class="configuration-view-box">
+    <div class="data-selection">
+      <span class="title">Data selection: </span>
+      <a-select
+        default-value="5_resnet_pipeline_4p"
+        style="width: 60%"
+        @change="handleDataSwitch"
+      >
+        <a-select-option value="1_bert_16p_0115"
+          >1_bert_16p_0115</a-select-option
+        >
+        <a-select-option value="2_pangu">2_pangu</a-select-option>
+        <a-select-option value="3_pipline_16p_0115"
+          >3_pipline_16p_0115</a-select-option
+        >
+        <a-select-option value="4_googlenet_8p_0121"
+          >4_googlenet_8p_0121</a-select-option
+        >
+        <a-select-option value="5_resnet_pipeline_4p"
+          >5_resnet_pipeline_4p</a-select-option
+        >
+        <a-select-option value="pangu_16p_0115">pangu_16p_0115</a-select-option>
+      </a-select>
+    </div>
     <div class="scope-search">
       <a-tree-select
         ref="configure-select"
         class="configure-select"
         v-model="selectNamespaces"
-        style="width: 90%; z-index: 99; padding: 10px 0; aria-expanded: true"
+        style="width: 90%; padding-top: 10px; aria-expanded: true"
         :tree-data="showTreeData"
         tree-checkable
         :show-checked-strategy="SHOW_PARENT"
         search-placeholder="Please select"
-        :dropdownStyle="{ height: '230px' }"
+        :dropdownStyle="{ height: '100px' }"
         :maxTagCount="Number(1)"
         :treeDefaultExpandedKeys="expandedKeys"
         dropdownMatchSelectWidth
@@ -40,9 +63,21 @@
         </template>
       </a-tree-select>
       <!-- <div class="scope-tree"></div> -->
-      <div class="dashed-line"></div>
+      <!-- <div class="dashed-line"></div> -->
     </div>
     <div class="edge-config">
+      <svg style="position: absolute; top: 0" width="100%" height="1px">
+        <line
+          x1="0"
+          y1="0"
+          x2="90%"
+          y2="0"
+          stroke="#ccc"
+          stroke-width="1"
+          stroke-dasharray="4"
+          stroke-dashoffset="22"
+        ></line>
+      </svg>
       <div class="config-sub-title">
         <h2>Hidden Edge</h2>
       </div>
@@ -59,7 +94,19 @@
       </div>
     </div>
     <div class="stage-panel">
-      <div class="config-sub-title">
+      <svg style="position: absolute; top: 0" width="100%" height="1px">
+        <line
+          x1="0"
+          y1="0"
+          x2="90%"
+          y2="0"
+          stroke="#ccc"
+          stroke-width="1"
+          stroke-dasharray="4"
+          stroke-dashoffset="22"
+        ></line>
+      </svg>
+      <div class="stage-panel-sub-title">
         <h2>Stage</h2>
       </div>
       <PipelineStageGraph />
@@ -70,7 +117,7 @@
 <script>
 import * as d3 from "d3";
 import { getTreeData, levelOrder } from "@/js/profile-graph/build-graph.js";
-import { TreeSelect } from "ant-design-vue";
+import { TreeSelect, Select, Icon } from "ant-design-vue";
 import PipelineStageGraph from "./PiplineStageGraph.vue";
 // import RequestService from "@/services/request-service";
 
@@ -79,6 +126,9 @@ const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 export default {
   components: {
     PipelineStageGraph,
+    "a-icon": Icon,
+    "a-select": Select,
+    "a-select-option": Select.Option,
   },
 
   data() {
@@ -157,10 +207,13 @@ export default {
     },
     initView() {
       this.fetchData();
-      console.log(this.$refs["configure-select"]);
+      // console.log(this.$refs["configure-select"]);
     },
     handleTreeChange(value, label) {
       this.$store.commit("setProfileNamespaces", this.selectNamespaces);
+    },
+    handleDataSwitch(value) {
+      console.log("切换数据到", value);
     },
   },
 };
@@ -170,10 +223,23 @@ export default {
 .configuration-view-box {
   position: relative;
   width: 100%;
-  /* height: 705px; */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.data-selection {
+  padding-top: 10px;
+  margin-left: 32px;
+}
+.data-selection .title {
+  font-weight: 500;
+  font-size: 16px;
+  margin-right: 10px;
 }
 .scope-search {
-  height: 200px;
+  position: relative;
+  height: 150px;
+  margin-bottom: 10px;
   text-align: center;
 }
 .scope-tree {
@@ -183,29 +249,41 @@ export default {
   background: #eee;
   margin: 0 auto;
 }
-.dashed-line {
+/* .dashed-line {
   border-bottom: 1px dashed #aaaaaa;
   width: 90%;
   margin: 0 auto;
   padding-top: 5px;
   position: relative;
-}
+} */
 .special-edge-checkbox {
   height: 185px;
 }
 .edge-config {
+  position: relative;
+  margin-left: 32px;
+  padding-top: 10px;
   height: 210px;
+  flex-grow: 1;
 }
 .config-sub-title {
   width: 90%;
-  padding-top: 5px;
   text-align: left;
-  margin: 0 auto;
 }
-.config-sub-title h2 {
-  margin-bottom: 0;
+.stage-panel-sub-title {
+  width: 100%;
+  margin-left: 32px;
+  text-align: left;
 }
-
+.stage-panel {
+  position: relative;
+  padding-top: 10px;
+  height: 210px;
+  flex-grow: 1;
+}
+h2 {
+  margin-bottom: 3px;
+}
 .ant-select-open .ant-select-selection {
   border-color: #fff !important;
 }

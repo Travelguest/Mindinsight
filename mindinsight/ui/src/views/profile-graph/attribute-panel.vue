@@ -160,8 +160,8 @@ export default {
       this.selectedNode = val;
       this.nodeGroupIndex = Math.floor((this.selectedNode.y + 200) / 500);
       this.expname = ['1','2'];
-      console.log(this.selectedNode)
-      console.log(getSpecialNodesMap()) 
+      // console.log(this.selectedNode)
+      // console.log(getSpecialNodesMap()) 
     },
     "$store.state.nodeMaps": function (val) {
       this.nodeMaps = val;
@@ -170,7 +170,7 @@ export default {
   },
   methods: {
     handleChange(val) {
-      console.log(val);
+      // console.log(val);
     },
     getSpecialNodesMap() {
       return getSpecialNodesMap();
