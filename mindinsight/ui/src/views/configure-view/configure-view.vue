@@ -33,7 +33,7 @@
         tree-checkable
         :show-checked-strategy="SHOW_PARENT"
         search-placeholder="Please select"
-        :dropdownStyle="{ height: '100px' }"
+        :dropdownStyle="{ height: '150px' }"
         :maxTagCount="Number(1)"
         :treeDefaultExpandedKeys="expandedKeys"
         dropdownMatchSelectWidth
@@ -238,7 +238,7 @@ export default {
 }
 .scope-search {
   position: relative;
-  height: 150px;
+  height: 200px;
   margin-bottom: 10px;
   text-align: center;
 }
