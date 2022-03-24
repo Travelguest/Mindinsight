@@ -92,7 +92,7 @@
                     :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
                     style="font-size: 40; font-weight: bold"
                   >
-                    Device {{ index + 1 }}
+                    Stage {{ index + 1 }}
                   </text>
                   <rect
                     v-for="(bgdRectBlock, index) in bgdRectBlocks"

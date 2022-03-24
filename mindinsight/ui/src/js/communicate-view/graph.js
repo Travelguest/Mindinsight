@@ -72,7 +72,7 @@ Graph.prototype.renderNet = function () {
     .force("y", d3.forceY(this.h));
 
   simulation.nodes(forceNodes).on("tick", (d) => {
-    handleTick(node, link, label);
+    handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
   });
   simulation.force("link").links(forceLinks);
   var link = initLinks(forceLinks, network);
@@ -163,7 +163,7 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
     .force("y", d3.forceY(this.h));
 
   simulation.nodes(newNodes).on("tick", (d) => {
-    handleTick(node, link, label);
+    handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
   });
   simulation.force("link").links(newLinks);
   var link = initLinks(newLinks, network);
@@ -172,20 +172,21 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
     network,
     this.min_ratio,
     this.max_ratio,
-    simulation
+    simulation,
+    false
   );
   var label = initLabels(newNodes, network);
   window.lasso = new Lasso();
   window.lasso.bind();
 };
 
-function handleTick(node, link, label) {
+function handleTick(node, link, label, w, h) {
   // console.log("tick");
   link.attr("d", function (d) {
-    var x1 = d.source.x,
-      y1 = d.source.y,
-      x2 = d.target.x,
-      y2 = d.target.y,
+    var x1 = Math.min(d.source.x, w),
+      y1 = Math.min(d.source.y, h),
+      x2 = Math.min(d.target.x, w),
+      y2 = Math.min(d.target.y, h),
       dx = x2 - x1,
       dy = y2 - y1,
       dr = Math.sqrt(dx * dx + dy * dy),
@@ -229,10 +230,10 @@ function handleTick(node, link, label) {
   });
   label
     .attr("x", function (d) {
-      return d.x + 10;
+      return Math.min(d.x, w) + 10;
     })
     .attr("y", function (d) {
-      return d.y + 3;
+      return Math.min(d.y, h) + 3;
     });
   node
     .attr("cx", function (d) {
@@ -242,10 +243,10 @@ function handleTick(node, link, label) {
       //     dd.pos_end.y = d.y;
       //   }
       // });
-      return d.x;
+      return Math.min(d.x, w);
     })
     .attr("cy", function (d) {
-      return d.y;
+      return Math.min(d.y, h);
     });
 }
 
@@ -273,7 +274,14 @@ function initLabels(nodesData, network) {
   return label;
 }
 
-function initNodes(nodesData, network, minR, maxR, simulation) {
+function initNodes(
+  nodesData,
+  network,
+  minR,
+  maxR,
+  simulation,
+  draggable = true
+) {
   network.select(".nodes").remove();
 
   var node = network
@@ -305,8 +313,9 @@ function initNodes(nodesData, network, minR, maxR, simulation) {
     })
     .on("mouseleave", function (d) {
       d3.select(this).attr("stroke", "none");
-    })
-    .call(
+    });
+  if (draggable) {
+    node.call(
       d3
         .drag()
         .on("start", function (d) {
@@ -330,6 +339,8 @@ function initNodes(nodesData, network, minR, maxR, simulation) {
           }
         })
     );
+  }
+
   return node;
 }
 
