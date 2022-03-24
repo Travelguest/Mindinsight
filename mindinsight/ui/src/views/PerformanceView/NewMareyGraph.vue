@@ -69,6 +69,10 @@
             :points="data.data"
             :fill="OperatorColor.get(getOperatorType(data.op))"
             fill-opacity="0.5"
+            :stroke="
+              highLightOpSet && highLightOpSet.has(data.op) ? 'black' : ''
+            "
+            stroke-width="2px"
             @mousemove="onNodeMouseover($event, data, 'device')"
             @mouseout="onNodeMouseout"
             @click="handleClick(data.op)"

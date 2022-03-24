@@ -13,6 +13,18 @@
         <communication-view-graph />
       </div>
       <div class="right">
+        <svg style="position: absolute" width="1px" height="100%">
+          <line
+            x1="0"
+            y1="2%"
+            x2="0"
+            y2="98%"
+            stroke="#ccc"
+            stroke-width="1"
+            stroke-dasharray="4"
+            stroke-dashoffset="22"
+          ></line>
+        </svg>
         <div class="legend">
           <LegendPerformance />
         </div>
@@ -39,6 +51,18 @@
       </div>
     </div>
     <div class="bottom">
+      <svg style="position: absolute; top = 0" width="100%" height="1px">
+        <line
+          x1="2%"
+          y1="0"
+          x2="98%"
+          y2="0"
+          stroke="#ccc"
+          stroke-width="1"
+          stroke-dasharray="4"
+          stroke-dashoffset="22"
+        ></line>
+      </svg>
       <div class="left">
         <LineChart
           :overViewData="overViewData"
@@ -46,6 +70,18 @@
         />
       </div>
       <div class="right">
+        <svg style="position: absolute" width="1px" height="250px">
+          <line
+            x1="0"
+            y1="5%"
+            x2="0"
+            y2="95%"
+            stroke="#ccc"
+            stroke-width="1"
+            stroke-dasharray="4"
+            stroke-dashoffset="22"
+          ></line>
+        </svg>
         <StackedColumnChart
           :overViewData="overViewData"
           :stepNumber="stepNumber"
@@ -127,7 +163,7 @@ export default {
     stageDeviceArrProcessing() {
       const stageDeviceArr = [];
       const stageDeviceRelationship = {};
-      const deviceToStage = new Map(); 
+      const deviceToStage = new Map();
       const { stage_data } = this.timeLineData || {};
       Object.keys(stage_data).forEach((stageName) => {
         stageDeviceArr.push(stageName);
@@ -192,6 +228,7 @@ export default {
 }
 .performance-view-container .top .right {
   flex-grow: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
 }
@@ -207,7 +244,8 @@ export default {
   flex: 1;
 }
 .performance-view-container .bottom {
-  flex-basis: 250px;
+  height: 250px;
+  /* flex-basis: 250px; */
   display: flex;
   flex-direction: row;
 }
@@ -216,6 +254,7 @@ export default {
 }
 .performance-view-container .bottom .right {
   flex: 1;
+  overflow: hidden;
 }
 .view-title-bg {
   border-top: 35px solid #838383;

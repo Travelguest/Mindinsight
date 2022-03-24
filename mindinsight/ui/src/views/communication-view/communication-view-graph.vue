@@ -275,8 +275,10 @@ export default {
     renderNetwork() {
       // network data
       // console.log(this.communicateOps);
+      if (!this.communicateNodes[this.stepNum]) return;
       var dataLink = [];
       var dataNode = [];
+
       this.communicateNodes[this.stepNum].forEach(function (d) {
         dataNode.push({
           id: d.name,
