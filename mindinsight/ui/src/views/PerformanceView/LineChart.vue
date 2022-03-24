@@ -50,6 +50,7 @@ export default {
         const obj = {
           name: device,
           type: "line",
+          color: "#A1A1A1",
           data: [],
         };
         for (let i = 0; i < this.overViewData[device].length; i++) {
@@ -66,7 +67,46 @@ export default {
         series.push(obj);
       });
       // console.log("series", series);
-      this.option.series = series;
+      this.option.series.push(...series);
+      // console.log(this.option);
+      this.renderUpdate();
+    },
+    communicateNodes: function () {
+      const communicationList = [];
+      const waitingList = [];
+      for (let i in this.communicateNodes) {
+        let totCommunication = 0;
+        let totWaiting = 0;
+        for (let j in this.communicateNodes[i]) {
+          totCommunication += this.communicateNodes[i][j].communication_cost;
+          totWaiting += this.communicateNodes[i][j].wait_cost;
+        }
+        communicationList.push(
+          totCommunication / this.communicateNodes[i].length
+        );
+        waitingList.push(totWaiting / this.communicateNodes[i].length);
+      }
+      const series = [
+        {
+          name: "communication cost",
+          yAxisIndex: 1,
+          type: "line",
+          stack: "Total",
+          color: "#E6882F",
+          showSymbol: false,
+          data: communicationList,
+        },
+        {
+          name: "waiting cost",
+          yAxisIndex: 1,
+          type: "line",
+          stack: "Total",
+          color: "#E6882F",
+          showSymbol: false,
+          data: waitingList,
+        },
+      ];
+      this.option.series.push(...series);
       // console.log(this.option);
       this.renderUpdate();
     },
@@ -75,7 +115,11 @@ export default {
     this.renderInit();
     this.renderUpdate();
   },
-  computed: {},
+  computed: {
+    communicateNodes() {
+      return this.$store.state.communicateNodes;
+    },
+  },
   methods: {
     renderInit() {
       const chartDom = document.getElementById("line-chart-container");
@@ -86,7 +130,28 @@ export default {
           trigger: "axis",
         },
         // legend: {
-        //   data: [],
+        //   formatter: function (name) {
+        //     return name.startsWith("device")
+        //       ? 'Total training time of a rank"'
+        //       : "Average communication and waiting time of ranks";
+        //   },
+        //   data: [
+        //     // {
+        //     //   name: "Total training time of a rank",
+        //     //   icon: "rect",
+        //     //   textStyle: {
+        //     //     color: "#A1A1A1",
+        //     //   },
+        //     // },
+        //     // {
+        //     //   // name: "Average communication and waiting time of ranks",
+        //     //   name: "communication cost",
+        //     //   icon: "rect",
+        //     //   textStyle: {
+        //     //     color: "#E6882F",
+        //     //   },
+        //     // },
+        //   ],
         // },
         grid: {
           top: "20%",
@@ -103,12 +168,12 @@ export default {
             show: true,
             alignWithLabel: true,
           },
-          axisLine: {
-            symbol: ["none", "triangle"],
-            show: true,
-            symbolSize: 10,
-            symbolOffset: 5,
-          },
+          // axisLine: {
+          //   symbol: ["none", "triangle"],
+          //   show: false,
+          //   symbolSize: 10,
+          //   symbolOffset: 5,
+          // },
           nameTextStyle: {
             fontStyle: "normal",
             fontWeight: "bold",
@@ -116,30 +181,54 @@ export default {
           },
           data: [],
         },
-        yAxis: {
-          type: "value",
-          name: "time(ms)",
-          // min: 5000000,
-          axisLine: {
-            symbol: ["none", "triangle"],
-            show: true,
-            symbolSize: 10,
-            symbolOffset: 5,
+        yAxis: [
+          {
+            type: "value",
+            name: "time(ms)",
+            axisLine: {
+              symbol: ["none", "triangle"],
+              show: true,
+              symbolSize: 10,
+              symbolOffset: 5,
+            },
+            axisLabel: {
+              show: true,
+            },
+            splitLine: {
+              show: false,
+            },
+            nameTextStyle: {
+              fontStyle: "normal",
+              fontWeight: "bold",
+              fontSize: 16,
+              align: "center",
+              verticalAlign: "bottom",
+            },
           },
-          axisLabel: {
-            show: true,
+          {
+            type: "value",
+            name: "time(ms)",
+            nameTextStyle: {
+              fontStyle: "normal",
+              fontWeight: "bold",
+              fontSize: 16,
+              align: "center",
+              verticalAlign: "bottom",
+            },
+            axisLine: {
+              symbol: ["none", "triangle"],
+              show: true,
+              symbolSize: 10,
+              symbolOffset: 5,
+            },
+            splitLine: {
+              show: false,
+            },
+            axisLabel: {
+              show: true,
+            },
           },
-          splitLine: {
-            show: false,
-          },
-          nameTextStyle: {
-            fontStyle: "normal",
-            fontWeight: "bold",
-            fontSize: 16,
-            align: "center",
-            verticalAlign: "bottom",
-          },
-        },
+        ],
         dataZoom: [
           {
             type: "inside",
@@ -154,12 +243,12 @@ export default {
             top: "85%",
           },
         ],
-        series: null,
+        series: [],
       };
       this.option = option;
     },
     renderUpdate() {
-      if (!this.option.series) return;
+      if (!this.option.series || this.option.series.length < 2) return;
 
       this.lineChart.setOption(this.option);
       this.lineChart.on("click", (params) => {
@@ -173,7 +262,7 @@ export default {
 
 <style scoped>
 #line-chart-container {
-  height: 250px;
+  height: 100%;
   width: 100%;
   /* background: rebeccapurple; */
   /* border: 1px solid red; */

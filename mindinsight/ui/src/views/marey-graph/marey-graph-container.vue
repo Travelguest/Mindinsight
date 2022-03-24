@@ -22,7 +22,6 @@
 </template>
 
 <script>
-// import GraphContainer from './ELKGraph/graph-container.vue';
 import ProfileGraph from "../profile-graph/profile-graph.vue";
 import AttributePanel from "../profile-graph/attribute-panel.vue";
 import PerformanceView from "../PerformanceView/PerformanceViewContainder.vue";
@@ -31,7 +30,6 @@ import LegendStrategy from "../profile-graph/legend-strategy.vue";
 
 export default {
   components: {
-    // GraphContainer,
     ProfileGraph,
     PerformanceView,
     ConfigureView,

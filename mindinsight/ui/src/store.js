@@ -59,6 +59,10 @@ export default new Vuex.Store({
     stepNum: 1,
     nameScopeToParallelStrategy: "", //传给ParallelStrategyScope
     nameScopeToPerformanceView: "", //传给PerformanceView的nameScope
+
+    communicateNodes: null, //LineChart依赖数据
+    communicationData: null, //getCommunicationData的数据
+
     selectCommunicateOpnode: ["", 0],
   },
   mutations: {
@@ -146,8 +150,14 @@ export default new Vuex.Store({
     setNameScopeToPerformanceView(state, val) {
       state.nameScopeToPerformanceView = val;
     },
+    setCommunicateNodes(state, val) {
+      state.communicateNodes = val;
+    },
     setSelectCommunicateOpnode(state, val) {
       state.selectCommunicateOpnode = val;
+    },
+    setCommunicationData(state, val) {
+      state.communicationData = val;
     },
   },
   actions: {

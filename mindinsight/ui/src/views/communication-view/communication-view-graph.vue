@@ -41,7 +41,7 @@
 #networkPlot {
   position: relative;
   width: 100%;
-  height: 65%;
+  height: 100%;
 }
 .communication-graph-box {
   position: relative;
@@ -58,10 +58,11 @@
   height: 20%;
   width: 100%;
 }
-#communication-line-chart {
+*/
+/* #communication-line-chart {
   height: 100%;
   width: 100%;
-}
+} */
 
 .lasso path {
   stroke: rgb(80, 80, 80);
@@ -131,47 +132,47 @@ export default {
         .attr("x", 0)
         .attr("y", 0)
         .text("The Proportion of communication time:");
-      layer.append("text").attr("x", 50).attr("y", 20).text("0");
-      layer.append("text").attr("x", 150).attr("y", 20).text("1");
+      layer.append("text").attr("x", 250).attr("y", 0).text("0");
+      layer.append("text").attr("x", 350).attr("y", 0).text("1");
       layer
         .append("rect")
-        .attr("x", 65)
-        .attr("y", 10)
+        .attr("x", 260)
+        .attr("y", -10)
         .attr("width", 80)
         .attr("height", 10)
         .style("fill", "url(#myLinearGradient1)");
 
-      layer.append("text").attr("x", 0).attr("y", 40).text("Matrix:");
+      layer.append("text").attr("x", 0).attr("y", 30).text("Matrix:");
       layer
         .append("rect")
         .attr("x", 50)
-        .attr("y", 30)
+        .attr("y", 20)
         .attr("width", 10)
         .attr("height", 10)
         .attr("fill", "#f6b59a");
       layer
         .append("text")
         .attr("x", 70)
-        .attr("y", 40)
+        .attr("y", 30)
         .text("communication time");
 
       layer
         .append("rect")
-        .attr("x", 50)
-        .attr("y", 50)
+        .attr("x", 200)
+        .attr("y", 20)
         .attr("width", 10)
         .attr("height", 10)
         .attr("fill", "#a8d2e5");
-      layer.append("text").attr("x", 70).attr("y", 60).text("Traffic");
+      layer.append("text").attr("x", 220).attr("y", 30).text("Traffic");
 
       layer
         .append("rect")
-        .attr("x", 120)
-        .attr("y", 50)
+        .attr("x", 270)
+        .attr("y", 20)
         .attr("width", 10)
         .attr("height", 10)
         .attr("fill", "#378dc0");
-      layer.append("text").attr("x", 140).attr("y", 60).text("Bandwidth");
+      layer.append("text").attr("x", 290).attr("y", 30).text("Bandwidth");
 
       var transY = -lineTop.node().getBBox().y;
       var wrapperHeight =
@@ -182,6 +183,7 @@ export default {
         wrapperWidth / layer.node().getBBox().width,
         wrapperHeight / layer.node().getBBox().height
       );
+      scale = Math.min(scale, 1);
       // console.log(
       //   lineTop.node().getBBox().width,
       //   lineTop.node().getBBox().height
@@ -196,9 +198,12 @@ export default {
 
     async initGraph() {
       await this.fetchData();
+      //发送communicateNodes 给LineChart
+      this.$store.commit("setCommunicateNodes", this.communicateNodes);
+      this.$store.commit("setCommunicationData", this.communicateGraphData);
+
       // this.generateGraph();
       this.renderNetwork();
-      this.renderLineChartInit();
       // this.generateCanvas();
     },
     async fetchData() {
@@ -363,127 +368,132 @@ export default {
       window.graph.showOpNode(nodeData);
     },
 
-    //折线图
-    renderLineChartInit() {
-      const chartDom = document.getElementById("communication-line-chart");
-      const myChart = echarts.init(chartDom);
-      var stepList = [];
-      var communicationList = [],
-        waitingList = [];
-      for (var i in this.communicateNodes) {
-        stepList.push(i);
-        var totCommunication = 0,
-          totWaiting = 0;
-        for (var j in this.communicateNodes[i]) {
-          // console.log(this.communicateNodes[i][j]);
-          totCommunication += this.communicateNodes[i][j].communication_cost;
-          totWaiting += this.communicateNodes[i][j].wait_cost;
-        }
-        communicationList.push(
-          totCommunication / this.communicateNodes[i].length
-        );
-        waitingList.push(totWaiting / this.communicateNodes[i].length);
-      }
-      const option = {
-        tooltip: {
-          trigger: "axis",
-          position: function (point, params, dom, rect, size) {
-            // 固定在右侧
-            return [point[0], "10%"];
-          },
-          formatter: function (params) {
-            var res =
-              "<h1>step" +
-              params[0].axisValue +
-              "</h1>" +
-              "<div>" +
-              params[0].seriesName +
-              ": " +
-              params[0].data +
-              "ms</div>" +
-              "<div>" +
-              params[1].seriesName +
-              ": " +
-              params[1].data +
-              "ms</div>";
-            return res;
-          },
-        },
+    // //折线图
+    // renderLineChartInit() {
 
-        grid: {
-          top: "5%",
-          left: "15%",
-          right: "20%",
-          bottom: "5%",
-          containLabel: true,
-        },
+    //   const chartDom = document.getElementById("communication-line-chart");
+    //   const myChart = echarts.init(chartDom);
+    //   var stepList = [];
+    //   var communicationList = [],
+    //     waitingList = [];
+    //   for (var i in this.communicateNodes) {
+    //     stepList.push(i);
+    //     var totCommunication = 0,
+    //       totWaiting = 0;
+    //     for (var j in this.communicateNodes[i]) {
+    //       // console.log(this.communicateNodes[i][j]);
+    //       totCommunication += this.communicateNodes[i][j].communication_cost;
+    //       totWaiting += this.communicateNodes[i][j].wait_cost;
+    //     }
+    //     communicationList.push(
+    //       totCommunication / this.communicateNodes[i].length
+    //     );
+    //     waitingList.push(totWaiting / this.communicateNodes[i].length);
+    //   }
+    //   console.log("communicateNodes", this.communicateNodes);
+    //   console.log("communicationList", communicationList);
+    //   console.log("waitingList", waitingList);
 
-        xAxis: {
-          type: "category",
-          name: "step",
-          boundaryGap: false,
-          data: stepList,
-          axisLine: {
-            symbol: ["none", "arrow"],
-            show: true,
-            symbolSize: [5, 5],
-          },
-        },
-        yAxis: {
-          type: "value",
-          name: "time(ms)",
-          nameTextStyle: {
-            padding: [0, 0, -25, 80],
-          },
-          axisLine: {
-            symbol: ["none", "arrow"],
-            show: true,
-            symbolSize: [5, 5],
-          },
-          splitLine: {
-            show: false,
-          },
-          axisLabel: {
-            show: false,
-          },
-        },
-        series: [
-          {
-            name: "communication cost",
-            type: "line",
-            stack: "Total",
-            color: "#cecfd1",
-            showSymbol: false,
-            data: communicationList,
-          },
-          {
-            name: "waiting cost",
-            type: "line",
-            stack: "Total",
-            color: "#cecfd1",
-            showSymbol: false,
-            data: waitingList,
-            markLine: {
-              symbol: "none", //去掉警戒线最后面的箭头
-              silent: true, //鼠标悬停事件  true没有，false有
-              label: {
-                position: "start", //将警示值放在哪个位置，三个值“start”,"middle","end"  开始  中点 结束
-              },
-              data: [
-                {
-                  type: "max",
-                  name: "最大值",
-                },
-              ],
-            },
-          },
-        ],
-      };
-      myChart.setOption(option);
-      myChart.on("click", (param) => {
-        this.$store.commit("setStepNum", Number(param.name));
-      });
-    },
+    //   const option = {
+    //     tooltip: {
+    //       trigger: "axis",
+    //       position: function (point, params, dom, rect, size) {
+    //         // 固定在右侧
+    //         return [point[0], "10%"];
+    //       },
+    //       formatter: function (params) {
+    //         var res =
+    //           "<h1>step" +
+    //           params[0].axisValue +
+    //           "</h1>" +
+    //           "<div>" +
+    //           params[0].seriesName +
+    //           ": " +
+    //           params[0].data +
+    //           "ms</div>" +
+    //           "<div>" +
+    //           params[1].seriesName +
+    //           ": " +
+    //           params[1].data +
+    //           "ms</div>";
+    //         return res;
+    //       },
+    //     },
+
+    //     grid: {
+    //       top: "5%",
+    //       left: "15%",
+    //       right: "20%",
+    //       bottom: "5%",
+    //       containLabel: true,
+    //     },
+
+    //     xAxis: {
+    //       type: "category",
+    //       name: "step",
+    //       boundaryGap: false,
+    //       data: stepList,
+    //       axisLine: {
+    //         symbol: ["none", "arrow"],
+    //         show: true,
+    //         symbolSize: [5, 5],
+    //       },
+    //     },
+    //     yAxis: {
+    //       type: "value",
+    //       name: "time(ms)",
+    //       nameTextStyle: {
+    //         padding: [0, 0, -25, 80],
+    //       },
+    //       axisLine: {
+    //         symbol: ["none", "arrow"],
+    //         show: true,
+    //         symbolSize: [5, 5],
+    //       },
+    //       splitLine: {
+    //         show: false,
+    //       },
+    //       axisLabel: {
+    //         show: false,
+    //       },
+    //     },
+    //     series: [
+    //       {
+    //         name: "communication cost",
+    //         type: "line",
+    //         stack: "Total",
+    //         color: "#cecfd1",
+    //         showSymbol: false,
+    //         data: communicationList,
+    //       },
+    //       {
+    //         name: "waiting cost",
+    //         type: "line",
+    //         stack: "Total",
+    //         color: "#cecfd1",
+    //         showSymbol: false,
+    //         data: waitingList,
+    //         markLine: {
+    //           symbol: "none", //去掉警戒线最后面的箭头
+    //           silent: true, //鼠标悬停事件  true没有，false有
+    //           label: {
+    //             position: "start", //将警示值放在哪个位置，三个值“start”,"middle","end"  开始  中点 结束
+    //           },
+    //           data: [
+    //             {
+    //               type: "max",
+    //               name: "最大值",
+    //             },
+    //           ],
+    //         },
+    //       },
+    //     ],
+    //   };
+    //   myChart.setOption(option);
+    //   myChart.on("click", (param) => {
+    //     this.$store.commit("setStepNum", Number(param.name));
+    //   });
+    // },
   },
 };
 </script>

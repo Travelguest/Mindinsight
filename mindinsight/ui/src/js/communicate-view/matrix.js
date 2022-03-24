@@ -358,6 +358,24 @@ Matrix.prototype.render = function (nodeValue = []) {
           .attr("fill", "none");
       }
     }
+    // var c_cost = this.nodeData[this.nodes[i]].c_cost;
+    // var w_cost = this.nodeData[this.nodes[i]].w_cost;
+    // _this.locallayer
+    //   .append("rect")
+    //   .attr("class", this.nodes[i] + "-barchart")
+    //   .attr("x", _this.x + this.unitsize * this.nodes.length)
+    //   .attr("y", _this.y + this.unitsize * i + this.barHight)
+    //   .attr("width", Math.log(c_cost))
+    //   .attr("height", _this.barHight * 2)
+    //   .style("fill", "#848484");
+    // _this.locallayer
+    //   .append("rect")
+    //   .attr("class", this.nodes[i] + "-barchart")
+    //   .attr("x", _this.x + this.unitsize * this.nodes.length)
+    //   .attr("y", _this.y + this.unitsize * i + 5 * this.barHight)
+    //   .attr("width", Math.log(w_cost))
+    //   .attr("height", _this.barHight * 2)
+    //   .style("fill", "#848484");
   }
   // console.log(max_ccost, max_wcost);
   // for (var i in this.nodes) {
@@ -377,9 +395,9 @@ Matrix.prototype.render = function (nodeValue = []) {
   //     .attr("y", this.y - 5);
   // }
   // this.locallayer.attr("transform", "translate(20,20)");
-  var xtrans = -this.locallayer.node().getBBox().x + 15;
-  var ytrans = -this.locallayer.node().getBBox().y + 15;
-  var scale = (this.matrix_size - 15) / this.locallayer.node().getBBox().height;
+  var xtrans = -this.locallayer.node().getBBox().x + 5;
+  var ytrans = -this.locallayer.node().getBBox().y + 5;
+  var scale = (this.matrix_size - 10) / this.locallayer.node().getBBox().height;
 
   this.locallayer.attr(
     "transform",
@@ -404,7 +422,7 @@ Matrix.prototype.render = function (nodeValue = []) {
     labelWrapper
       .append("text")
       .text(nodename.replace("device", ""))
-      .attr("x", y - 5)
+      .attr("x", y)
       .attr("y", 10);
   });
   // for (var i in range(0, this.nodes.length - 1)) {

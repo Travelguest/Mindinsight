@@ -153,7 +153,7 @@ export default {
         this.expandedKeys.push(child.key);
         this.modifyTreeData(child);
       }
-      console.log("showTreedata: ", this.showTreeData);
+      // console.log("showTreedata: ", this.showTreeData);
     },
     initView() {
       this.fetchData();
@@ -173,7 +173,7 @@ export default {
   /* height: 705px; */
 }
 .scope-search {
-  height: 288px;
+  height: 200px;
   text-align: center;
 }
 .scope-tree {

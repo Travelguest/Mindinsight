@@ -85,6 +85,15 @@ Graph.prototype.renderNet = function () {
     simulation
   );
   var label = initLabels(forceNodes, network);
+
+  var zoom = d3
+    .zoom()
+    .scaleExtent([-10, 10])
+    .on("zoom", () => {
+      network.attr("transform", d3.event.transform);
+      console.log(d3.event);
+    });
+  network.call(zoom);
   window.lasso = new Lasso();
   window.lasso.bind();
 };
@@ -165,8 +174,8 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
     )
     .force("charge", d3.forceManyBody())
     .force("center", d3.forceCenter(this.w / 2, this.h / 2))
-    .force("x", d3.forceX(this.w))
-    .force("y", d3.forceY(this.h));
+    .force("x", d3.forceX(this.w * 0.9))
+    .force("y", d3.forceY(this.h * 0.9));
 
   simulation.nodes(newNodes).on("tick", (d) => {
     handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
