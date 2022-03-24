@@ -1,13 +1,39 @@
 <template>
-  <div class="communication-graph-box">
-    <div id="networkPlot"></div>
-    <div id="communication-line-chart-container">
-      <div id="communication-line-chart"></div>
+  <div style="height: 100%">
+    <div class="communication-sub-title">
+      <svg class="subtitle-svg" width="100%" height="100%">
+        <defs>
+          <linearGradient
+            id="myLinearGradient1"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%"
+            spreadMethod="pad"
+          >
+            <stop offset="0%" stop-color="#fbe7d5" stop-opacity="1" />
+            <stop offset="100%" stop-color="#e6882e" stop-opacity="1" />
+          </linearGradient>
+        </defs>
+        <g class="subtitle-container"></g>
+      </svg>
+    </div>
+    <div class="communication-graph-box">
+      <div id="networkPlot"></div>
+      <div id="communication-line-chart-container">
+        <div id="communication-line-chart"></div>
+      </div>
     </div>
   </div>
 </template>
 
 <style>
+.communication-sub-title {
+  width: 90%;
+  height: 15%;
+  padding-top: 5px;
+  margin: 0 auto;
+}
 .communication-view {
   height: 100%;
 }
@@ -19,7 +45,7 @@
 }
 .communication-graph-box {
   position: relative;
-  width: 100%;
+  width: 85%;
   height: 305px;
 }
 .el-icon-magic-stick {
@@ -29,7 +55,7 @@
   z-index: 999;
 }
 #communication-line-chart-container {
-  height: 30%;
+  height: 20%;
   width: 100%;
 }
 #communication-line-chart {
@@ -82,6 +108,7 @@ export default {
     };
   },
   mounted() {
+    this.initSubtitle();
     this.initGraph();
   },
   watch: {
@@ -96,6 +123,77 @@ export default {
   },
 
   methods: {
+    initSubtitle() {
+      var layer = d3.select(".subtitle-container");
+      var lineTop = layer
+        .append("text")
+        .attr("id", "title-line1")
+        .attr("x", 0)
+        .attr("y", 0)
+        .text("The Proportion of communication time:");
+      layer.append("text").attr("x", 50).attr("y", 20).text("0");
+      layer.append("text").attr("x", 150).attr("y", 20).text("1");
+      layer
+        .append("rect")
+        .attr("x", 65)
+        .attr("y", 10)
+        .attr("width", 80)
+        .attr("height", 10)
+        .style("fill", "url(#myLinearGradient1)");
+
+      layer.append("text").attr("x", 0).attr("y", 40).text("Matrix:");
+      layer
+        .append("rect")
+        .attr("x", 50)
+        .attr("y", 30)
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("fill", "#f6b59a");
+      layer
+        .append("text")
+        .attr("x", 70)
+        .attr("y", 40)
+        .text("communication time");
+
+      layer
+        .append("rect")
+        .attr("x", 50)
+        .attr("y", 50)
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("fill", "#a8d2e5");
+      layer.append("text").attr("x", 70).attr("y", 60).text("Traffic");
+
+      layer
+        .append("rect")
+        .attr("x", 120)
+        .attr("y", 50)
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("fill", "#378dc0");
+      layer.append("text").attr("x", 140).attr("y", 60).text("Bandwidth");
+
+      var transY = -lineTop.node().getBBox().y;
+      var wrapperHeight =
+        document.getElementsByClassName("subtitle-svg")[0].clientHeight;
+      var wrapperWidth =
+        document.getElementsByClassName("subtitle-svg")[0].clientWidth;
+      var scale = Math.min(
+        wrapperWidth / layer.node().getBBox().width,
+        wrapperHeight / layer.node().getBBox().height
+      );
+      // console.log(
+      //   lineTop.node().getBBox().width,
+      //   lineTop.node().getBBox().height
+      // );
+      // console.log(wrapperWidth, wrapperHeight);
+      layer.attr(
+        "transform",
+        "translate(0," + transY + ")scale(" + scale + ")"
+      );
+      // console.log(lineTop.node().getBBox());
+    },
+
     async initGraph() {
       await this.fetchData();
       // this.generateGraph();

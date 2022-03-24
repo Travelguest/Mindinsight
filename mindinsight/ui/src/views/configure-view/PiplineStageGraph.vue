@@ -2,8 +2,8 @@
   <div class="training-pipeline-container">
     <!-- pipeline stage legend -->
     <div class="training-pipeline-legend">
-      <svg width="100%" height="100%">
-        <g>
+      <svg width="100%" height="100%" class="legend-wrapper">
+        <g class="legend-wrapperInner">
           <rect
             x="0"
             y="8"
@@ -132,15 +132,16 @@
     <div
       v-for="(stage, index) in showStageIdOptions"
       :key="index"
+      :style="generateStageLabel(index)"
       class="checkbox-container"
     >
       <!-- input 需要加 @click="showRankIdChange" -->
-      <input
+      <!-- <input
         :id="'checkbox-' + stage.value"
         type="checkbox"
         class="custom-checkbox"
         v-model="showStageId[index]"
-      />
+      /> -->
       <label class="custom-checkbox-label" :for="'checkbox-' + stage.value">
         {{ stage.label }}
       </label>
@@ -152,6 +153,7 @@
 import { buildPipelinedStageInfo, changeShowRankId } from "@/js/build-graph.js";
 import PipelineLink from "@/assets/images/svg/link.svg";
 import { buildGraph } from "@/js/profile-graph/build-graph.js";
+import * as d3 from "d3";
 
 export default {
   components: {
@@ -185,7 +187,34 @@ export default {
       console.log(val);
     },
   },
+
+  mounted() {
+    // var legend = d3.select(".legend-wrapper");
+    // var legendBox = legend.select(".legend-wrapperInner");
+    // console.log(legendBox.node().getBBox());
+    // console.log(
+    //   document.getElementsByClassName("legend-wrapper")[0].getBoundingClientRect
+    // );
+    this.$nextTick(() => {
+      // var legend = d3.select(".legend-wrapper");
+      var legendBox = d3.select(".legend-wrapperInner");
+      var legend = document
+        .getElementsByClassName("legend-wrapper")[0]
+        .getBoundingClientRect();
+      var boxWidth = legendBox.node().getBBox().width;
+      var trans = (legend.width - boxWidth) / 2;
+      legendBox.attr("transform", "translate(" + trans + ",0)");
+    });
+  },
   methods: {
+    generateStageLabel(index) {
+      if (index == 0) {
+        return "position: relative;float:left;margin-right: 10px;";
+      } else {
+        return "position: relative;float:right;margin-right: 10px;";
+      }
+    },
+
     fetchData() {
       const res = this.graphData.graphs;
       console.log(res);
@@ -254,10 +283,16 @@ export default {
       }
       y += thirdIndex * (rectWidth + rectMargin);
       if (isLink) {
+        // x = document.getElementsByClassName("training-pipeline-graph")[0]
+        //   .clientWidth;
+        // x = stageBetween;
         x =
-          0.5 *
           document.getElementsByClassName("training-pipeline-graph")[0]
-            .clientWidth;
+            .clientWidth -
+          textWidth -
+          rectWidth -
+          rectMargin -
+          nodeBetween;
       }
       return [x, y];
     },
@@ -401,9 +436,9 @@ input[type="checkbox"]:checked::before {
   border: none;
 }
 
-.checkbox-container {
+/* .checkbox-container {
   position: relative;
   float: left;
   margin-right: 10px;
-}
+} */
 </style>
