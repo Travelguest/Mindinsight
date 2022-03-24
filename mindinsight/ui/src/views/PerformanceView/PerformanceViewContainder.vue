@@ -224,7 +224,7 @@ export default {
   flex-direction: row;
 }
 .performance-view-container .top .left {
-  flex-basis: 16%;
+  flex-basis: 20%;
 }
 .performance-view-container .top .right {
   flex-grow: 1;

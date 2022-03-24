@@ -75,27 +75,10 @@ Matrix.prototype.create = function (node, linkSelect = false, nodeValue = []) {
       bandWidth: this.edges[i].bandWidth,
       communication_duration: this.edges[i].communication_duration,
       traffic: this.edges[i].traffic,
-      box_bandWidth: {
-        min: this.edges[i].op_bandWidth[0],
-        max: this.edges[i].op_bandWidth[this.edges[i].op_bandWidth.length - 1],
-        min_quartile: d3.quantile(this.edges[i].op_bandWidth, 0.25),
-        mid: d3.quantile(this.edges[i].op_bandWidth, 0.5),
-        max_quartile: d3.quantile(this.edges[i].op_bandWidth, 0.75),
-      },
-      box_duration: {
-        min: this.edges[i].op_duration[0],
-        max: this.edges[i].op_duration[this.edges[i].op_duration.length - 1],
-        min_quartile: d3.quantile(this.edges[i].op_duration, 0.25),
-        mid: d3.quantile(this.edges[i].op_duration, 0.5),
-        max_quartile: d3.quantile(this.edges[i].op_duration, 0.75),
-      },
-      box_traffic: {
-        min: this.edges[i].op_traffic[0],
-        max: this.edges[i].op_traffic[this.edges[i].op_traffic.length - 1],
-        min_quartile: d3.quantile(this.edges[i].op_traffic, 0.25),
-        mid: d3.quantile(this.edges[i].op_traffic, 0.5),
-        max_quartile: d3.quantile(this.edges[i].op_traffic, 0.75),
-      },
+      box_bandWidth: this.edges[i].op_bandWidth,
+      box_duration: this.edges[i].op_duration,
+      box_traffic: this.edges[i].op_traffic,
+      type: this.edges[i].link_type,
     };
     this.maxDuration = Math.max(
       this.maxDuration,
@@ -103,14 +86,7 @@ Matrix.prototype.create = function (node, linkSelect = false, nodeValue = []) {
     );
     this.maxTraffic = Math.max(this.maxTraffic, this.edges[i].traffic);
   }
-  // console.log(this.adj_matrix);
-  // window.matrix_list.push(this);
   this.render(nodeValue);
-  // if (window.paths.created) {
-  //   for (var i in node) {
-  //     window.paths.push(node[i]);
-  //   }
-  // }
 };
 
 Matrix.prototype.render = function (nodeValue = []) {
@@ -128,27 +104,39 @@ Matrix.prototype.render = function (nodeValue = []) {
             namej: _this.nodes[j],
             i: +i,
             j: +j,
+            edge: _this.adj_matrix[j][i],
           },
         ])
         .attr("class", "matrixBlock")
-        .attr("width", this.unitsize - 1)
-        .attr("height", this.unitsize - 1)
+        .attr("width", this.unitsize)
+        .attr("height", this.unitsize)
         .attr("x", _this.x + i * this.unitsize)
         .attr("y", _this.y + j * this.unitsize)
         .style("fill", function (d) {
-          return "#cecfd1";
-        })
-        .style("stroke", (d) => {
-          if (this.linkSelect) {
-            if (j == 0 && i == 1) {
-              return "red";
+          // return "#cecfd1";
+          if (d.edge.exist) {
+            if (d.link_type == "SDMA") {
+              return "#cecfd1";
+            } else {
+              return "#a1a1a1";
             }
-          } else if (
-            nodeValue.filter((n) => n.source == j && n.target == i).length != 0
-          ) {
-            return "red";
+          } else {
+            return "white";
           }
-          return "#848484";
+        })
+        .style("fill-opacity", "60%")
+        .attr("stroke", (d) => {
+          // if (this.linkSelect) {
+          //   if (j == 0 && i == 1) {
+          //     return "#cb6056";
+          //   }
+          // } else if (
+          //   nodeValue.filter((n) => n.source == j && n.target == i).length != 0
+          // ) {
+          //   return "#cb6056";
+          // }
+          return "#999999";
+          // return "none";
         })
         .call(
           d3.drag().on("drag", function (d) {
@@ -161,6 +149,7 @@ Matrix.prototype.render = function (nodeValue = []) {
             window.paths.render();
           })
         );
+
       if (_this.adj_matrix[j][i].exist == true) {
         _this.locallayer
           .append("rect")
@@ -175,89 +164,105 @@ Matrix.prototype.render = function (nodeValue = []) {
           .attr("x", _this.x + i * this.unitsize + this.margin)
           .attr("y", _this.y + j * this.unitsize + this.margin)
           .style("fill", function (d) {
-            return "#e9967a";
+            return "#f6b59a";
             // 肉色
-          });
+          })
+          .attr("stroke", "#999999");
 
         var boxLayer = _this.locallayer
           .append("g")
           .attr("class", "box_duration");
+
         var xmin = _this.x + i * this.unitsize + this.margin;
         var xmax = xmin + this.unitsize - 2 * this.margin;
         var y =
           _this.y + j * this.unitsize + this.margin * 2 + this.barHight * 1.5;
-        var x25 = 0,
-          x75 = 0,
-          xmid = 0;
-        var k = 0;
-        if (
-          _this.adj_matrix[j][i].box_duration.max ==
-          _this.adj_matrix[j][i].box_duration.min
-        ) {
-          x25 = xmin;
-          x75 = xmax;
-          xmid = (xmin + xmax) / 2;
-          k = 0;
-        } else {
-          k =
-            (xmax - xmin) /
-            (_this.adj_matrix[j][i].box_duration.max -
-              _this.adj_matrix[j][i].box_duration.min);
-          x25 =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_duration.min_quartile -
-                _this.adj_matrix[j][i].box_duration.min);
-          xmid =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_duration.mid -
-                _this.adj_matrix[j][i].box_duration.min);
-          x75 =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_duration.max_quartile -
-                _this.adj_matrix[j][i].box_duration.min);
-        }
-        boxLayer
-          .append("line")
-          .attr("x1", xmin)
-          .attr("y1", y)
-          .attr("x2", xmax)
-          .attr("y2", y)
-          .attr("stroke", "#848484");
-        boxLayer
-          .append("rect")
-          .attr("x", x25)
-          .attr("y", y - 0.5 * this.barHight)
-          .attr("height", this.barHight)
-          .attr("width", x75 - x25)
-          .style("fill", "#e9967a");
-
-        [xmin, xmid, xmax].forEach((value) => {
-          boxLayer
-            .append("line")
-            .attr("x1", value)
-            .attr("y1", y - 0.5 * _this.barHight)
-            .attr("x2", value)
-            .attr("y2", y + 0.5 * _this.barHight)
-            .attr("stroke", "#848484");
-        });
+        var dataSelect = null;
         nodeValue
           .filter((n) => n.source == j && n.target == i)
           .forEach((n) => {
-            var value = n.value[0];
-            var xvalue =
-              xmin + k * (value - _this.adj_matrix[j][i].box_duration.min);
-            boxLayer
-              .append("line")
-              .attr("class", "box-node-line")
-              .attr("x1", xvalue)
-              .attr("y1", y - 0.5 * _this.barHight)
-              .attr("x2", xvalue)
-              .attr("y2", y + 0.5 * _this.barHight)
-              .attr("stroke", "red");
+            dataSelect = n.value[0];
           });
+        this.renderBoxPlot(
+          boxLayer,
+          [xmin, xmax],
+          y,
+          _this.adj_matrix[j][i].box_duration,
+          "#f6b59a",
+          dataSelect
+        );
+        // var x25 = 0,
+        //   x75 = 0,
+        //   xmid = 0;
+        // var k = 0;
+        // if (
+        //   _this.adj_matrix[j][i].box_duration.max ==
+        //   _this.adj_matrix[j][i].box_duration.min
+        // ) {
+        //   x25 = xmin;
+        //   x75 = xmax;
+        //   xmid = (xmin + xmax) / 2;
+        //   k = 0;
+        // } else {
+        //   k =
+        //     (xmax - xmin) /
+        //     (_this.adj_matrix[j][i].box_duration.max -
+        //       _this.adj_matrix[j][i].box_duration.min);
+        //   x25 =
+        //     xmin +
+        //     k *
+        //       (_this.adj_matrix[j][i].box_duration.min_quartile -
+        //         _this.adj_matrix[j][i].box_duration.min);
+        //   xmid =
+        //     xmin +
+        //     k *
+        //       (_this.adj_matrix[j][i].box_duration.mid -
+        //         _this.adj_matrix[j][i].box_duration.min);
+        //   x75 =
+        //     xmin +
+        //     k *
+        //       (_this.adj_matrix[j][i].box_duration.max_quartile -
+        //         _this.adj_matrix[j][i].box_duration.min);
+        // }
+        // boxLayer
+        //   .append("line")
+        //   .attr("x1", xmin)
+        //   .attr("y1", y)
+        //   .attr("x2", xmax)
+        //   .attr("y2", y)
+        //   .attr("stroke", "#848484");
+        // boxLayer
+        //   .append("rect")
+        //   .attr("x", x25)
+        //   .attr("y", y - 0.5 * this.barHight)
+        //   .attr("height", this.barHight)
+        //   .attr("width", x75 - x25)
+        //   .style("fill", "#e9967a");
+
+        // [xmin, xmid, xmax].forEach((value) => {
+        //   boxLayer
+        //     .append("line")
+        //     .attr("x1", value)
+        //     .attr("y1", y - 0.5 * _this.barHight)
+        //     .attr("x2", value)
+        //     .attr("y2", y + 0.5 * _this.barHight)
+        //     .attr("stroke", "#848484");
+        // });
+        // nodeValue
+        //   .filter((n) => n.source == j && n.target == i)
+        //   .forEach((n) => {
+        //     var value = n.value[0];
+        //     var xvalue =
+        //       xmin + k * (value - _this.adj_matrix[j][i].box_duration.min);
+        //     boxLayer
+        //       .append("line")
+        //       .attr("class", "box-node-line")
+        //       .attr("x1", xvalue)
+        //       .attr("y1", y - 0.5 * _this.barHight)
+        //       .attr("x2", xvalue)
+        //       .attr("y2", y + 0.5 * _this.barHight)
+        //       .attr("stroke", "#cb6056");
+        //   });
 
         _this.locallayer
           .append("rect")
@@ -274,212 +279,263 @@ Matrix.prototype.render = function (nodeValue = []) {
             "y",
             _this.y + j * this.unitsize + this.margin * 3 + this.barHight * 2
           )
-          .style("fill", "#8EE5EE"); // 浅蓝
+          .style("fill", "#a8d2e5"); // 浅蓝
 
-        var boxLayer = _this.locallayer
-          .append("g")
-          .attr("class", "box_traffic");
-        var xmin = _this.x + i * this.unitsize + this.margin;
-        var xmax = xmin + this.unitsize - 2 * this.margin;
-        var y =
-          _this.y + j * this.unitsize + this.margin * 4 + this.barHight * 3.5;
-        var x25 = 0,
-          x75 = 0,
-          xmid = 0;
-        var k = 0;
-        if (
-          _this.adj_matrix[j][i].box_traffic.max ==
-          _this.adj_matrix[j][i].box_traffic.min
-        ) {
-          x25 = xmin;
-          x75 = xmax;
-          xmid = (xmin + xmax) / 2;
-          k = 0;
-        } else {
-          k =
-            (xmax - xmin) /
-            (_this.adj_matrix[j][i].box_traffic.max -
-              _this.adj_matrix[j][i].box_traffic.min);
-          x25 =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_traffic.min_quartile -
-                _this.adj_matrix[j][i].box_traffic.min);
-          xmid =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_traffic.mid -
-                _this.adj_matrix[j][i].box_traffic.min);
-          x75 =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_traffic.max_quartile -
-                _this.adj_matrix[j][i].box_traffic.min);
-        }
-        boxLayer
-          .append("line")
-          .attr("x1", xmin)
-          .attr("y1", y)
-          .attr("x2", xmax)
-          .attr("y2", y)
-          .attr("stroke", "#848484");
-        boxLayer
-          .append("rect")
-          .attr("x", x25)
-          .attr("y", y - 0.5 * this.barHight)
-          .attr("height", this.barHight)
-          .attr("width", x75 - x25)
-          .style("fill", "#8EE5EE"); // 浅蓝
-
-        [xmin, xmid, xmax].forEach((value) => {
-          boxLayer
-            .append("line")
-            .attr("x1", value)
-            .attr("y1", y - 0.5 * _this.barHight)
-            .attr("x2", value)
-            .attr("y2", y + 0.5 * _this.barHight)
-            .attr("stroke", "#848484");
-        });
+        boxLayer = _this.locallayer.append("g").attr("class", "box_traffic");
+        xmin = _this.x + i * this.unitsize + this.margin;
+        xmax = xmin + this.unitsize - 2 * this.margin;
+        y = _this.y + j * this.unitsize + this.margin * 4 + this.barHight * 3.5;
+        dataSelect = null;
         nodeValue
           .filter((n) => n.source == j && n.target == i)
           .forEach((n) => {
-            var value = n.value[1];
-            var xvalue =
-              xmin + k * (value - _this.adj_matrix[j][i].box_traffic.min);
-            boxLayer
-              .append("line")
-              .attr("class", "box-node-line")
-              .attr("x1", xvalue)
-              .attr("y1", y - 0.5 * _this.barHight)
-              .attr("x2", xvalue)
-              .attr("y2", y + 0.5 * _this.barHight)
-              .attr("stroke", "red");
+            dataSelect = n.value[1];
           });
+        this.renderBoxPlot(
+          boxLayer,
+          [xmin, xmax],
+          y,
+          _this.adj_matrix[j][i].box_traffic,
+          "#a8d2e5",
+          dataSelect
+        );
 
-        var boxLayer = _this.locallayer
-          .append("g")
-          .attr("class", "box_bandWidth");
-        var xmin = _this.x + i * this.unitsize + this.margin;
-        var xmax = xmin + this.unitsize - 2 * this.margin;
-        var y =
-          _this.y + j * this.unitsize + this.margin * 5 + this.barHight * 4.5;
-        var x25 = 0,
-          x75 = 0,
-          xmid = 0;
-        var k = 0;
-        if (
-          _this.adj_matrix[j][i].box_bandWidth.max ==
-          _this.adj_matrix[j][i].box_bandWidth.min
-        ) {
-          x25 = xmin;
-          x75 = xmax;
-          xmid = (xmin + xmax) / 2;
-          k = 0;
-        } else {
-          k =
-            (xmax - xmin) /
-            (_this.adj_matrix[j][i].box_bandWidth.max -
-              _this.adj_matrix[j][i].box_bandWidth.min);
-          x25 =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_bandWidth.min_quartile -
-                _this.adj_matrix[j][i].box_bandWidth.min);
-          xmid =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_bandWidth.mid -
-                _this.adj_matrix[j][i].box_bandWidth.min);
-          x75 =
-            xmin +
-            k *
-              (_this.adj_matrix[j][i].box_bandWidth.max_quartile -
-                _this.adj_matrix[j][i].box_bandWidth.min);
-        }
-        boxLayer
-          .append("line")
-          .attr("x1", xmin)
-          .attr("y1", y)
-          .attr("x2", xmax)
-          .attr("y2", y)
-          .attr("stroke", "#848484");
-        boxLayer
-          .append("rect")
-          .attr("x", x25)
-          .attr("y", y - 0.5 * this.barHight)
-          .attr("height", this.barHight)
-          .attr("width", x75 - x25)
-          .style("fill", "#0000FF"); // 深蓝
-
-        [xmin, xmid, xmax].forEach((value) => {
-          boxLayer
-            .append("line")
-            .attr("x1", value)
-            .attr("y1", y - 0.5 * _this.barHight)
-            .attr("x2", value)
-            .attr("y2", y + 0.5 * _this.barHight)
-            .attr("stroke", "#848484");
-        });
+        boxLayer = _this.locallayer.append("g").attr("class", "box_bandWidth");
+        xmin = _this.x + i * this.unitsize + this.margin;
+        xmax = xmin + this.unitsize - 2 * this.margin;
+        y = _this.y + j * this.unitsize + this.margin * 5 + this.barHight * 4.5;
+        dataSelect = null;
         nodeValue
           .filter((n) => n.source == j && n.target == i)
           .forEach((n) => {
-            var value = n.value[1];
-            var xvalue =
-              xmin + k * (value - _this.adj_matrix[j][i].box_duration.min);
-            boxLayer
-              .append("line")
-              .attr("class", "box-node-line")
-              .attr("x1", xvalue)
-              .attr("y1", y - 0.5 * _this.barHight)
-              .attr("x2", xvalue)
-              .attr("y2", y + 0.5 * _this.barHight)
-              .attr("stroke", "red");
+            dataSelect = n.value[2];
           });
+        this.renderBoxPlot(
+          boxLayer,
+          [xmin, xmax],
+          y,
+          _this.adj_matrix[j][i].box_bandWidth,
+          "#378dc0",
+          dataSelect
+        );
       }
     }
-    var c_cost = this.nodeData[this.nodes[i]].c_cost;
-    var w_cost = this.nodeData[this.nodes[i]].w_cost;
-    _this.locallayer
-      .append("rect")
-      .attr("class", this.nodes[i] + "-barchart")
-      .attr("x", _this.x + this.unitsize * this.nodes.length)
-      .attr("y", _this.y + this.unitsize * i + this.barHight)
-      .attr("width", Math.log(c_cost))
-      .attr("height", _this.barHight * 2)
-      .style("fill", "#848484");
-    _this.locallayer
-      .append("rect")
-      .attr("class", this.nodes[i] + "-barchart")
-      .attr("x", _this.x + this.unitsize * this.nodes.length)
-      .attr("y", _this.y + this.unitsize * i + 5 * this.barHight)
-      .attr("width", Math.log(w_cost))
-      .attr("height", _this.barHight * 2)
-      .style("fill", "#848484");
+    // var c_cost = this.nodeData[this.nodes[i]].c_cost;
+    // var w_cost = this.nodeData[this.nodes[i]].w_cost;
+    // _this.locallayer
+    //   .append("rect")
+    //   .attr("class", this.nodes[i] + "-barchart")
+    //   .attr("x", _this.x + this.unitsize * this.nodes.length)
+    //   .attr("y", _this.y + this.unitsize * i + this.barHight)
+    //   .attr("width", Math.log(c_cost))
+    //   .attr("height", _this.barHight * 2)
+    //   .style("fill", "#848484");
+    // _this.locallayer
+    //   .append("rect")
+    //   .attr("class", this.nodes[i] + "-barchart")
+    //   .attr("x", _this.x + this.unitsize * this.nodes.length)
+    //   .attr("y", _this.y + this.unitsize * i + 5 * this.barHight)
+    //   .attr("width", Math.log(w_cost))
+    //   .attr("height", _this.barHight * 2)
+    //   .style("fill", "#848484");
+  }
+
+  for (var i in this.nodes) {
+    for (var j in this.nodes) {
+      if (
+        (j == 0 && i == 1 && this.linkSelect) ||
+        nodeValue.filter((n) => n.source == j && n.target == i).length != 0
+      ) {
+        // this.locallayer.select("#block_1_0").attr("stroke", "#cb6056");
+        this.locallayer
+          .append("rect")
+          .attr("class", "matrixBlockOutline")
+          .attr("width", this.unitsize)
+          .attr("height", this.unitsize)
+          .attr("x", _this.x + i * this.unitsize)
+          .attr("y", _this.y + j * this.unitsize)
+          .attr("stroke", "#cb6056")
+          .attr("fill", "none");
+      }
+    }
+    // var c_cost = this.nodeData[this.nodes[i]].c_cost;
+    // var w_cost = this.nodeData[this.nodes[i]].w_cost;
+    // _this.locallayer
+    //   .append("rect")
+    //   .attr("class", this.nodes[i] + "-barchart")
+    //   .attr("x", _this.x + this.unitsize * this.nodes.length)
+    //   .attr("y", _this.y + this.unitsize * i + this.barHight)
+    //   .attr("width", Math.log(c_cost))
+    //   .attr("height", _this.barHight * 2)
+    //   .style("fill", "#848484");
+    // _this.locallayer
+    //   .append("rect")
+    //   .attr("class", this.nodes[i] + "-barchart")
+    //   .attr("x", _this.x + this.unitsize * this.nodes.length)
+    //   .attr("y", _this.y + this.unitsize * i + 5 * this.barHight)
+    //   .attr("width", Math.log(w_cost))
+    //   .attr("height", _this.barHight * 2)
+    //   .style("fill", "#848484");
   }
   // console.log(max_ccost, max_wcost);
-  for (var i in this.nodes) {
-    _this.locallayer
-      .append("text")
-      .attr("class", "text" + _this.id)
-      .text(this.nodes[i].replace("device", ""))
-      .style("text-anchor", "end")
-      .attr("x", this.x - 5)
-      .attr("y", this.y + i * this.unitsize + 24);
-    _this.locallayer
-      .append("text")
-      .attr("class", "text" + _this.id)
-      .text(this.nodes[i].replace("device", ""))
-      .style("text-anchor", "end")
-      .attr("x", this.x + i * this.unitsize + 24)
-      .attr("y", this.y - 5);
-  }
+  // for (var i in this.nodes) {
+  //   _this.locallayer
+  //     .append("text")
+  //     .attr("class", "text" + _this.id)
+  //     .text(this.nodes[i].replace("device", ""))
+  //     .style("text-anchor", "end")
+  //     .attr("x", this.x - 5)
+  //     .attr("y", this.y + i * this.unitsize + 24);
+  //   _this.locallayer
+  //     .append("text")
+  //     .attr("class", "text" + _this.id)
+  //     .text(this.nodes[i].replace("device", ""))
+  //     .style("text-anchor", "end")
+  //     .attr("x", this.x + i * this.unitsize + 24)
+  //     .attr("y", this.y - 5);
+  // }
   // this.locallayer.attr("transform", "translate(20,20)");
-  var xtrans = -this.locallayer.node().getBBox().x;
-  var ytrans = -this.locallayer.node().getBBox().y;
-  var scale = this.matrix_size / this.locallayer.node().getBBox().height;
+  var xtrans = -this.locallayer.node().getBBox().x + 5;
+  var ytrans = -this.locallayer.node().getBBox().y + 5;
+  var scale = (this.matrix_size - 10) / this.locallayer.node().getBBox().height;
 
   this.locallayer.attr(
     "transform",
     "scale(" + scale + ")" + "translate(" + xtrans + "," + ytrans + ")"
   );
+
+  d3.select("#mainsvg > g.matrix-lable").remove();
+
+  var labelWrapper = d3
+    .select("#networkPlot > #mainsvg")
+    .append("g")
+    .attr("class", "matrix-lable");
+  // console.log(this.matrix_size / this.nodes.length);
+  this.nodes.forEach((nodename, index) => {
+    var y = 10 + (index + 0.5) * (this.matrix_size / this.nodes.length);
+    labelWrapper
+      .append("text")
+      .text(nodename.replace("device", ""))
+      .attr("x", 0)
+      .attr("y", y);
+
+    labelWrapper
+      .append("text")
+      .text(nodename.replace("device", ""))
+      .attr("x", y)
+      .attr("y", 10);
+  });
+  // for (var i in range(0, this.nodes.length - 1)) {
+  //   var y = 10 + (i + 0.5) * (this.matrix_size / this.nodes.length);
+  //   labelWrapper
+  //     .append("text")
+  //     .text(this.nodes[i].replace("device", ""))
+  //     .attr("x", 0)
+  //     .attr("y", y);
+  // }
+  // for (var i in this.nodes) {
+  //   var y = 10 + (i + 0.5) * (this.matrix_size / this.nodes.length);
+
+  //   console.log(y);
+  //   labelWrapper
+  //     .append("text")
+  //     .text(this.nodes[i].replace("device", ""))
+  //     .attr("x", 0)
+  //     .attr("y", y);
+  // }
+};
+
+Matrix.prototype.renderBoxPlot = function (
+  boxLayer,
+  x,
+  y,
+  data,
+  color,
+  dataSelect = null
+) {
+  var value25 = d3.quantile(data, 0.25);
+  var value50 = d3.quantile(data, 0.5);
+  var value75 = d3.quantile(data, 0.75);
+  var p1, p2, p3, p4, p5;
+  var k, b;
+  var valuemin, valuemax;
+  var maximum, minimum;
+  if (data[0] == data[data.length - 1]) {
+    p1 = (x[0] + x[1]) / 2;
+    p2 = p1;
+    p3 = p1;
+    p4 = p1;
+    p5 = p1;
+    k = 0;
+    b = p1;
+  } else {
+    var iqr = value75 - value25;
+    maximum = value75 + 1.5 * iqr;
+    minimum = value25 - 1.5 * iqr;
+    valuemin = Math.min(data[0], minimum);
+    valuemax = Math.max(data[data.length - 1], maximum);
+    // if (data[0] < minimum) {
+    //   console.log(data[0], minimum);
+    // }
+    k = (x[1] - x[0]) / (valuemax - valuemin);
+    b = (valuemax * x[0] - valuemin * x[1]) / (valuemax - valuemin);
+    p1 = k * minimum + b;
+    p2 = k * value25 + b;
+    p3 = k * value50 + b;
+    p4 = k * value75 + b;
+    p5 = k * maximum + b;
+  }
+
+  boxLayer
+    .append("line")
+    .attr("x1", p1)
+    .attr("y1", y)
+    .attr("x2", p5)
+    .attr("y2", y)
+    .attr("stroke", "#999999");
+  boxLayer
+    .append("rect")
+    .attr("x", p2)
+    .attr("y", y - 0.5 * this.barHight)
+    .attr("height", this.barHight)
+    .attr("width", p4 - p2)
+    .style("fill", color)
+    .attr("stroke", "#999999");
+  [p1, p3, p5].forEach((p) => {
+    boxLayer
+      .append("line")
+      .attr("x1", p)
+      .attr("y1", y - 0.5 * this.barHight)
+      .attr("x2", p)
+      .attr("y2", y + 0.5 * this.barHight)
+      .attr("stroke", "#999999");
+  });
+  data.forEach((d) => {
+    if (d < minimum || d > maximum) {
+      boxLayer
+        .append("circle")
+        .attr("cx", k * d + b)
+        .attr("cy", y)
+        .attr("r", 1)
+        .style("fill", color);
+    }
+  });
+  if (dataSelect != null) {
+    if (dataSelect < minimum || dataSelect > maximum) {
+      boxLayer
+        .append("circle")
+        .attr("cx", k * dataSelect + b)
+        .attr("cy", y)
+        .attr("r", 1)
+        .style("fill", "#cb6056");
+    } else {
+      boxLayer
+        .append("line")
+        .attr("x1", k * dataSelect + b)
+        .attr("y1", y - 0.5 * this.barHight)
+        .attr("x2", k * dataSelect + b)
+        .attr("y2", y + 0.5 * this.barHight)
+        .attr("stroke", "#cb6056");
+    }
+  }
 };
