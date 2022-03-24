@@ -99,8 +99,8 @@ export default {
     async initGraph() {
       await this.fetchData();
       //发送communicateNodes 给LineChart
-      this.$store.commit('setCommunicateNodes',this.communicateNodes);
-      this.$store.commit('setCommunicationData',this.communicateGraphData);
+      this.$store.commit("setCommunicateNodes", this.communicateNodes);
+      this.$store.commit("setCommunicationData", this.communicateGraphData);
 
       // this.generateGraph();
       this.renderNetwork();
@@ -175,8 +175,10 @@ export default {
     renderNetwork() {
       // network data
       // console.log(this.communicateOps);
+      if (!this.communicateNodes[this.stepNum]) return;
       var dataLink = [];
       var dataNode = [];
+
       this.communicateNodes[this.stepNum].forEach(function (d) {
         dataNode.push({
           id: d.name,
@@ -270,7 +272,7 @@ export default {
 
     // //折线图
     // renderLineChartInit() {
-      
+
     //   const chartDom = document.getElementById("communication-line-chart");
     //   const myChart = echarts.init(chartDom);
     //   var stepList = [];

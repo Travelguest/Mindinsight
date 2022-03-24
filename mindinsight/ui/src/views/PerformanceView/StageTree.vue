@@ -168,8 +168,8 @@ export default {
       FLOPMapData: null,
       stageName: null,
       closeCircleData: null,
-      valueFLOPS: { max: 0, min: 0 },
-      valueFLOPs: { max: 0, min: 0 },
+      // valueFLOPS: { max: 0, min: 0 },
+      // valueFLOPs: { max: 0, min: 0 },
       FLOPArr: ["FLOPs", "FLOPS"],
 
       hoveredNodeInfo: {
@@ -200,14 +200,14 @@ export default {
     FLOPSColorScale() {
       return d3
         .scaleSequential()
-        .domain([this.valueFLOPS.min, this.valueFLOPS.max])
-        .interpolator(d3.interpolateYlOrRd);
+        .domain([0, 1])
+        .interpolator(d3.interpolateBrBG);
     },
     FLOPsColorScale() {
       return d3
         .scaleSequential()
-        .domain([this.valueFLOPs.min, this.valueFLOPs.max])
-        .interpolator(d3.interpolateYlOrRd);
+        .domain([0, 1])
+        .interpolator(d3.interpolateBrBG);
     },
   },
   mounted() {
@@ -215,8 +215,6 @@ export default {
 
     this.width = Math.floor(width);
     this.height = Math.floor(height);
-
-    this.svg = d3.select("#marey-graph");
   },
   methods: {
     getArrowIcon(stage) {
@@ -250,9 +248,12 @@ export default {
           abnomalContent: [],
         };
       });
-      const valueFLOPS = { max: -Infinity, min: Infinity };
-      const valueFLOPs = { max: -Infinity, min: Infinity };
-      Object.keys(this.FLOPsData).forEach((device) => {
+      // const valueFLOPS = { max: -Infinity, min: Infinity };
+      // const valueFLOPs = { max: -Infinity, min: Infinity };
+      let maxFLOPS = -Infinity;
+      let maxFLOPs = -Infinity;
+      const deviceName = Object.keys(this.FLOPsData);
+      deviceName.forEach((device) => {
         const { FLOPS, FLOPs, abnomalContent, isAnomaly } =
           this.FLOPsData[device].summary || {};
         //1.先统计stage
@@ -263,24 +264,30 @@ export default {
         stageData[stage].isAnomaly = isAnomaly || false;
         stageData[stage].abnomalContent.concat(abnomalContent);
 
-        valueFLOPS.min = Math.min(FLOPS, valueFLOPS.min);
-        valueFLOPS.max = Math.max(FLOPS, valueFLOPS.max);
-        valueFLOPs.min = Math.min(FLOPS, valueFLOPs.min);
-        valueFLOPs.max = Math.max(FLOPS, valueFLOPs.max);
-
+        // valueFLOPS.min = Math.min(FLOPS, valueFLOPS.min);
+        // valueFLOPS.max = Math.max(FLOPS, valueFLOPS.max);
+        // valueFLOPs.min = Math.min(FLOPS, valueFLOPs.min);
+        // valueFLOPs.max = Math.max(FLOPS, valueFLOPs.max);
+        maxFLOPS = Math.max(maxFLOPS, FLOPS);
+        maxFLOPs = Math.max(maxFLOPs, FLOPs);
+      });
+      deviceName.forEach((device) => {
+        const { FLOPS, FLOPs, abnomalContent, isAnomaly } =
+          this.FLOPsData[device].summary || {};
+        const stage = this.deviceToStage.get(device);
         //2.统计device - 展开才统计
         if (this.stageDeviceRelationship[stage].length > 0) {
           FLOPMapData.push({
             x: "FLOPS",
             y: device,
-            value: FLOPS,
+            value: FLOPS / maxFLOPS,
             isAnomaly,
             abnomalContent,
           });
           FLOPMapData.push({
             x: "FLOPs",
             y: device,
-            value: FLOPs,
+            value: FLOPs / maxFLOPs,
             isAnomaly,
             abnomalContent,
           });
@@ -293,7 +300,6 @@ export default {
           }
         }
       });
-      // console.log("stageData", stageData);
       //3.加入stage
       stageName.forEach((stage) => {
         const { sumFLOPS, sumFLOPs, cnt, isAnomaly, abnomalContent } =
@@ -301,14 +307,14 @@ export default {
         FLOPMapData.push({
           x: "FLOPS",
           y: stage,
-          value: sumFLOPS / cnt,
+          value: sumFLOPS / cnt / maxFLOPS,
           isAnomaly,
           abnomalContent,
         });
         FLOPMapData.push({
           x: "FLOPs",
           y: stage,
-          value: sumFLOPs / cnt,
+          value: sumFLOPs / cnt / maxFLOPs,
           isAnomaly,
           abnomalContent,
         });
@@ -322,8 +328,8 @@ export default {
       });
       this.FLOPMapData = FLOPMapData;
       this.closeCircleData = closeCircleData;
-      this.valueFLOPS = valueFLOPS;
-      this.valueFLOPS = valueFLOPS;
+      // this.valueFLOPS = valueFLOPS;
+      // this.valueFLOPS = valueFLOPS;
     },
     treeLineProcessing() {
       if (!this.stageDeviceRelationship) return;

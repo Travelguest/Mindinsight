@@ -71,10 +71,10 @@ export default {
         title: {
           show: true,
           text: "",
-          left: "23%",
-          top: "15%",
+          left: "15%",
+          top: "6%",
           textStyle: {
-            fontSize: 12,
+            fontSize: 16,
             fontStyle: "normal",
           },
         },
@@ -91,23 +91,19 @@ export default {
           top: "20%",
           left: "5%",
           right: "10%",
-          bottom: "16%",
+          bottom: "20%",
           containLabel: true,
         },
         xAxis: {
           name: "Rank ID",
           type: "category",
           boundaryGap: true,
+          nameLocation: "middle",
           axisTick: {
             show: true,
             alignWithLabel: true,
           },
-          // axisLine: {
-          //   symbol: ["none", "triangle"],
-          //   show: true,
-          //   symbolSize: 10,
-          //   symbolOffset: 5,
-          // },
+
           nameTextStyle: {
             fontStyle: "normal",
             fontWeight: "bold",
@@ -118,7 +114,12 @@ export default {
         yAxis: [
           {
             type: "value",
-            name: "time(ms)",
+            name: "Training time(ms)",
+            minInterval: 300000000,
+            // maxInterval: 400000000,
+            min: function (value) {
+              return value.min ;
+            },
             axisLine: {
               symbol: ["none", "triangle"],
               show: true,
@@ -127,6 +128,10 @@ export default {
             },
             axisLabel: {
               show: true,
+              showMinLabel: true,
+              formatter: function (value) {
+                return value.toExponential(2);
+              },
             },
             splitLine: {
               show: false,
@@ -141,7 +146,7 @@ export default {
           },
           {
             type: "value",
-            name: "time(ms)",
+            name: "Communication cost(ms)",
             axisLine: {
               symbol: ["none", "triangle"],
               show: true,
@@ -237,26 +242,19 @@ export default {
       const curStep = this.stepNumber - 1; //下标从0开始
       Object.keys(this.communicationData).forEach((device) => {
         const curStepInfo = this.communicationData[device][curStep];
+        if (!curStepInfo) return;
         communicationCost.data.push(
           parseInt(curStepInfo["communication_cost"], 10)
         );
-        waitingCost.data.push(parseInt(curStepInfo["49.03871999999999"], 10));
+        waitingCost.data.push(parseInt(curStepInfo["wait_cost"], 10));
       });
     },
     renderUpdate() {
-      const [
-        intervalObj,
-        propagationObj,
-        tailObj,
-        communicationCost,
-        waitingCost,
-      ] = this.option.series;
+      const [intervalObj, propagationObj, tailObj] = this.option.series;
       if (
         !intervalObj.data.length ||
         !propagationObj.data.length ||
-        !tailObj.data.length ||
-        !communicationCost.data.length ||
-        !waitingCost.data.length
+        !tailObj.data.length
       ) {
         return;
       }

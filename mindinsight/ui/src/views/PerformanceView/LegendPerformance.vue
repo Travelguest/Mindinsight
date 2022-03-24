@@ -221,7 +221,7 @@ export default {
       return d3
         .scaleSequential()
         .domain([0, 1])
-        .interpolator(d3.interpolateYlOrRd);
+        .interpolator(d3.interpolateBrBG);
     },
   },
 };
