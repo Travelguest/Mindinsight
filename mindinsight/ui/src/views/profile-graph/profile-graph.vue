@@ -640,7 +640,7 @@ export default {
 
   methods: {
     initMiniMap() {
-      console.log("initMiniMap");
+      // console.log("initMiniMap");
       this.canvas = new Canvas();
       this.canvas.create();
     },
@@ -725,7 +725,7 @@ export default {
 
     onRecieveOneScope(scope) {
       // console.log(this.opNodes);
-      console.log(scope);
+      // console.log(scope);
       var scopeStr = scope.substring(1);
       var minX = Number.MAX_VALUE,
         minY = Number.MAX_VALUE;

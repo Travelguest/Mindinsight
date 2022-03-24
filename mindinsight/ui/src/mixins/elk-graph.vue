@@ -344,7 +344,7 @@ export default {
       });
 
       this.hiddenEdges = hiddenEdges;
-      console.log(hiddenEdges);
+      // console.log(hiddenEdges);
       this.hiddenPolylineEdges = hiddenPolylineEdges;
     },
     /**
