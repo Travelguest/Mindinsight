@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100%">
+  <div class="communication-container">
     <div class="communication-sub-title">
       <svg class="subtitle-svg" width="100%" height="100%">
         <defs>
@@ -20,19 +20,21 @@
     </div>
     <div class="communication-graph-box">
       <div id="networkPlot"></div>
-      <div id="communication-line-chart-container">
-        <div id="communication-line-chart"></div>
-      </div>
     </div>
   </div>
 </template>
 
 <style>
+.communication-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 .communication-sub-title {
-  width: 90%;
-  height: 15%;
+  width: 100%;
+  height: 46.5px;
   padding-top: 5px;
-  margin: 0 auto;
+  margin-left: 32px;
 }
 .communication-view {
   height: 100%;
@@ -44,9 +46,10 @@
   height: 100%;
 }
 .communication-graph-box {
-  position: relative;
-  width: 85%;
-  height: 305px;
+  /* position: relative; */
+  height: 70%;
+  width: 100%;
+  /* flex-grow: 1; */
 }
 .el-icon-magic-stick {
   position: absolute;
@@ -54,15 +57,6 @@
   right: 5%;
   z-index: 999;
 }
-#communication-line-chart-container {
-  height: 20%;
-  width: 100%;
-}
-*/
-/* #communication-line-chart {
-  height: 100%;
-  width: 100%;
-} */
 
 .lasso path {
   stroke: rgb(80, 80, 80);
@@ -275,8 +269,10 @@ export default {
     renderNetwork() {
       // network data
       // console.log(this.communicateOps);
+      if (!this.communicateNodes[this.stepNum]) return;
       var dataLink = [];
       var dataNode = [];
+
       this.communicateNodes[this.stepNum].forEach(function (d) {
         dataNode.push({
           id: d.name,
@@ -367,133 +363,6 @@ export default {
       });
       window.graph.showOpNode(nodeData);
     },
-
-    // //折线图
-    // renderLineChartInit() {
-
-    //   const chartDom = document.getElementById("communication-line-chart");
-    //   const myChart = echarts.init(chartDom);
-    //   var stepList = [];
-    //   var communicationList = [],
-    //     waitingList = [];
-    //   for (var i in this.communicateNodes) {
-    //     stepList.push(i);
-    //     var totCommunication = 0,
-    //       totWaiting = 0;
-    //     for (var j in this.communicateNodes[i]) {
-    //       // console.log(this.communicateNodes[i][j]);
-    //       totCommunication += this.communicateNodes[i][j].communication_cost;
-    //       totWaiting += this.communicateNodes[i][j].wait_cost;
-    //     }
-    //     communicationList.push(
-    //       totCommunication / this.communicateNodes[i].length
-    //     );
-    //     waitingList.push(totWaiting / this.communicateNodes[i].length);
-    //   }
-    //   console.log("communicateNodes", this.communicateNodes);
-    //   console.log("communicationList", communicationList);
-    //   console.log("waitingList", waitingList);
-
-    //   const option = {
-    //     tooltip: {
-    //       trigger: "axis",
-    //       position: function (point, params, dom, rect, size) {
-    //         // 固定在右侧
-    //         return [point[0], "10%"];
-    //       },
-    //       formatter: function (params) {
-    //         var res =
-    //           "<h1>step" +
-    //           params[0].axisValue +
-    //           "</h1>" +
-    //           "<div>" +
-    //           params[0].seriesName +
-    //           ": " +
-    //           params[0].data +
-    //           "ms</div>" +
-    //           "<div>" +
-    //           params[1].seriesName +
-    //           ": " +
-    //           params[1].data +
-    //           "ms</div>";
-    //         return res;
-    //       },
-    //     },
-
-    //     grid: {
-    //       top: "5%",
-    //       left: "15%",
-    //       right: "20%",
-    //       bottom: "5%",
-    //       containLabel: true,
-    //     },
-
-    //     xAxis: {
-    //       type: "category",
-    //       name: "step",
-    //       boundaryGap: false,
-    //       data: stepList,
-    //       axisLine: {
-    //         symbol: ["none", "arrow"],
-    //         show: true,
-    //         symbolSize: [5, 5],
-    //       },
-    //     },
-    //     yAxis: {
-    //       type: "value",
-    //       name: "time(ms)",
-    //       nameTextStyle: {
-    //         padding: [0, 0, -25, 80],
-    //       },
-    //       axisLine: {
-    //         symbol: ["none", "arrow"],
-    //         show: true,
-    //         symbolSize: [5, 5],
-    //       },
-    //       splitLine: {
-    //         show: false,
-    //       },
-    //       axisLabel: {
-    //         show: false,
-    //       },
-    //     },
-    //     series: [
-    //       {
-    //         name: "communication cost",
-    //         type: "line",
-    //         stack: "Total",
-    //         color: "#cecfd1",
-    //         showSymbol: false,
-    //         data: communicationList,
-    //       },
-    //       {
-    //         name: "waiting cost",
-    //         type: "line",
-    //         stack: "Total",
-    //         color: "#cecfd1",
-    //         showSymbol: false,
-    //         data: waitingList,
-    //         markLine: {
-    //           symbol: "none", //去掉警戒线最后面的箭头
-    //           silent: true, //鼠标悬停事件  true没有，false有
-    //           label: {
-    //             position: "start", //将警示值放在哪个位置，三个值“start”,"middle","end"  开始  中点 结束
-    //           },
-    //           data: [
-    //             {
-    //               type: "max",
-    //               name: "最大值",
-    //             },
-    //           ],
-    //         },
-    //       },
-    //     ],
-    //   };
-    //   myChart.setOption(option);
-    //   myChart.on("click", (param) => {
-    //     this.$store.commit("setStepNum", Number(param.name));
-    //   });
-    // },
   },
 };
 </script>
