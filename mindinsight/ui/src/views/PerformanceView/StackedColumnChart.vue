@@ -71,10 +71,10 @@ export default {
         title: {
           show: true,
           text: "",
-          left: "15%",
-          top: "6%",
+          left: "2%",
+          top: "2%",
           textStyle: {
-            fontSize: 16,
+            fontSize: 14,
             fontStyle: "normal",
           },
         },
@@ -85,7 +85,7 @@ export default {
           },
         },
         legend: {
-          top: "6%",
+          top: "2%",
         },
         grid: {
           top: "20%",
@@ -103,11 +103,11 @@ export default {
             show: true,
             alignWithLabel: true,
           },
-
+          nameGap: 18,
           nameTextStyle: {
             fontStyle: "normal",
             fontWeight: "bold",
-            fontSize: 16,
+            fontSize: 14,
           },
           data: [],
         },
@@ -117,8 +117,10 @@ export default {
             name: "Training time(ms)",
             minInterval: 300000000,
             // maxInterval: 400000000,
+            nameLocation: "middle",
+            nameGap: 65,
             min: function (value) {
-              return value.min ;
+              return value.min;
             },
             axisLine: {
               symbol: ["none", "triangle"],
@@ -139,14 +141,16 @@ export default {
             nameTextStyle: {
               fontStyle: "normal",
               fontWeight: "bold",
-              fontSize: 16,
-              align: "center",
+              fontSize: 12,
+              align: "middle",
               verticalAlign: "bottom",
             },
           },
           {
             type: "value",
             name: "Communication cost(ms)",
+            nameLocation: "middle",
+            nameGap: 55,
             axisLine: {
               symbol: ["none", "triangle"],
               show: true,
@@ -162,8 +166,8 @@ export default {
             nameTextStyle: {
               fontStyle: "normal",
               fontWeight: "bold",
-              fontSize: 16,
-              align: "center",
+              fontSize: 12,
+              align: "middle",
               verticalAlign: "bottom",
             },
           },
@@ -280,7 +284,7 @@ export default {
 
 <style scoped>
 #stacked-column-container {
-  height: 250px;
+  height: 100%;
   width: 100%;
   /* background: rebeccapurple; */
   /* border: 1px solid red; */
