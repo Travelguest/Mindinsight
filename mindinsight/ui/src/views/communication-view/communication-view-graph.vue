@@ -46,9 +46,10 @@
   height: 100%;
 }
 .communication-graph-box {
-  position: relative;
+  /* position: relative; */
+  height: 70%;
   width: 100%;
-  flex-grow: 1;
+  /* flex-grow: 1; */
 }
 .el-icon-magic-stick {
   position: absolute;
