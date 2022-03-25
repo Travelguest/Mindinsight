@@ -2,17 +2,22 @@
   <div class="performance-view-container">
     <div class="top">
       <div class="left">
-        <div class="view-header">
-          <div class="view-title-bg">
-            <h1 class="view-title-name">Performance View</h1>
-          </div>
-        </div>
-        <!-- <div class="view-title-bg">
-          <h1 class="view-title-name">Communication View</h1>
-        </div> -->
+        <div class="title">Performance View</div>
         <communication-view-graph />
       </div>
       <div class="right">
+        <svg style="position: absolute" width="1px" height="100%">
+          <line
+            x1="0"
+            y1="2%"
+            x2="0"
+            y2="98%"
+            stroke="#ccc"
+            stroke-width="1"
+            stroke-dasharray="4"
+            stroke-dashoffset="22"
+          ></line>
+        </svg>
         <div class="legend">
           <LegendPerformance />
         </div>
@@ -39,6 +44,18 @@
       </div>
     </div>
     <div class="bottom">
+      <svg style="position: absolute; top = 0" width="100%" height="1px">
+        <line
+          x1="2%"
+          y1="0"
+          x2="98%"
+          y2="0"
+          stroke="#ccc"
+          stroke-width="1"
+          stroke-dasharray="4"
+          stroke-dashoffset="22"
+        ></line>
+      </svg>
       <div class="left">
         <LineChart
           :overViewData="overViewData"
@@ -46,6 +63,18 @@
         />
       </div>
       <div class="right">
+        <svg style="position: absolute" width="1px" height="250px">
+          <line
+            x1="0"
+            y1="5%"
+            x2="0"
+            y2="95%"
+            stroke="#ccc"
+            stroke-width="1"
+            stroke-dasharray="4"
+            stroke-dashoffset="22"
+          ></line>
+        </svg>
         <StackedColumnChart
           :overViewData="overViewData"
           :stepNumber="stepNumber"
@@ -127,7 +156,7 @@ export default {
     stageDeviceArrProcessing() {
       const stageDeviceArr = [];
       const stageDeviceRelationship = {};
-      const deviceToStage = new Map(); 
+      const deviceToStage = new Map();
       const { stage_data } = this.timeLineData || {};
       Object.keys(stage_data).forEach((stageName) => {
         stageDeviceArr.push(stageName);
@@ -181,6 +210,7 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
+  border-top: 1px solid #ccc;
 }
 .performance-view-container .top {
   flex-grow: 1;
@@ -188,10 +218,11 @@ export default {
   flex-direction: row;
 }
 .performance-view-container .top .left {
-  flex-basis: 20%;
+  width: 20%;
 }
 .performance-view-container .top .right {
   flex-grow: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
 }
@@ -207,7 +238,7 @@ export default {
   flex: 1;
 }
 .performance-view-container .bottom {
-  flex-basis: 250px;
+  height: 200px;
   display: flex;
   flex-direction: row;
 }
@@ -216,21 +247,11 @@ export default {
 }
 .performance-view-container .bottom .right {
   flex: 1;
+  overflow: hidden;
 }
-.view-title-bg {
-  border-top: 35px solid #838383;
-  border-right: 50px solid transparent;
-  width: 220px;
-}
-.view-title-name {
-  color: #ffffff;
+.title {
   font-size: 16px;
-  line-height: 35px;
-  margin-top: -35px;
-  padding-left: 10px;
-  margin-bottom: 0;
-}
-.view-header {
-  display: flex;
+  font-weight: 500;
+  margin-left: 32px;
 }
 </style>

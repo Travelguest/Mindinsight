@@ -13,7 +13,24 @@
       <AttributePanel />
     </div>
     <div class="configuration-view">
-      <configure-view />
+      <!-- <configure-view /> -->
+      <svg
+        style="position: absolute; top: 0; right: 0"
+        width="1px"
+        height="100%"
+      >
+        <line
+          x1="0"
+          y1="2%"
+          x2="0"
+          y2="98%"
+          z-index="99"
+          stroke="#ccc"
+          stroke-width="1"
+          stroke-dasharray="4"
+          stroke-dashoffset="22"
+        ></line>
+      </svg>
     </div>
     <div class="performance-view">
       <PerformanceView />
@@ -54,10 +71,10 @@ export default {
   height: 100%;
   display: grid;
   grid-template:
-    "configuration parallel-strategy" 1fr
-    "performance performance" 1fr
-    /16% 84%;
-  grid-gap: 3px;
+    "configuration parallel-strategy" 50%
+    "performance performance" 50%
+    /20% 80%;
+  /* grid-gap: 1px; */
 }
 
 /* .communication-view {
@@ -66,11 +83,15 @@ export default {
   height: 340px;
 } */
 .strategy-view {
+  position: relative;
+  height: 100%;
   background: #fff;
   grid-area: parallel-strategy;
-  height: 100%;
 }
 .configuration-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
   background: #fff;
   grid-area: configuration;
 }

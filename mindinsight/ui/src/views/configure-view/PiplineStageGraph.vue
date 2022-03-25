@@ -217,14 +217,14 @@ export default {
 
     fetchData() {
       const res = this.graphData.graphs;
-      console.log(res);
+      // console.log(res);
 
       const { pipelinedStageInfo, pipelineNodeInfo, pipelineEdgeInfo } =
         buildPipelinedStageInfo(res);
       this.pipelinedStageInfo = pipelinedStageInfo;
       this.pipelineNodeInfo = pipelineNodeInfo;
       this.pipelineEdgeInfo = pipelineEdgeInfo;
-      console.log(pipelinedStageInfo);
+      // console.log(pipelinedStageInfo);
 
       // stage 选择
       this.showStageIdOptions = Object.keys(res).map((key) => {

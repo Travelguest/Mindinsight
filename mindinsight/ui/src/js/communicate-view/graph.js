@@ -86,14 +86,14 @@ Graph.prototype.renderNet = function () {
   );
   var label = initLabels(forceNodes, network);
 
-  var zoom = d3
-    .zoom()
-    .scaleExtent([-10, 10])
-    .on("zoom", () => {
-      network.attr("transform", d3.event.transform);
-      console.log(d3.event);
-    });
-  network.call(zoom);
+  // var zoom = d3
+  //   .zoom()
+  //   .scaleExtent([-10, 10])
+  //   .on("zoom", () => {
+  //     network.attr("transform", d3.event.transform);
+  //     console.log(d3.event);
+  //   });
+  // network.call(zoom);
   window.lasso = new Lasso();
   window.lasso.bind();
 };

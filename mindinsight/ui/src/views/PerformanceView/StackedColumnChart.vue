@@ -71,10 +71,10 @@ export default {
         title: {
           show: true,
           text: "",
-          left: "23%",
-          top: "15%",
+          left: "2%",
+          top: "2%",
           textStyle: {
-            fontSize: 12,
+            fontSize: 14,
             fontStyle: "normal",
           },
         },
@@ -85,40 +85,43 @@ export default {
           },
         },
         legend: {
-          top: "6%",
+          top: "2%",
         },
         grid: {
           top: "20%",
           left: "5%",
           right: "10%",
-          bottom: "16%",
+          bottom: "20%",
           containLabel: true,
         },
         xAxis: {
           name: "Rank ID",
           type: "category",
           boundaryGap: true,
+          nameLocation: "middle",
           axisTick: {
             show: true,
             alignWithLabel: true,
           },
-          // axisLine: {
-          //   symbol: ["none", "triangle"],
-          //   show: true,
-          //   symbolSize: 10,
-          //   symbolOffset: 5,
-          // },
+          nameGap: 18,
           nameTextStyle: {
             fontStyle: "normal",
             fontWeight: "bold",
-            fontSize: 16,
+            fontSize: 14,
           },
           data: [],
         },
         yAxis: [
           {
             type: "value",
-            name: "time(ms)",
+            name: "Training time(ms)",
+            minInterval: 300000000,
+            // maxInterval: 400000000,
+            nameLocation: "middle",
+            nameGap: 65,
+            min: function (value) {
+              return value.min;
+            },
             axisLine: {
               symbol: ["none", "triangle"],
               show: true,
@@ -127,6 +130,10 @@ export default {
             },
             axisLabel: {
               show: true,
+              showMinLabel: true,
+              formatter: function (value) {
+                return value.toExponential(2);
+              },
             },
             splitLine: {
               show: false,
@@ -134,14 +141,16 @@ export default {
             nameTextStyle: {
               fontStyle: "normal",
               fontWeight: "bold",
-              fontSize: 16,
-              align: "center",
+              fontSize: 12,
+              align: "middle",
               verticalAlign: "bottom",
             },
           },
           {
             type: "value",
-            name: "time(ms)",
+            name: "Communication cost(ms)",
+            nameLocation: "middle",
+            nameGap: 55,
             axisLine: {
               symbol: ["none", "triangle"],
               show: true,
@@ -157,8 +166,8 @@ export default {
             nameTextStyle: {
               fontStyle: "normal",
               fontWeight: "bold",
-              fontSize: 16,
-              align: "center",
+              fontSize: 12,
+              align: "middle",
               verticalAlign: "bottom",
             },
           },
@@ -237,26 +246,19 @@ export default {
       const curStep = this.stepNumber - 1; //下标从0开始
       Object.keys(this.communicationData).forEach((device) => {
         const curStepInfo = this.communicationData[device][curStep];
+        if (!curStepInfo) return;
         communicationCost.data.push(
           parseInt(curStepInfo["communication_cost"], 10)
         );
-        waitingCost.data.push(parseInt(curStepInfo["49.03871999999999"], 10));
+        waitingCost.data.push(parseInt(curStepInfo["wait_cost"], 10));
       });
     },
     renderUpdate() {
-      const [
-        intervalObj,
-        propagationObj,
-        tailObj,
-        communicationCost,
-        waitingCost,
-      ] = this.option.series;
+      const [intervalObj, propagationObj, tailObj] = this.option.series;
       if (
         !intervalObj.data.length ||
         !propagationObj.data.length ||
-        !tailObj.data.length ||
-        !communicationCost.data.length ||
-        !waitingCost.data.length
+        !tailObj.data.length
       ) {
         return;
       }
@@ -282,7 +284,7 @@ export default {
 
 <style scoped>
 #stacked-column-container {
-  height: 250px;
+  height: 100%;
   width: 100%;
   /* background: rebeccapurple; */
   /* border: 1px solid red; */

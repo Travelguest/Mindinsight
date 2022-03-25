@@ -42,78 +42,16 @@ export default {
   },
   watch: {
     overViewData: function () {
-      const series = [];
-      let isxAisData = false; //是否有x轴数据
-      Object.keys(this.overViewData).forEach((device) => {
-        this.option?.legend?.data.push(device);
-
-        const obj = {
-          name: device,
-          type: "line",
-          color: "#A1A1A1",
-          data: [],
-        };
-        for (let i = 0; i < this.overViewData[device].length; i++) {
-          const d = this.overViewData[device][i];
-          const stepNum = parseInt(d["step_num"], 10);
-          if (!isNaN(stepNum)) {
-            obj.data.push(parseInt(d.total, 10));
-            if (!isxAisData) {
-              this.option?.xAxis?.data.push(stepNum);
-            }
-          }
-        }
-        isxAisData = true;
-        series.push(obj);
-      });
-      // console.log("series", series);
-      this.option.series.push(...series);
-      // console.log(this.option);
+      this.overViewDataProcessing();
       this.renderUpdate();
     },
     communicateNodes: function () {
-      const communicationList = [];
-      const waitingList = [];
-      for (let i in this.communicateNodes) {
-        let totCommunication = 0;
-        let totWaiting = 0;
-        for (let j in this.communicateNodes[i]) {
-          totCommunication += this.communicateNodes[i][j].communication_cost;
-          totWaiting += this.communicateNodes[i][j].wait_cost;
-        }
-        communicationList.push(
-          totCommunication / this.communicateNodes[i].length
-        );
-        waitingList.push(totWaiting / this.communicateNodes[i].length);
-      }
-      const series = [
-        {
-          name: "communication cost",
-          yAxisIndex: 1,
-          type: "line",
-          stack: "Total",
-          color: "#E6882F",
-          showSymbol: false,
-          data: communicationList,
-        },
-        {
-          name: "waiting cost",
-          yAxisIndex: 1,
-          type: "line",
-          stack: "Total",
-          color: "#E6882F",
-          showSymbol: false,
-          data: waitingList,
-        },
-      ];
-      this.option.series.push(...series);
-      // console.log(this.option);
+      this.communicateNodesProcessing();
       this.renderUpdate();
     },
   },
   mounted() {
     this.renderInit();
-    this.renderUpdate();
   },
   computed: {
     communicateNodes() {
@@ -157,34 +95,36 @@ export default {
           top: "20%",
           left: "5%",
           right: "10%",
-          bottom: "16%",
+          bottom: "20%",
           containLabel: true,
         },
         xAxis: {
-          name: "step",
+          name: "Step",
           type: "category",
           boundaryGap: true,
+          nameLocation: "middle",
           axisTick: {
             show: true,
             alignWithLabel: true,
           },
-          // axisLine: {
-          //   symbol: ["none", "triangle"],
-          //   show: false,
-          //   symbolSize: 10,
-          //   symbolOffset: 5,
-          // },
+          nameGap: 18,
           nameTextStyle: {
             fontStyle: "normal",
             fontWeight: "bold",
-            fontSize: 16,
+            fontSize: 14,
+            align: "center",
           },
           data: [],
         },
         yAxis: [
           {
             type: "value",
-            name: "time(ms)",
+            name: "Total training time(ms)",
+            minInterval: 5000000000,
+            maxInterval: 6000000000,
+            min: function (value) {
+              return value.min - 20;
+            },
             axisLine: {
               symbol: ["none", "triangle"],
               show: true,
@@ -193,25 +133,33 @@ export default {
             },
             axisLabel: {
               show: true,
+              // showMaxLabel: true,
+              showMinLabel: true,
+              formatter: function (value) {
+                return value.toExponential(2);
+              },
             },
             splitLine: {
               show: false,
             },
+            nameLocation: "middle",
+            nameGap: 65,
             nameTextStyle: {
               fontStyle: "normal",
               fontWeight: "bold",
-              fontSize: 16,
-              align: "center",
-              verticalAlign: "bottom",
+              fontSize: 12,
             },
           },
           {
             type: "value",
-            name: "time(ms)",
+            name: "Communication cost(ms)",
+            // minInterval: 1000,
+            nameLocation: "middle",
+            nameGap: 55,
             nameTextStyle: {
               fontStyle: "normal",
               fontWeight: "bold",
-              fontSize: 16,
+              fontSize: 12,
               align: "center",
               verticalAlign: "bottom",
             },
@@ -239,8 +187,9 @@ export default {
             type: "slider",
             start: 0,
             end: 100,
+            height: 20,
             moveHandleSize: 1,
-            top: "85%",
+            top: "86%",
           },
         ],
         series: [],
@@ -248,13 +197,76 @@ export default {
       this.option = option;
     },
     renderUpdate() {
-      if (!this.option.series || this.option.series.length < 2) return;
-
+      if (!this.option.series || this.option.series.length < 3) return;
       this.lineChart.setOption(this.option);
       this.lineChart.on("click", (params) => {
         console.log("点击step", params);
         this.$emit("getStepNumber", parseInt(params.name, 10));
       });
+    },
+    communicateNodesProcessing() {
+      const communicationList = [];
+      const waitingList = [];
+      for (let i in this.communicateNodes) {
+        let totCommunication = 0;
+        let totWaiting = 0;
+        for (let j in this.communicateNodes[i]) {
+          totCommunication += this.communicateNodes[i][j].communication_cost;
+          totWaiting += this.communicateNodes[i][j].wait_cost;
+        }
+        communicationList.push(
+          totCommunication / this.communicateNodes[i].length
+        );
+        waitingList.push(totWaiting / this.communicateNodes[i].length);
+      }
+      const series = [
+        {
+          name: "communication cost",
+          yAxisIndex: 1,
+          type: "line",
+          stack: "Total",
+          color: "#E6882F",
+          showSymbol: false,
+          data: communicationList,
+        },
+        {
+          name: "waiting cost",
+          yAxisIndex: 1,
+          type: "line",
+          stack: "Total",
+          color: "#E6882F",
+          showSymbol: false,
+          data: waitingList,
+        },
+      ];
+      this.option.series.push(...series);
+    },
+    overViewDataProcessing() {
+      const series = [];
+      let isxAisData = false; //是否有x轴数据
+      Object.keys(this.overViewData).forEach((device) => {
+        this.option?.legend?.data.push(device);
+
+        const obj = {
+          name: device,
+          type: "line",
+          color: "#A1A1A1",
+          data: [],
+        };
+        for (let i = 0; i < this.overViewData[device].length; i++) {
+          const d = this.overViewData[device][i];
+          const stepNum = parseInt(d["step_num"], 10);
+          if (!isNaN(stepNum)) {
+            obj.data.push(parseInt(d.total, 10));
+            if (!isxAisData) {
+              this.option?.xAxis?.data.push(stepNum);
+            }
+          }
+        }
+        isxAisData = true;
+        series.push(obj);
+      });
+      this.option.series.push(...series);
     },
   },
 };

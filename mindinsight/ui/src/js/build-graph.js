@@ -1265,7 +1265,7 @@ function setEdgeTypesOrder(edgeTypesArray) {
   edgeTypesArray.forEach((edgeType, index) => {
     edgeTypesOrder[edgeType.type] = edgeTypesArray.length - index;
   });
-  console.log(edgeTypesOrder);
+  // console.log(edgeTypesOrder);
 }
 
 /**
@@ -1426,7 +1426,7 @@ function buildGraph(data, conceptualMode = false, bipartiteMode = false) {
   conceptualGraphMode = conceptualMode;
   bipartiteGraphMode = bipartiteMode;
   _processSourceData(data);
-  console.log(data)
+  // console.log(data)
   bipartiteGraphMode && bipartiteGraphOptimzer.init(processedGraph);
 
   _optimizeNodes();

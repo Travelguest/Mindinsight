@@ -832,7 +832,7 @@ export default {
      */
     clickScope(node) {
       // eslint-disable-next-line no-console
-      console.log(dataNodeMap.get(node.id));
+      // console.log(dataNodeMap.get(node.id));
       if (this.lastClickNode) {
         if (this.lastClickNode === node) return;
         this.lastClickNode.click = false;
