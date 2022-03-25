@@ -13,7 +13,7 @@
       <AttributePanel />
     </div>
     <div class="configuration-view">
-      <configure-view />
+      <!-- <configure-view /> -->
       <svg
         style="position: absolute; top: 0; right: 0"
         width="1px"
@@ -71,8 +71,8 @@ export default {
   height: 100%;
   display: grid;
   grid-template:
-    "configuration parallel-strategy" 1fr
-    "performance performance" 1fr
+    "configuration parallel-strategy" 50%
+    "performance performance" 50%
     /20% 80%;
   /* grid-gap: 1px; */
 }
