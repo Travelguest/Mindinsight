@@ -3,7 +3,7 @@ import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
 import { Lasso } from "@/js/communicate-view/lasso.js";
 import { Matrix } from "@/js/communicate-view/matrix.js";
 import * as _ from "lodash";
-export function Graph(w, h) {
+export function Graph(w, h, father) {
   this.w = w;
   this.h = h;
   this.nodes = [];
@@ -21,6 +21,7 @@ export function Graph(w, h) {
   this.staticNodes = [];
   this.staticLinks = [];
   this.matrix_size = w * 0.5;
+  this.father = father;
 }
 Graph.prototype.init = function (links, nodes) {
   this.nodes = nodes;
@@ -41,6 +42,10 @@ Graph.prototype.init = function (links, nodes) {
   this.max_ratio = maxR;
 
   this.renderNet();
+};
+Graph.prototype.selectOpname = "";
+Graph.prototype.setSelectOpname = function (opname) {
+  this.father.setSelectOpname(opname);
 };
 Graph.prototype.getMatrixSize = function () {
   return this.matrix_size;
@@ -396,7 +401,7 @@ function initLinks(linksData, network) {
       nodeList.forEach((n) => {
         newNodes[n] = true;
       });
-      window.graph.renderMatrix(newNodes);
+      window.communicategraph.renderMatrix(newNodes);
       // console.log(newNodes);
       m.create(Object.keys(newNodes), true);
     });
@@ -428,7 +433,7 @@ Graph.prototype.showOpNode = function (nodeData) {
   nodeList.forEach((n) => {
     matrixNodes[n] = true;
   });
-  window.graph.renderMatrix(matrixNodes);
+  window.communicategraph.renderMatrix(matrixNodes);
   m.create(Object.keys(matrixNodes), false, nodeValue);
 };
 

@@ -24,14 +24,14 @@ Lasso.prototype.bind = function () {
         var id = d3.select(d).attr("id");
         newNodes[id] = 1;
       });
-      console.log(newNodes);
+      // console.log(newNodes);
       if (Object.keys(newNodes).length != 0) {
-        //   window.graph.delete(newNodes);
+        //   window.communicategraph.delete(newNodes);
         var m = new Matrix();
-        window.graph.renderMatrix(newNodes);
+        window.communicategraph.renderMatrix(newNodes);
         m.create(Object.keys(newNodes));
       } else {
-        // window.graph.renderNet();
+        // window.communicategraph.renderNet();
       }
     });
   this.svg.call(this.lasso);

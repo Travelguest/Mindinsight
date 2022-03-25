@@ -614,6 +614,9 @@ export default {
     "$store.state.nameScopeToParallelStrategy": function (val) {
       this.onRecieveOneScope(val);
     },
+    "$store.state.selectOpname": function (val) {
+      this.onRecieveOneOp(val);
+    },
   },
 
   computed: {
@@ -724,6 +727,36 @@ export default {
       this.clickedNodeId = node.id;
       this.$store.commit("setNameScopeToPerformanceView", node.scope);
       this.$store.commit("setSelectedGraphNode", node);
+    },
+
+    onRecieveOneOp(val) {
+      console.log(val);
+      var node = this.findNodeName(val[0], val[1]);
+      if (node != null) {
+        var viewBox = this.canvas.getViewBox();
+        this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
+        // this.clickedNodeId = node.id;
+        this.$store.commit("setSelectedGraphNode", node);
+      }
+    },
+
+    findNodeName(type, id) {
+      var findIndex = 0;
+      var outnode = null;
+      this.opNodes.forEach((nodeGroup) => {
+        if (findIndex != id) {
+          nodeGroup.forEach((node) => {
+            if (findIndex != id && node.type.toLowerCase() == type) {
+              // console.log(node.type, id, findIndex);
+              findIndex = findIndex + 1;
+              if (findIndex - id == 0) {
+                outnode = node;
+              }
+            }
+          });
+        }
+      });
+      return outnode;
     },
 
     findNodeIndex(node) {
