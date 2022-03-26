@@ -1,5 +1,32 @@
 <template>
-  <div id="line-chart-container"></div>
+  <div class="line-chart-container">
+    <svg style="position: absolute; top: 4%" width="100%" height="15px">
+      <rect
+        x="20%"
+        y="1"
+        width="25px"
+        height="14px"
+        fill-opacity="0.5"
+        style="rx: 4px; fill: #a1a1a1"
+      ></rect>
+      <text x="24%" y="13" style="font-size: 13px; opacity: 0.7">
+        Total training time of a rank
+      </text>
+
+      <rect
+        x="43%"
+        y="1"
+        width="25px"
+        height="14px"
+        fill-opacity="0.5"
+        style="rx: 4px; fill: #e6882f"
+      ></rect>
+      <text x="47%" y="13" style="font-size: 13px; opacity: 0.7">
+        Average communication and waiting time of ranks
+      </text>
+    </svg>
+    <div id="line-chart"></div>
+  </div>
 </template>
 
 <script>
@@ -60,7 +87,7 @@ export default {
   },
   methods: {
     renderInit() {
-      const chartDom = document.getElementById("line-chart-container");
+      const chartDom = document.getElementById("line-chart");
       const myChart = echarts.init(chartDom);
       this.lineChart = myChart;
       const option = {
@@ -226,6 +253,9 @@ export default {
           type: "line",
           stack: "Total",
           color: "#E6882F",
+          itemStyle: {
+            opacity: 0.5,
+          },
           showSymbol: false,
           data: communicationList,
         },
@@ -235,6 +265,9 @@ export default {
           type: "line",
           stack: "Total",
           color: "#E6882F",
+          itemStyle: {
+            opacity: 0.5,
+          },
           showSymbol: false,
           data: waitingList,
         },
@@ -251,6 +284,9 @@ export default {
           name: device,
           type: "line",
           color: "#A1A1A1",
+          itemStyle: {
+            opacity: 0.5,
+          },
           data: [],
         };
         for (let i = 0; i < this.overViewData[device].length; i++) {
@@ -273,7 +309,12 @@ export default {
 </script>
 
 <style scoped>
-#line-chart-container {
+.line-chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+#line-chart {
   height: 100%;
   width: 100%;
   /* background: rebeccapurple; */

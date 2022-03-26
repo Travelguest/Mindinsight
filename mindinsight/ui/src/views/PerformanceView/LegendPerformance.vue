@@ -12,15 +12,15 @@
             ></stop>
           </linearGradient>
         </defs>
-        <text x="85" y="22.5">0</text>
+        <text x="75" y="22">0</text>
         <rect
-          x="100"
-          y="10"
-          height="15"
-          width="60"
+          x="92"
+          y="13"
+          height="9"
+          width="72"
           style="fill: url(#gradient)"
         ></rect>
-        <text x="167" y="22.5">1</text>
+        <text x="170" y="22">1</text>
       </svg>
     </div>
     <div class="legend-linechart operator-legend">
@@ -131,7 +131,7 @@
   flex-direction: row;
   margin-right: 10px;
   height: 35px;
-  width: 80%;
+  width: 100%;
 }
 .legend-linear-gradient {
   width: 250px;

@@ -1,9 +1,23 @@
 <template>
   <div class="configuration-view-box">
+    <svg
+      class="data-selection-border"
+      style="position: absolute; top: 0"
+      width="414px"
+      height="35px"
+    >
+      <polyline
+        stroke="#ccc"
+        stroke-width="1px"
+        fill="none"
+        points="0,35 384,35 414,0"
+      ></polyline>
+    </svg>
     <div class="data-selection">
       <span class="title">Data selection: </span>
       <a-select
         default-value="5_resnet_pipeline_4p"
+        size="small"
         style="width: 60%"
         @change="handleDataSwitch"
       >
@@ -28,12 +42,13 @@
         ref="configure-select"
         class="configure-select"
         v-model="selectNamespaces"
-        style="width: 90%; padding-top: 10px; aria-expanded: true"
+        size="small"
+        style="width: 80%; aria-expanded: true"
         :tree-data="showTreeData"
         tree-checkable
         :show-checked-strategy="SHOW_PARENT"
         search-placeholder="Please select"
-        :dropdownStyle="{ height: '150px' }"
+        :dropdownStyle="{ height: '70px' }"
         :maxTagCount="Number(1)"
         :treeDefaultExpandedKeys="expandedKeys"
         dropdownMatchSelectWidth
@@ -62,8 +77,6 @@
           </span>
         </template>
       </a-tree-select>
-      <!-- <div class="scope-tree"></div> -->
-      <!-- <div class="dashed-line"></div> -->
     </div>
     <div class="edge-config">
       <svg style="position: absolute; top: 0" width="100%" height="1px">
@@ -78,16 +91,14 @@
           stroke-dashoffset="22"
         ></line>
       </svg>
-      <div class="config-sub-title">
-        <h2>Hidden Edge</h2>
-      </div>
-      <div class="special-edge-checkbox dashed-line">
+      <div class="config-sub-title">Hidden Edge</div>
+      <div class="special-edge-checkbox">
         <el-checkbox-group v-model="showSpecialEdgeTypes">
           <el-checkbox
             v-for="(specialEdgeType, index) in specialEdgeTypes"
             :key="index"
             :label="specialEdgeType"
-            style="display: block; padding-bottom: 4px"
+            style="display: block; height: 20px"
           >
           </el-checkbox>
         </el-checkbox-group>
@@ -106,9 +117,7 @@
           stroke-dashoffset="22"
         ></line>
       </svg>
-      <div class="stage-panel-sub-title">
-        <h2>Stage</h2>
-      </div>
+      <div class="stage-panel-sub-title">Stage</div>
       <PipelineStageGraph />
     </div>
   </div>
@@ -119,7 +128,7 @@ import * as d3 from "d3";
 import { getTreeData, levelOrder } from "@/js/profile-graph/build-graph.js";
 import { TreeSelect, Select, Icon } from "ant-design-vue";
 import PipelineStageGraph from "./PiplineStageGraph.vue";
-// import RequestService from "@/services/request-service";
+import RequestService from "@/services/request-service";
 
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
@@ -213,7 +222,14 @@ export default {
       this.$store.commit("setProfileNamespaces", this.selectNamespaces);
     },
     handleDataSwitch(value) {
-      console.log("切换数据到", value);
+      RequestService.switchDataset(value)
+        .then((data) => {
+          console.log("切换数据到", data);
+          location.reload();
+        })
+        .catch((e) => {
+          console.error(e);
+        });
     },
   },
 };
@@ -228,8 +244,7 @@ export default {
   flex-direction: column;
 }
 .data-selection {
-  padding-top: 10px;
-  margin-left: 32px;
+  margin: 5px 0 5px 32px;
 }
 .data-selection .title {
   font-weight: 500;
@@ -238,17 +253,17 @@ export default {
 }
 .scope-search {
   position: relative;
-  height: 200px;
-  margin-bottom: 10px;
+  margin-top: 10px;
+  height: 100px;
   text-align: center;
 }
-.scope-tree {
+/* .scope-tree {
   height: 230px;
   width: 90%;
   overflow-y: scroll;
   background: #eee;
   margin: 0 auto;
-}
+} */
 /* .dashed-line {
   border-bottom: 1px dashed #aaaaaa;
   width: 90%;
@@ -257,32 +272,32 @@ export default {
   position: relative;
 } */
 .special-edge-checkbox {
-  height: 185px;
+  /* flex-grow: 1; */
 }
 .edge-config {
   position: relative;
   margin-left: 32px;
-  padding-top: 10px;
-  height: 210px;
-  flex-grow: 1;
+  margin-top: 10px;
+  height: 160px;
 }
 .config-sub-title {
-  width: 90%;
+  font-weight: 500;
+  font-size: 14px;
+  margin-top: 5px;
   text-align: left;
 }
 .stage-panel-sub-title {
-  width: 100%;
+  font-weight: 500;
+  font-size: 14px;
   margin-left: 32px;
+  margin-top: 5px;
   text-align: left;
 }
 .stage-panel {
   position: relative;
-  padding-top: 10px;
-  height: 210px;
-  flex-grow: 1;
-}
-h2 {
-  margin-bottom: 3px;
+  height: 150px;
+  margin-top: 13px;
+  /* flex-grow: 1; */
 }
 .ant-select-open .ant-select-selection {
   border-color: #fff !important;
@@ -290,5 +305,24 @@ h2 {
 .ant-select-dropdown {
   /* border-shadow: */
   box-shadow: 0 0 !important;
+}
+/* 修改滚动轴样式 */
+.ant-select-dropdown::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.ant-select-dropdown::-webkit-scrollbar-track {
+  background: rgb(239, 239, 239);
+  border-radius: 2px;
+}
+.ant-select-dropdown::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 10px;
+}
+.ant-select-dropdownr::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+.ant-select-dropdown::-webkit-scrollbar-corner {
+  background: #179a16;
 }
 </style>
