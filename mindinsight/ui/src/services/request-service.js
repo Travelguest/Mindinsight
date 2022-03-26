@@ -629,6 +629,8 @@ export default {
     });
   },
   switchDataset(dataset) {
-    return axios(`mock/switchDataset?dataset=${dataset}`);
+    return axios.get(`mock/switchDataset?dataset=${dataset}`, {
+      timeout: 1000 * 120,
+    });
   },
 };
