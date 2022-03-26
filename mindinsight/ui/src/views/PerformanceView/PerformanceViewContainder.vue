@@ -226,6 +226,9 @@ export default {
   display: flex;
   flex-direction: column;
 }
+.performance-view-container .top .right .legend {
+  width: 100%;
+}
 .performance-view-container .top .right .view {
   flex-grow: 1;
   display: flex;
