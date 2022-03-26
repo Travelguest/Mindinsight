@@ -5,8 +5,8 @@
         <div class="title">Parallel Strategy View</div>
         <LegendStrategy />
       </div>
-      <!-- <profile-graph /> -->
-      <!-- <AttributePanel /> -->
+      <profile-graph />
+      <AttributePanel />
     </div>
     <div class="configuration-view">
       <configure-view />
