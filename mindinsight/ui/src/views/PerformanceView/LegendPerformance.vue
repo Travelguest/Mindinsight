@@ -23,7 +23,7 @@
         <text x="170" y="22">1</text>
       </svg>
     </div>
-    <div class="legend-linechart operator-legend">
+    <div class="legend-linechart">
       <svg width="100%" height="100%">
         <g>
           <text x="34" y="17.5" font-size="12" alignment-baseline="middle">
@@ -65,7 +65,7 @@
       </svg>
     </div>
     <div class="vertical-dashed-line operator-legend"></div>
-    <div class="legend-operators operator-legend">
+    <div class="legend-operators">
       <svg width="100%" height="100%">
         <g>
           <polygon
@@ -91,7 +91,7 @@
       </svg>
     </div>
     <div class="vertical-dashed-line operator-legend"></div>
-    <div class="legend-communication operator-legend">
+    <div class="legend-communication">
       <svg width="100%" height="100%">
         <g>
           <text x="35" y="17.5" font-size="12" alignment-baseline="middle">
@@ -126,7 +126,6 @@
 <style>
 .legend-container {
   position: relative;
-  /* float: left; */
   display: flex;
   flex-direction: row;
   margin-right: 10px;
@@ -138,12 +137,12 @@
   height: 100%;
 }
 .legend-linechart {
-  width: 14%;
+  width: 250px;
   height: 100%;
 }
 .legend-operators {
   height: 100%;
-  width: 31%;
+  width: 480px;
 }
 .legend-communication {
   height: 100%;

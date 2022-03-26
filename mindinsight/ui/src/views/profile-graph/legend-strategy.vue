@@ -56,10 +56,10 @@
   float: left;
   margin-right: 10px;
   height: 35px;
-  width: 80%;
+  width: 100%;
 }
 .normal-operator {
-  width: 13%;
+  width: 200px;
   height: 100%;
   
 }
