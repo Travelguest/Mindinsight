@@ -148,7 +148,7 @@ export default {
             type: "value",
             name: "Total training time(ms)",
             minInterval: 5000000000,
-            maxInterval: 6000000000,
+            maxInterval: 50000000000,
             min: function (value) {
               return value.min - 20;
             },
