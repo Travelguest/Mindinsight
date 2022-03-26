@@ -80,12 +80,16 @@ export default {
         },
         tooltip: {
           trigger: "axis",
+          confine: true,
           axisPointer: {
             type: "shadow",
           },
         },
         legend: {
           top: "2%",
+          itemStyle: {
+            opacity: 0.5,
+          },
         },
         grid: {
           top: "20%",
@@ -178,6 +182,10 @@ export default {
             type: "bar",
             barWidth: 25,
             stack: "Time",
+            color: "#a9d1e5",
+            itemStyle: {
+              opacity: 0.5,
+            },
             emphasis: {
               focus: "series",
             },
@@ -187,6 +195,10 @@ export default {
             name: "Forward and Backward Propagation",
             type: "bar",
             stack: "Time",
+            color: "#74ba62",
+            itemStyle: {
+              opacity: 0.5,
+            },
             emphasis: {
               focus: "series",
             },
@@ -196,6 +208,10 @@ export default {
             name: "Step Tail",
             type: "bar",
             stack: "Time",
+            color: "#e6882e",
+            itemStyle: {
+              opacity: 0.5,
+            },
             emphasis: {
               focus: "series",
             },
@@ -205,8 +221,10 @@ export default {
             name: "communication cost",
             yAxisIndex: 1,
             type: "line",
-            // stack: "Total",
             color: "#E6882F",
+            itemStyle: {
+              opacity: 0.5,
+            },
             showSymbol: false,
             data: [],
           },
@@ -214,8 +232,10 @@ export default {
             name: "waiting cost",
             yAxisIndex: 1,
             type: "line",
-            stack: "Total",
             color: "#E6882F",
+            itemStyle: {
+              opacity: 0.5,
+            },
             showSymbol: false,
             data: [],
           },
@@ -230,7 +250,9 @@ export default {
       this.option.title.text = `Current Step: ${this.stepNumber}`;
       Object.keys(this.overViewData).forEach((device) => {
         if (!this.isxAisData) {
-          this.option?.xAxis?.data.push(device.replace("device", ""));
+          this.option?.xAxis?.data.push(
+            parseInt(device.replace("device", ""), 10) + 1
+          );
         }
         const curStepInfo = this.overViewData[device][curStep];
         intervalObj.data.push(parseInt(curStepInfo["iteration_interval"], 10));
@@ -286,7 +308,5 @@ export default {
 #stacked-column-container {
   height: 100%;
   width: 100%;
-  /* background: rebeccapurple; */
-  /* border: 1px solid red; */
 }
 </style>

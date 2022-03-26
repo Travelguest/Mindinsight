@@ -6,20 +6,20 @@
         <g class="legend-wrapperInner">
           <rect
             x="0"
-            y="8"
+            y="0"
             width="10"
             height="10"
             :fill="pipelineReceiveRectColor"
           ></rect>
-          <text x="15" y="19" font-size="12">Receive_op</text>
+          <text x="15" y="9" font-size="12">Receive_op</text>
           <rect
             x="100"
-            y="8"
+            y="0"
             width="10"
             height="10"
             :fill="pipelineSendRectColor"
           ></rect>
-          <text x="115" y="19" font-size="12">Send_op</text>
+          <text x="115" y="9" font-size="12">Send_op</text>
         </g>
       </svg>
     </div>
@@ -129,22 +129,23 @@
       </svg>
     </div>
     <!-- stages checkbox -->
-    <div
-      v-for="(stage, index) in showStageIdOptions"
-      :key="index"
-      :style="generateStageLabel(index)"
-      class="checkbox-container"
-    >
-      <!-- input 需要加 @click="showRankIdChange" -->
-      <!-- <input
+    <div class="checkbox-container">
+      <div
+        v-for="(stage, index) in showStageIdOptions"
+        :key="index"
+        :style="generateStageLabel(index)"
+      >
+        <!-- input 需要加 @click="showRankIdChange" -->
+        <!-- <input
         :id="'checkbox-' + stage.value"
         type="checkbox"
         class="custom-checkbox"
         v-model="showStageId[index]"
       /> -->
-      <label class="custom-checkbox-label" :for="'checkbox-' + stage.value">
-        {{ stage.label }}
-      </label>
+        <label class="custom-checkbox-label" :for="'checkbox-' + stage.value">
+          {{ stage.label }}
+        </label>
+      </div>
     </div>
   </div>
 </template>
@@ -396,7 +397,7 @@ export default {
   margin: 0 auto;
 }
 .training-pipeline-legend {
-  height: 25px;
+  height: 12px;
 }
 /* .custom-checkbox input:checked+label {
     background: #f40;
@@ -435,10 +436,9 @@ input[type="checkbox"]:checked::before {
   font-size: 10px;
   border: none;
 }
-
-/* .checkbox-container {
+.checkbox-container {
   position: relative;
-  float: left;
-  margin-right: 10px;
-} */
+  overflow: hidden;
+  margin-top: -15px;
+}
 </style>
