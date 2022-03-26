@@ -13,7 +13,7 @@
       <AttributePanel />
     </div>
     <div class="configuration-view">
-      <!-- <configure-view /> -->
+      <configure-view />
       <svg
         style="position: absolute; top: 0; right: 0"
         width="1px"

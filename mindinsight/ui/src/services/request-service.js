@@ -628,4 +628,7 @@ export default {
       url: "mock/getMemoryData",
     });
   },
+  switchDataset(dataset) {
+    return axios(`mock/switchDataset?dataset=${dataset}`);
+  },
 };
