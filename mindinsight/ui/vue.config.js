@@ -59,7 +59,7 @@ module.exports = {
     disableHostCheck: true,
     proxy: {
       "/mock": {
-        target: "http://10.76.0.163:8089/",
+        target: "http://10.76.0.163:8088/",
         ws: true,
         changeOrigin: true,
         pathRewrite: {

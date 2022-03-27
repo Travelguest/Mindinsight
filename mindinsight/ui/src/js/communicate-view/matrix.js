@@ -373,32 +373,32 @@ Matrix.prototype.renderBoxPlot = function (
       .attr("stroke", "#999999");
   });
   data.forEach((d) => {
-    // if (d.value < minimum || d.value > maximum) {
-    // console.log(d.name);
-    boxLayer
-      .append("circle")
-      .attr("cx", k * d.value + b)
-      .attr("cy", y)
-      .attr("r", 1)
-      .style("fill", color)
-      .on("mouseover", () => {
-        this.locallayer
-          .append("text")
-          .attr("id", "hover-circle-text")
-          .attr("x", k * d.value + b)
-          .attr("y", y - 5)
-          .attr("font-size", 5)
-          .text(d.name);
-      })
-      .on("mouseout", () => {
-        this.locallayer.select("#hover-circle-text").remove();
-      })
-      .on("click", () => {
-        window.communicategraph.setSelectOpname(d.name);
-        // console.log(window.communicategraph.selectOpname);
-        // this.$store.emit("setInfo", val);
-      });
-    // }
+    if (d.value < minimum || d.value > maximum) {
+      // console.log(d.name);
+      boxLayer
+        .append("circle")
+        .attr("cx", k * d.value + b)
+        .attr("cy", y)
+        .attr("r", 1)
+        .style("fill", color)
+        .on("mouseover", () => {
+          this.locallayer
+            .append("text")
+            .attr("id", "hover-circle-text")
+            .attr("x", k * d.value + b)
+            .attr("y", y - 5)
+            .attr("font-size", 5)
+            .text(d.name);
+        })
+        .on("mouseout", () => {
+          this.locallayer.select("#hover-circle-text").remove();
+        })
+        .on("click", () => {
+          window.communicategraph.setSelectOpname(d.name);
+          // console.log(window.communicategraph.selectOpname);
+          // this.$store.emit("setInfo", val);
+        });
+    }
   });
   // boxLayer
   //   .data(data)
