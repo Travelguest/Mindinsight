@@ -20,7 +20,7 @@ Canvas.prototype.create = function () {
   //   var layout = d3.select("#profile-graph");
   this.svgHeight =
     document.getElementsByClassName("strategy-view")[0].clientHeight -
-    document.getElementById("parallel-title").clientHeight;
+    document.getElementsByClassName("view-header")[0].clientHeight;
   this.svgWidth =
     document.getElementsByClassName("profile-graph")[0].clientWidth;
   this.width = this.svgWidth;
