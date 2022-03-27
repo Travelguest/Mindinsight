@@ -2,11 +2,7 @@
   <div class="parallel-page">
     <div class="strategy-view">
       <div class="view-header">
-        <div class="view-title-bg">
-          <h1 class="view-title-name" id="parallel-title">
-            Parallel Strategy View
-          </h1>
-        </div>
+        <div class="title">Parallel Strategy View</div>
         <LegendStrategy />
       </div>
       <profile-graph />
@@ -21,7 +17,7 @@
       >
         <line
           x1="0"
-          y1="2%"
+          y1="45"
           x2="0"
           y2="98%"
           z-index="99"
@@ -44,6 +40,7 @@ import AttributePanel from "../profile-graph/attribute-panel.vue";
 import PerformanceView from "../PerformanceView/PerformanceViewContainder.vue";
 import ConfigureView from "../configure-view/configure-view.vue";
 import LegendStrategy from "../profile-graph/legend-strategy.vue";
+import DataMap from "../train-manage/data-map.vue";
 
 export default {
   components: {
@@ -52,6 +49,7 @@ export default {
     ConfigureView,
     LegendStrategy,
     AttributePanel,
+    DataMap,
   },
 
   data() {
@@ -99,22 +97,16 @@ export default {
   background: #fff;
   grid-area: performance;
 }
-.view-title-bg {
-  border-top: 35px solid #838383;
-  border-right: 50px solid transparent;
-  width: 220px;
-  /* position: relative;
-    float: left; */
-}
-.view-title-name {
-  color: #ffffff;
-  font-size: 16px;
-  line-height: 35px;
-  margin-top: -35px;
-  padding-left: 10px;
-  margin-bottom: 0;
-}
+
 .view-header {
   display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.view-header .title {
+  width: 200px;
+  font-size: 16px;
+  font-weight: 500;
+  margin-left: 32px;
 }
 </style>

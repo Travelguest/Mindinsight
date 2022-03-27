@@ -16,7 +16,7 @@
     <div class="data-selection">
       <span class="title">Data selection: </span>
       <a-select
-        default-value="5_resnet_pipeline_4p"
+        v-model="dataSource"
         size="small"
         style="width: 60%"
         @change="handleDataSwitch"
@@ -150,11 +150,17 @@ export default {
       specialEdgeTypes: [],
       graphData: {},
       expandedKeys: [],
+      dataSource: "5_resnet_pipeline_4p",
     };
   },
 
   mounted() {
     // this.initView();
+    if (/\?/.test(location.href)) {
+      const value = location.href.split("?").pop().split("=").pop();
+      this.dataSource = value;
+      console.log("切换数据到", value);
+    }
   },
 
   watch: {
@@ -224,7 +230,8 @@ export default {
     handleDataSwitch(value) {
       RequestService.switchDataset(value)
         .then((data) => {
-          console.log("切换数据到", data);
+          location.href =
+            location.href.split("?").shift() + `?dataSource=${this.dataSource}`;
           location.reload();
         })
         .catch((e) => {
