@@ -400,7 +400,7 @@ function initLinks(linksData, network) {
     .append("path")
     .style("fill", "none")
     .style("stroke", function (d) {
-      console.log(d.link_type);
+      // console.log(d.link_type);
       if (d.link_type == "SDMA") return "#cecfd1";
       else return "#a1a1a1";
     })
