@@ -19,19 +19,29 @@ Lasso.prototype.bind = function () {
     .targetArea(this.svg)
     .on("end", function () {
       var selected = lasso.selectedItems()["_groups"][0];
-      var newNodes = {};
+      var newNodes = {},
+        nodeList = [];
       selected.forEach(function (d) {
         var id = d3.select(d).attr("id");
-        newNodes[id] = 1;
+        // if(id.replace(""))
+        // newNodes[id] = 1;
+        nodeList.push(id);
       });
-      console.log(newNodes);
+      nodeList = nodeList.sort(
+        (a, b) =>
+          Number(a.replace("device", "")) - Number(b.replace("device", ""))
+      );
+
+      nodeList.forEach((n) => {
+        newNodes[n] = true;
+      });
+      // console.log(newNodes);
       if (Object.keys(newNodes).length != 0) {
-        //   window.graph.delete(newNodes);
         var m = new Matrix();
-        window.graph.renderMatrix(newNodes);
+        window.communicategraph.renderMatrix(newNodes);
         m.create(Object.keys(newNodes));
       } else {
-        // window.graph.renderNet();
+        // window.communicategraph.renderNet();
       }
     });
   this.svg.call(this.lasso);

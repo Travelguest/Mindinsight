@@ -64,6 +64,8 @@ export default new Vuex.Store({
     communicationData: null, //getCommunicationData的数据
 
     selectCommunicateOpnode: ["", 0],
+
+    selectOpname: "", //在通信图矩阵boxplot中选择异常节点的名字
   },
   mutations: {
     // set cancelTokenArr
@@ -158,6 +160,9 @@ export default new Vuex.Store({
     },
     setCommunicationData(state, val) {
       state.communicationData = val;
+    },
+    setSelectOpname(state, val) {
+      state.selectOpname = [val[0].toLowerCase(), Number(val[1])];
     },
   },
   actions: {

@@ -176,6 +176,18 @@
                   </g>
                 </g>
 
+                <g id="graph-hovernode-edge-container">
+                  <line
+                    v-for="(edge, index) in hoverNodeEdges"
+                    style="stroke: #cb6056"
+                    :key="'host_hovernode_edge' + index"
+                    :x1="edge.source.x"
+                    :y1="edge.source.y"
+                    :x2="edge.target.x"
+                    :y2="edge.target.y"
+                  ></line>
+                </g>
+
                 <g id="graph-node-container">
                   <g
                     id="isomorphic-subgraph-circle-g"
@@ -553,6 +565,8 @@ export default {
       clickedNodeId: "",
       isomorphicSubgraphCircles: [],
       canvas: null,
+      hoverNodeEdges: [],
+      nodeEdgesMap: {},
     };
   },
 
@@ -594,10 +608,14 @@ export default {
       this.initGraph();
       this.$nextTick(() => {
         this.initMiniMap();
+        this.initNodeEdgeMap();
       });
     },
     "$store.state.nameScopeToParallelStrategy": function (val) {
       this.onRecieveOneScope(val);
+    },
+    "$store.state.selectOpname": function (val) {
+      this.onRecieveOneOp(val);
     },
   },
 
@@ -647,8 +665,55 @@ export default {
 
     haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
 
+    initNodeEdgeMap() {
+      this.normalEdges.forEach((group) => {
+        group.forEach((edge) => {
+          var source = edge.source;
+          var target = edge.target;
+          if (!Object.keys(this.nodeEdgesMap).includes(source.id)) {
+            this.nodeEdgesMap[source.id] = [];
+          }
+          this.nodeEdgesMap[source.id].push(edge);
+          if (!Object.keys(this.nodeEdgesMap).includes(target.id)) {
+            this.nodeEdgesMap[target.id] = [];
+          }
+          this.nodeEdgesMap[target.id].push(edge);
+        });
+      });
+      this.specialEdges.forEach((group) => {
+        Object.keys(group).forEach((type) => {
+          // console.log(group[type]);
+          group[type].values.forEach((edge) => {
+            var source = edge.source;
+            var target = edge.target;
+            if (!Object.keys(this.nodeEdgesMap).includes(source.id)) {
+              this.nodeEdgesMap[source.id] = [];
+            }
+            this.nodeEdgesMap[source.id].push(edge);
+            if (!Object.keys(this.nodeEdgesMap).includes(target.id)) {
+              this.nodeEdgesMap[target.id] = [];
+            }
+            this.nodeEdgesMap[target.id].push(edge);
+          });
+        });
+      });
+      Object.keys(this.extraEdges).forEach((stage) => {
+        this.extraEdges[stage].forEach((edge) => {
+          var source = edge[4];
+          var target = edge[5];
+          if (!Object.keys(this.nodeEdgesMap).includes(source.id)) {
+            this.nodeEdgesMap[source.id] = [];
+          }
+          this.nodeEdgesMap[source.id].push({ source: source, target: target });
+          if (!Object.keys(this.nodeEdgesMap).includes(target.id)) {
+            this.nodeEdgesMap[target.id] = [];
+          }
+          this.nodeEdgesMap[target.id].push({ source: source, target: target });
+        });
+      });
+    },
+
     onNodeClick(node) {
-      // console.log(node.type);
       if (
         ["send", "receive", "allreduce", "allgather", "reducescatter"].includes(
           node.type.toLowerCase()
@@ -662,6 +727,36 @@ export default {
       this.clickedNodeId = node.id;
       this.$store.commit("setNameScopeToPerformanceView", node.scope);
       this.$store.commit("setSelectedGraphNode", node);
+    },
+
+    onRecieveOneOp(val) {
+      console.log(val);
+      var node = this.findNodeName(val[0], val[1]);
+      if (node != null) {
+        var viewBox = this.canvas.getViewBox();
+        this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
+        // this.clickedNodeId = node.id;
+        this.$store.commit("setSelectedGraphNode", node);
+      }
+    },
+
+    findNodeName(type, id) {
+      var findIndex = 0;
+      var outnode = null;
+      this.opNodes.forEach((nodeGroup) => {
+        if (findIndex != id) {
+          nodeGroup.forEach((node) => {
+            if (findIndex != id && node.type.toLowerCase() == type) {
+              // console.log(node.type, id, findIndex);
+              findIndex = findIndex + 1;
+              if (findIndex - id == 0) {
+                outnode = node;
+              }
+            }
+          });
+        }
+      });
+      return outnode;
     },
 
     findNodeIndex(node) {
@@ -686,10 +781,13 @@ export default {
         y: bottom,
       };
       this.hoveredNodeInfo.nodeGroupIndex = Math.floor((node.y + 200) / 500);
+
+      this.hoverNodeEdges = this.nodeEdgesMap[node.id];
     },
 
     onNodeMouseout() {
       this.hoveredNodeInfo = null;
+      this.hoverNodeEdges = [];
     },
 
     preOrder(tree, nodeGroup, rankID) {
@@ -906,6 +1004,8 @@ export default {
             sourceNode.y,
             targetNode.x,
             targetNode.y,
+            sourceNode,
+            targetNode,
           ]);
         }
 

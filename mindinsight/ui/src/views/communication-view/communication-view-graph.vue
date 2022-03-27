@@ -112,9 +112,12 @@ export default {
       this.renderNetwork();
     },
     "$store.state.selectCommunicateOpnode": function (val) {
-      console.log(val);
+      // console.log(val);
       this.recieveOpnode(val[0], val[1]);
     },
+    // window.communicategraph: function (val) {
+    //   console.log(val);
+    // },
   },
 
   methods: {
@@ -206,6 +209,7 @@ export default {
       for (var device in this.communicateGraphData) {
         // var new_node=Object.create(device_node)
         // console.log(this.communicateGraphData[device]);
+        // console.log(device);
         for (var i in this.communicateGraphData[device]) {
           var step_info = this.communicateGraphData[device][i];
           var new_node = Object.create(device_node);
@@ -231,6 +235,16 @@ export default {
               var node_pair = link.split("-");
               new_link.source = node_pair[0];
               new_link.target = node_pair[1];
+              if (
+                !this.communicateGraphData.hasOwnProperty(
+                  "device" + new_link.source
+                ) ||
+                !this.communicateGraphData.hasOwnProperty(
+                  "device" + new_link.target
+                )
+              ) {
+                continue;
+              }
               new_link.type = type;
               new_link.value = link_info[link][type][0];
               new_link.communication_duration = link_info[link][type][0];
@@ -290,9 +304,9 @@ export default {
         var link_str = d.source + "-" + d.target;
         var op_info = this.communicateOps[this.stepNum][link_str];
         op_info.forEach((i) => {
-          op_duration.push(i["duration"]);
-          op_traffic.push(i["traffic"]);
-          op_bandWidth.push(i["bandWidth"]);
+          op_duration.push({ name: i["op_name"], value: i["duration"] });
+          op_traffic.push({ name: i["op_name"], value: i["traffic"] });
+          op_bandWidth.push({ name: i["op_name"], value: i["bandWidth"] });
         });
         dataLink.push({
           source: "device" + d.source,
@@ -302,9 +316,9 @@ export default {
           communication_duration: d.communication_duration,
           traffic: d.traffic,
           bandWidth: d.bandWidth,
-          op_duration: op_duration.sort((a, b) => a - b),
-          op_traffic: op_traffic.sort((a, b) => a - b),
-          op_bandWidth: op_bandWidth.sort((a, b) => a - b),
+          op_duration: op_duration.sort((a, b) => a.value - b.value),
+          op_traffic: op_traffic.sort((a, b) => a.value - b.value),
+          op_bandWidth: op_bandWidth.sort((a, b) => a.value - b.value),
         });
       });
 
@@ -327,8 +341,13 @@ export default {
       var force_layer = svg.append("g").attr("id", "force");
       var path_layer = svg.append("g").attr("id", "path");
 
-      window.graph = new Graph(width, height);
-      window.graph.init(dataLink, dataNode);
+      window.communicategraph = new Graph(width, height, this);
+      window.communicategraph.init(dataLink, dataNode);
+    },
+
+    setSelectOpname(opname) {
+      // this.sendOpnode(opname);
+      this.$store.commit("setSelectOpname", opname.split("_"));
     },
 
     recieveOpnode(type, index) {
@@ -361,7 +380,7 @@ export default {
           }
         });
       });
-      window.graph.showOpNode(nodeData);
+      window.communicategraph.showOpNode(nodeData);
     },
   },
 };

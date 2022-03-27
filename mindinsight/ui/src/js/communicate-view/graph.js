@@ -3,7 +3,7 @@ import { gradientColor } from "@/js/communicate-view/get-gradient-color.js";
 import { Lasso } from "@/js/communicate-view/lasso.js";
 import { Matrix } from "@/js/communicate-view/matrix.js";
 import * as _ from "lodash";
-export function Graph(w, h) {
+export function Graph(w, h, father) {
   this.w = w;
   this.h = h;
   this.nodes = [];
@@ -21,6 +21,7 @@ export function Graph(w, h) {
   this.staticNodes = [];
   this.staticLinks = [];
   this.matrix_size = w * 0.5;
+  this.father = father;
 }
 Graph.prototype.init = function (links, nodes) {
   this.nodes = nodes;
@@ -41,6 +42,10 @@ Graph.prototype.init = function (links, nodes) {
   this.max_ratio = maxR;
 
   this.renderNet();
+};
+Graph.prototype.selectOpname = "";
+Graph.prototype.setSelectOpname = function (opname) {
+  this.father.setSelectOpname(opname);
 };
 Graph.prototype.getMatrixSize = function () {
   return this.matrix_size;
@@ -64,7 +69,7 @@ Graph.prototype.renderNet = function () {
           return d.id;
         })
         .distance(function (d) {
-          return 100;
+          return 150;
         })
     )
     .force("charge", d3.forceManyBody())
@@ -142,19 +147,21 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
       newLinks.push(_.cloneDeep(l));
     } else if (sourceIndex > -1 && targetIndex <= -1) {
       var newLink = _.cloneDeep(l);
-      if (parseInt(newLink.target.substring(6)) % 2 == 0) {
-        newLink.source = newLink.source + "-bottom";
-      } else {
-        newLink.source = newLink.source + "-right";
-      }
+      // if (parseInt(newLink.target.substring(6)) % 2 == 0) {
+      //   newLink.source = newLink.source + "-bottom";
+      // } else {
+      //   newLink.source = newLink.source + "-right";
+      // }
+      newLink.source = newLink.source + "-right";
       newLinks.push(newLink);
     } else if (sourceIndex <= -1 && targetIndex > -1) {
       var newLink = _.cloneDeep(l);
-      if (parseInt(newLink.source.substring(6)) % 2 == 0) {
-        newLink.target = newLink.target + "-bottom";
-      } else {
-        newLink.target = newLink.target + "-right";
-      }
+      // if (parseInt(newLink.source.substring(6)) % 2 == 0) {
+      //   newLink.target = newLink.target + "-bottom";
+      // } else {
+      //   newLink.target = newLink.target + "-right";
+      // }
+      newLink.target = newLink.target + "-right";
       newLinks.push(newLink);
     }
   });
@@ -169,17 +176,33 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
           return d.id;
         })
         .distance(function (d) {
-          return 100;
+          return 20;
         })
     )
     .force("charge", d3.forceManyBody())
-    .force("center", d3.forceCenter(this.w / 2, this.h / 2))
-    .force("x", d3.forceX(this.w * 0.9))
+    .force("center", d3.forceCenter(this.w * 0.75, this.h / 2))
+    .force("x", d3.forceX(this.w * 0.5))
     .force("y", d3.forceY(this.h * 0.9));
 
   simulation.nodes(newNodes).on("tick", (d) => {
     handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
   });
+  // .on("end", (d) => {
+  //   console.log("forceend");
+  //   newNodes.forEach((n) => {
+  //     if (n.showable) {
+  //       if (n.x <= this.matrix_size + 10 && n.y <= this.matrix_size + 10) {
+  //         n.x = this.matrix_size + n.x * 0.5;
+  //         // if (parseInt(n.id.substring(6)) % 2 == 0) {
+  //         //   n.y = this.matrix_size + 10;
+  //         // } else {
+  //         //   n.x = this.matrix_size + 10;
+  //         // }
+  //       }
+  //     }
+  //     handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
+  //   });
+  // });
   simulation.force("link").links(newLinks);
   var link = initLinks(newLinks, network);
   var node = initNodes(
@@ -188,7 +211,7 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
     this.min_ratio,
     this.max_ratio,
     simulation,
-    false
+    true
   );
   var label = initLabels(newNodes, network);
   window.lasso = new Lasso();
@@ -201,8 +224,13 @@ function handleTick(node, link, label, w, h) {
     var x1 = Math.min(d.source.x, w),
       y1 = Math.min(d.source.y, h),
       x2 = Math.min(d.target.x, w),
-      y2 = Math.min(d.target.y, h),
-      dx = x2 - x1,
+      y2 = Math.min(d.target.y, h);
+    x1 = Math.max(0, x1);
+    x2 = Math.max(0, x2);
+    y1 = Math.max(0, y1);
+    y2 = Math.max(0, y2);
+
+    var dx = x2 - x1,
       dy = y2 - y1,
       dr = Math.sqrt(dx * dx + dy * dy),
       // Defaults for normal edge.
@@ -211,6 +239,7 @@ function handleTick(node, link, label, w, h) {
       xRotation = 0, // degrees
       largeArc = 0, // 1 or 0
       sweep = 1; // 1 or 0
+
     // Self edge.
     if (x1 === x2 && y1 === y2) {
       // console.log(d3.select("#links").)
@@ -349,8 +378,8 @@ function initNodes(
         .on("end", function (d) {
           if (d.showable) {
             if (!d3.event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
+            // d.fx = null;
+            // d.fy = null;
           }
         })
     );
@@ -371,11 +400,12 @@ function initLinks(linksData, network) {
     .append("path")
     .style("fill", "none")
     .style("stroke", function (d) {
+      console.log(d.link_type);
       if (d.link_type == "SDMA") return "#cecfd1";
-      else return "a1a1a1";
+      else return "#a1a1a1";
     })
     .attr("stroke-width", function (d) {
-      return d.weight;
+      return Math.log(d.weight);
     })
     .attr("marker-end", function (d) {
       if (d.link_type == "SDMA") return "url(#arrowSDMA)";
@@ -391,12 +421,15 @@ function initLinks(linksData, network) {
       newNodes[id2] = true;
 
       var m = new Matrix();
-      var nodeList = Object.keys(newNodes).sort();
+      var nodeList = Object.keys(newNodes).sort(
+        (a, b) =>
+          Number(a.replace("device", "")) - Number(b.replace("device", ""))
+      );
       newNodes = {};
       nodeList.forEach((n) => {
         newNodes[n] = true;
       });
-      window.graph.renderMatrix(newNodes);
+      window.communicategraph.renderMatrix(newNodes);
       // console.log(newNodes);
       m.create(Object.keys(newNodes), true);
     });
@@ -423,12 +456,14 @@ Graph.prototype.showOpNode = function (nodeData) {
   });
 
   var m = new Matrix();
-  var nodeList = Object.keys(matrixNodes).sort();
+  var nodeList = Object.keys(matrixNodes).sort(
+    (a, b) => Number(a.replace("device", "")) - Number(b.replace("device", ""))
+  );
   matrixNodes = {};
   nodeList.forEach((n) => {
     matrixNodes[n] = true;
   });
-  window.graph.renderMatrix(matrixNodes);
+  window.communicategraph.renderMatrix(matrixNodes);
   m.create(Object.keys(matrixNodes), false, nodeValue);
 };
 
