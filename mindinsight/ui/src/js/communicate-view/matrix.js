@@ -11,10 +11,11 @@ export function Matrix() {
   this.num_nodes = 0;
   this.matrix_size = window.communicategraph.getMatrixSize();
 
-  this.maxDuration = 0;
-  this.maxTraffic = 0;
+  this.maxDuration = -1;
+  this.maxTraffic = -1;
   this.nodeData = [];
   this.linkSelect = false;
+
   // this.matrix_size = matrix_size;
 }
 
@@ -53,6 +54,9 @@ Matrix.prototype.create = function (node, linkSelect = false, nodeValue = []) {
   var originData = window.communicategraph.getLinks();
 
   originData.forEach((d) => {
+    // console.log(d);
+    this.maxDuration = Math.max(this.maxDuration, d.communication_duration);
+    this.maxTraffic = Math.max(this.maxTraffic, d.traffic);
     if (node.includes(d.source) && node.includes(d.target)) {
       this.edges.push(d);
     }
@@ -81,11 +85,11 @@ Matrix.prototype.create = function (node, linkSelect = false, nodeValue = []) {
       type: this.edges[i].link_type,
     };
     // console.log(this.adj_matrix[x][y].box_duration);
-    this.maxDuration = Math.max(
-      this.maxDuration,
-      this.edges[i].communication_duration
-    );
-    this.maxTraffic = Math.max(this.maxTraffic, this.edges[i].traffic);
+    // this.maxDuration = Math.max(
+    //   this.maxDuration,
+    //   this.edges[i].communication_duration
+    // );
+    // this.maxTraffic = Math.max(this.maxTraffic, this.edges[i].traffic);
   }
   this.render(nodeValue);
 };
