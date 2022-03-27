@@ -282,7 +282,7 @@ export default {
       //MFLOPsLinePath(curDeviceMFIPsData)
       return d3
         .line()
-        .curve(d3.curveCatmullRom)
+        // .curve(d3.curveCatmullRom)
         .x((d) => this.xScale(d.x))
         .y((d) => this.yScale(d.device) + this.MFLOPsScale(d.y));
     },
@@ -290,7 +290,7 @@ export default {
       //MemoryLinePath(curDeviceMemoryData)
       return d3
         .line()
-        .curve(d3.curveCatmullRom)
+        // .curve(d3.curveCatmullRom)
         .x((d) => this.xScale(d.x))
         .y((d) => this.yScale(d.device) + this.MemoryScale(d.y));
     },
@@ -746,6 +746,7 @@ export default {
       this.$store.commit("setNameScopeToParallelStrategy", nameScope);
     },
     handleDblclick() {
+      console.log("双击");
       if (!this.timeStack.length) {
         //回到起点清除高亮
         this.highLightOpSet = null;

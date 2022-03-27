@@ -142,13 +142,69 @@ export default {
     getTimeLineData() {
       RequestService.getTimeLineData(this.stepNumber)
         .then(({ data }) => {
-          this.timeLineData = data;
-          //初始化
-          const { stage_data } = data || {};
-          Object.keys(stage_data).forEach((stageName) => {
+          //1. 初始化
+          const { stage_data, maps } = data || {};
+          const stages = Object.keys(stage_data);
+          stages.forEach((stageName) => {
             this.isStageExpand.set(stageName, false); //默认不展开
           });
+          //2.数据对齐
+          for (let i = 1; i < stages.length; i++) {
+            const preDevice = stage_data[stages[i - 1]].devices[0];
+            const curDevice = stage_data[stages[i]].devices[0];
+            const preDeviceOpName = Object.keys(maps[preDevice]);
+            const curDeviceOpName = Object.keys(maps[curDevice]);
+            let sendOp;
+            let receiveOp;
+            for (let j = 0; j < preDeviceOpName.length; j++) {
+              if (preDeviceOpName[j].startsWith("Send")) {
+                sendOp = preDeviceOpName[j];
+                break;
+              }
+            }
+            for (let j = 0; j < curDeviceOpName.length; j++) {
+              if (curDeviceOpName[j].startsWith("Receive")) {
+                receiveOp = curDeviceOpName[j];
+                break;
+              }
+            }
+            const startOffset = Math.abs(
+              maps[preDevice][sendOp].st - maps[curDevice][receiveOp].st
+            );
+            const endOffset = Math.abs(
+              maps[preDevice][sendOp].ed - maps[curDevice][receiveOp].ed
+            );
+            // console.log("找到啦", sendOp, receiveOp, startOffset, endOffset);
+            // device偏移
+            stage_data[stages[i]].devices.forEach((device) => {
+              Object.keys(maps[device]).forEach((op) => {
+                const opInfo = maps[device][op];
+                opInfo.st += startOffset;
+                opInfo.ed += endOffset;
+              });
+            });
+            // stage偏移
+            Object.keys(stage_data[stages[i]].data).forEach((op) => {
+              const opInfo = stage_data[stages[i]].data[op];
+              opInfo.ed_avg += endOffset;
+              opInfo.ed_max += endOffset;
+              opInfo.ed_min += endOffset;
+              opInfo.st_avg += startOffset;
+              opInfo.st_max += startOffset;
+              opInfo.st_min += startOffset;
+            });
+          }
+          //3.处理dur太小的问题
+          Object.keys(maps).forEach((device) => {
+            Object.keys(maps[device]).forEach((op) => {
+              const opInfo = maps[device][op];
+              if (opInfo.dur <= 0.1) {
+                opInfo.ed += 1;
+              }
+            });
+          });
 
+          this.timeLineData = data;
           this.stageDeviceArrProcessing();
         })
         .catch(console.error);
@@ -164,6 +220,12 @@ export default {
         if (!stageDeviceRelationship[stageName]) {
           stageDeviceRelationship[stageName] = [];
         }
+        //排序
+        curStageDevice.sort((a, b) => {
+          const [num1] = a.match(/\d+/g);
+          const [num2] = b.match(/\d+/g);
+          return parseInt(num1, 10) - parseInt(num2, 10);
+        });
         curStageDevice.forEach((device) => {
           deviceToStage.set(device, stageName);
           if (this.isStageExpand.get(stageName)) {
@@ -176,13 +238,6 @@ export default {
       this.stageDeviceRelationship = stageDeviceRelationship;
       this.deviceToStage = deviceToStage;
     },
-    // FLOPMapDataProcessing() {
-    //   const FLOPMapData = {};
-    //   Object.keys(this.FLOPsData).forEach((device) => {
-    //     const data = this.FLOPsData[device].summary;
-    //     FLOPMapData[device].
-    //   });
-    // },
     getFLOPsData() {
       RequestService.getFLOPsData()
         .then(({ data }) => {

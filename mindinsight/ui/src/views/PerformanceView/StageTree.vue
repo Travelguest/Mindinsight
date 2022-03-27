@@ -92,11 +92,7 @@
             :transform="`translate(${27 + 2 * offset}, ${yScale(name)})`"
             dominant-baseline="middle"
           >
-            {{
-              name.startsWith("stage")
-                ? "stage" + (parseInt(name.replace("stage", ""), 10) + 1)
-                : parseInt(name.replace("device", ""), 10) + 1
-            }}
+            {{ name }}
           </text>
         </g>
         <g class="FLOP-name">
@@ -362,9 +358,10 @@ export default {
         show: true,
         x: layerX + 15,
         y: layerY - 55,
-        name: name.startsWith("stage")
-          ? "stage" + (parseInt(name.replace("stage", ""), 10) + 1)
-          : "device" + (parseInt(name.replace("device", ""), 10) + 1),
+        name,
+        // name: name.startsWith("stage")
+        //   ? "stage" + (parseInt(name.replace("stage", ""), 10) + 1)
+        //   : "device" + (parseInt(name.replace("device", ""), 10) + 1),
         info: abnomalContent,
       };
     },

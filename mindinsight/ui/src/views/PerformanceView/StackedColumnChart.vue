@@ -251,7 +251,7 @@ export default {
       Object.keys(this.overViewData).forEach((device) => {
         if (!this.isxAisData) {
           this.option?.xAxis?.data.push(
-            parseInt(device.replace("device", ""), 10) + 1
+            parseInt(device.replace("device", ""), 10)
           );
         }
         const curStepInfo = this.overViewData[device][curStep];

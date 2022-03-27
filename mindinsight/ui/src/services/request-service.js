@@ -596,7 +596,9 @@ export default {
     //   params: `step=${params}`,
     //   url: 'mock/timeline',
     // });
-    return axios(`mock/timeline?step=${params}`);
+    return axios.get(`mock/timeline?step=${params}`, {
+      timeout: 1000 * 240,
+    });
   },
   getGraphs() {
     // return axios({
@@ -604,7 +606,7 @@ export default {
     //   url: "mock/getGraphs",
     // });
     return axios.get("mock/getGraphs", {
-      timeout: 1000 * 180,
+      timeout: 1000 * 240,
     });
   },
   getCommunicationGraph() {
@@ -613,7 +615,7 @@ export default {
     //   url: "mock/getCommunicationData",
     // });
     return axios.get("mock/getCommunicationData", {
-      timeout: 1000 * 180,
+      timeout: 1000 * 240,
     });
   },
   getOverviewTime() {
@@ -622,7 +624,7 @@ export default {
     //   url: "mock/getOverviewTime",
     // });
     return axios.get("mock/getOverviewTime", {
-      timeout: 1000 * 180,
+      timeout: 1000 * 240,
     });
   },
   getFLOPsData() {
@@ -631,7 +633,7 @@ export default {
     //   url: "mock/getFlopsData",
     // });
     return axios.get("mock/getFlopsData", {
-      timeout: 1000 * 180,
+      timeout: 1000 * 240,
     });
   },
   getMemoryData() {
@@ -640,12 +642,12 @@ export default {
     //   url: "mock/getMemoryData",
     // });
     return axios.get("mock/getMemoryData", {
-      timeout: 1000 * 180,
+      timeout: 1000 * 240,
     });
   },
   switchDataset(dataset) {
     return axios.get(`mock/switchDataset?dataset=${dataset}`, {
-      timeout: 1000 * 180,
+      timeout: 1000 * 240,
     });
   },
 };
