@@ -32,11 +32,13 @@ import CommonProperty from "./common/common-property";
 import "ant-design-vue/dist/antd.css";
 import TreeSelect from "ant-design-vue/lib/tree-select";
 import Input from "ant-design-vue/lib/input";
+import Empty from "ant-design-vue/lib/empty";
 
 import "./assets/iconfont/iconfont";
 
 Vue.component(TreeSelect.name, TreeSelect);
 Vue.component(Input.name, Input);
+Vue.component(Empty.name, Empty);
 
 let language = window.localStorage.getItem("milang");
 const languageList = ["zh-cn", "en-us"];
