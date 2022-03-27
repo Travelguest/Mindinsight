@@ -150,7 +150,7 @@ export default {
       specialEdgeTypes: [],
       graphData: {},
       expandedKeys: [],
-      dataSource: "5_resnet_pipeline_4p",
+      dataSource: "",
     };
   },
 
