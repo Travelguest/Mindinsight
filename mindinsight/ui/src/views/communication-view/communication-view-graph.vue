@@ -209,6 +209,7 @@ export default {
       for (var device in this.communicateGraphData) {
         // var new_node=Object.create(device_node)
         // console.log(this.communicateGraphData[device]);
+        // console.log(device);
         for (var i in this.communicateGraphData[device]) {
           var step_info = this.communicateGraphData[device][i];
           var new_node = Object.create(device_node);
@@ -234,6 +235,16 @@ export default {
               var node_pair = link.split("-");
               new_link.source = node_pair[0];
               new_link.target = node_pair[1];
+              if (
+                !this.communicateGraphData.hasOwnProperty(
+                  "device" + new_link.source
+                ) ||
+                !this.communicateGraphData.hasOwnProperty(
+                  "device" + new_link.target
+                )
+              ) {
+                continue;
+              }
               new_link.type = type;
               new_link.value = link_info[link][type][0];
               new_link.communication_duration = link_info[link][type][0];
