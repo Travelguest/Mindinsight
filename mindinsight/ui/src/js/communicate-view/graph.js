@@ -343,7 +343,7 @@ function initNodes(
       }
     })
     .attr("r", function (d) {
-      return Math.log(d.c_cost + d.w_cost);
+      return Math.abs(Math.log(d.c_cost + d.w_cost));
     })
     .attr("id", function (d) {
       return d.id;
