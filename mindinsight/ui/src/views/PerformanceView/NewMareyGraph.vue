@@ -157,7 +157,10 @@ export default {
     MemoryDataProps: Object,
   },
   watch: {
-    stageDeviceArr: function () {
+    stageDeviceArr: function (newVal, oldVal) {
+      if (oldVal.length) {
+        this.height += (newVal.length - oldVal.length) * 30;
+      }
       this.stageMareyGraphRender();
       this.mareyGraphReRender();
     },
@@ -241,7 +244,7 @@ export default {
         xValue: 0,
         yValue: 0,
       },
-      brush: null,
+      // brush: null,
       OperatorColor: new Map(),
       OperatorColorOpacity: new Map(),
       isOpenSwitch: true,
@@ -280,23 +283,36 @@ export default {
     },
     MFLOPsLinePath() {
       //MFLOPsLinePath(curDeviceMFIPsData)
-      return d3
-        .line()
-        // .curve(d3.curveCatmullRom)
-        .x((d) => this.xScale(d.x))
-        .y((d) => this.yScale(d.device) + this.MFLOPsScale(d.y));
+      return (
+        d3
+          .line()
+          // .curve(d3.curveCatmullRom)
+          .x((d) => this.xScale(d.x))
+          .y((d) => this.yScale(d.device) + this.MFLOPsScale(d.y))
+      );
     },
     MemoryLinePath() {
       //MemoryLinePath(curDeviceMemoryData)
-      return d3
-        .line()
-        // .curve(d3.curveCatmullRom)
-        .x((d) => this.xScale(d.x))
-        .y((d) => this.yScale(d.device) + this.MemoryScale(d.y));
+      return (
+        d3
+          .line()
+          // .curve(d3.curveCatmullRom)
+          .x((d) => this.xScale(d.x))
+          .y((d) => this.yScale(d.device) + this.MemoryScale(d.y))
+      );
     },
     nameScope() {
       return this.$store.state.nameScopeToPerformanceView;
     },
+    brush() {
+      return d3
+        .brushX() // Add the brush feature using the d3.brush function
+        .extent([
+          [0, -this.offset],
+          [this.innerWidth, this.innerHeight - 4 * this.offset],
+        ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+        .on("end", this.updateChart);
+    }
   },
   mounted() {
     const { width, height } = this.$refs.container.getBoundingClientRect();
@@ -707,15 +723,15 @@ export default {
       this.Memory.max = max;
     },
     initBrush() {
-      const brush = d3
-        .brushX() // Add the brush feature using the d3.brush function
-        .extent([
-          [0, -this.offset],
-          [this.innerWidth, this.innerHeight - 4 * this.offset],
-        ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
-        .on("end", this.updateChart);
-      this.brush = brush;
-      this.g.select(".brush").call(brush);
+      // const brush = d3
+      //   .brushX() // Add the brush feature using the d3.brush function
+      //   .extent([
+      //     [0, -this.offset],
+      //     [this.innerWidth, this.innerHeight - 4 * this.offset],
+      //   ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+      //   .on("end", this.updateChart);
+      // this.brush = brush;
+      this.g.select(".brush").call(this.brush);
     },
     updateChart() {
       const extent = d3.event.selection;
@@ -738,7 +754,7 @@ export default {
     },
     handleClick(opName) {
       const nameScope = this.opToNameScope[opName];
-      // console.log("点击", nameScope, opName);
+      console.log("点击", nameScope, opName);
       if (!nameScope) {
         console.log("没有该命名空间");
         return;

@@ -837,6 +837,7 @@ export default {
       const viewBox = this.canvas.getViewBox();
       this.opNodes.forEach((nodeGroup) => {
         nodeGroup.forEach((node) => {
+          console.log("查询,", scopeStr, node.name);
           if (node.name.startsWith(scopeStr)) {
             if (node.x < minX) {
               minX = node.x;
