@@ -68,6 +68,8 @@ export default new Vuex.Store({
     selectOpname: "", //在通信图矩阵boxplot中选择异常节点的名字
 
     selectErrorOp: null, //选择的异常节点的信息
+
+    allReduceMap: null, //allReduce对照表
   },
   mutations: {
     // set cancelTokenArr
@@ -168,6 +170,9 @@ export default new Vuex.Store({
     },
     setSelectErrorOp(state, val) {
       state.selectErrorOp = val;
+    },
+    setAllReduceMap(state, val) {
+      state.allReduceMap = val;
     },
   },
   actions: {
