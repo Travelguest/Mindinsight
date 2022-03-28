@@ -753,13 +753,16 @@ export default {
     onRecieveOneOp(val) {
       this.selectHighlightNodes = [];
       const node = this.findNodeName(val[0], val[1]);
-      this.selectHighlightNodes.push(node);
+
       if (node != null) {
+        this.selectHighlightNodes.push(node);
         const viewBox = this.canvas.getViewBox();
         this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
         // this.clickedNodeId = node.id;
         this.$store.commit("setSelectErrorOp", node);
         this.$store.commit("setSelectedGraphNode", node);
+      } else {
+        console.log("不能找到该算子", val);
       }
     },
 
@@ -868,6 +871,8 @@ export default {
       });
       if (exist) {
         this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
+      } else {
+        console.log("找不到该scope", scope);
       }
     },
 
