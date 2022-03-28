@@ -633,7 +633,21 @@ export default {
       });
     },
     "$store.state.nameScopeToParallelStrategy": function (val) {
-      this.onRecieveOneScope(val);
+      console.log(val);
+
+      var nameExist = this.onRecieveOneOpname(val.opName);
+      if (!nameExist) {
+        if (!val.nameScope) {
+          console.log("使用namescope");
+          this.onRecieveOneScope(val.nameScope);
+        } else {
+          console.log("无法使用name，且namescope为undefined");
+        }
+      }
+      // } else {
+      //   console.log("有namescope");
+      //   this.onRecieveOneScope(val.nameScope);
+      // }
     },
     "$store.state.selectOpname": function (val) {
       this.onRecieveOneOp(val);
@@ -845,6 +859,24 @@ export default {
         });
         this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
       }
+    },
+
+    onRecieveOneOpname(name) {
+      this.selectHighlightNodes = [];
+      const viewBox = this.canvas.getViewBox();
+      var exist = false;
+      this.opNodes.forEach((nodeGroup) => {
+        nodeGroup.forEach((node) => {
+          var namelst = node.name.split("/");
+          if (name == namelst[namelst.length - 1]) {
+            exist = true;
+            this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
+            this.selectHighlightNodes.push(node);
+          }
+          // console.log(node.name.spl);
+        });
+      });
+      return exist;
     },
 
     onRecieveOneScope(scope) {

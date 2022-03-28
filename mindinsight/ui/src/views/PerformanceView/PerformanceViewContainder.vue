@@ -205,21 +205,34 @@ export default {
           });
 
           this.timeLineData = data;
-          this.allReduceOpProcessing(maps);
+          this.opNameProcessing(maps);
           this.stageDeviceArrProcessing();
         })
         .catch(console.error);
     },
-    allReduceOpProcessing(maps) {
-      const allReduceMap = {};
+    opNameProcessing(maps) {
+      const opNameMap = {};
       Object.keys(maps).forEach((device) => {
-        const deviceData = maps[device];
-        allReduceMap[device] = Object.keys(deviceData).filter((opName) =>
-          opName.startsWith("AllReduce")
-        );
+        if (!opNameMap[device]) {
+          opNameMap[device] = {};
+        }
+        Object.keys(maps[device]).forEach((opName) => {
+          if (
+            opName.startsWith("All") ||
+            opName.startsWith("Send") ||
+            opName.startsWith("Receive") ||
+            opName.startsWith("ReduceScatter")
+          ) {
+            const opType = opName.split("-")[0];
+            if (!opNameMap[device][opType]) {
+              opNameMap[device][opType] = [];
+            }
+            opNameMap[device][opType].push(opName);
+          }
+        });
       });
-      // console.log("allReduceMap", allReduceMap);
-      this.$store.commit("setAllReduceMap", allReduceMap);
+      // console.log("opNameMap", opNameMap);
+      this.$store.commit("setOpNameMap", opNameMap);
     },
     stageDeviceArrProcessing() {
       const stageDeviceArr = [];
