@@ -197,13 +197,13 @@ export default {
       return d3
         .scaleSequential()
         .domain([0, 1])
-        .interpolator(d3.interpolateBrBG);
+        .interpolator(d3.interpolateGreys);
     },
     FLOPsColorScale() {
       return d3
         .scaleSequential()
         .domain([0, 1])
-        .interpolator(d3.interpolateBrBG);
+        .interpolator(d3.interpolateGreys);
     },
   },
   mounted() {

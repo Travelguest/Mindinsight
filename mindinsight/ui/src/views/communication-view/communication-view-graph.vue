@@ -354,7 +354,7 @@ export default {
       var matrix_layer = svg.append("g").attr("id", "matrix");
       var force_layer = svg.append("g").attr("id", "force");
       var path_layer = svg.append("g").attr("id", "path");
-      console.log(this.maxBarValue);
+      // console.log(this.maxBarValue);
       window.communicategraph = new Graph(width, height, this);
       window.communicategraph.init(dataLink, dataNode);
     },

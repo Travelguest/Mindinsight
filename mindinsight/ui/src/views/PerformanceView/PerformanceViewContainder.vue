@@ -63,12 +63,12 @@
         />
       </div>
       <div class="right">
-        <svg style="position: absolute" width="1px" height="250px">
+        <svg style="position: absolute" width="1px" height="180px">
           <line
             x1="0"
-            y1="5%"
+            y1="8%"
             x2="0"
-            y2="95%"
+            y2="100%"
             stroke="#ccc"
             stroke-width="1"
             stroke-dasharray="4"

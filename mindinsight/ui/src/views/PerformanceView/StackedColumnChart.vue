@@ -99,7 +99,7 @@ export default {
           containLabel: true,
         },
         xAxis: {
-          name: "Rank ID",
+          name: "Device ID",
           type: "category",
           boundaryGap: true,
           nameLocation: "middle",
@@ -119,7 +119,7 @@ export default {
           {
             type: "value",
             name: "Training time(ms)",
-            minInterval: 300000000,
+            // minInterval: 300000000,
             // maxInterval: 400000000,
             nameLocation: "middle",
             nameGap: 65,
@@ -221,10 +221,10 @@ export default {
             name: "communication cost",
             yAxisIndex: 1,
             type: "line",
-            color: "#E6882F",
-            itemStyle: {
-              opacity: 0.5,
-            },
+            color: "#CEAB93",
+            // itemStyle: {
+            //   opacity: 0.5,
+            // },
             showSymbol: false,
             data: [],
           },
@@ -232,10 +232,10 @@ export default {
             name: "waiting cost",
             yAxisIndex: 1,
             type: "line",
-            color: "#E6882F",
-            itemStyle: {
-              opacity: 0.5,
-            },
+            color: "#AD8B73",
+            // itemStyle: {
+            //   opacity: 0.5,
+            // },
             showSymbol: false,
             data: [],
           },
