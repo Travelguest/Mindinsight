@@ -84,7 +84,10 @@
               </defs>
 
               <g ref="graph-container" id="graph-container">
-                <g id="pipeline-extra-container" v-if="isPipelineLayout && nodeOrder.length > 0">
+                <g
+                  id="pipeline-extra-container"
+                  v-if="isPipelineLayout && nodeOrder.length > 0"
+                >
                   <text
                     v-for="(opNode, index) in opNodes"
                     :key="'host_extra' + index"
@@ -92,7 +95,7 @@
                     :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
                     style="font-size: 40; font-weight: bold"
                   >
-                    Stage {{ index + 1 }}
+                    Stage {{ index }}
                   </text>
                   <rect
                     v-for="(bgdRectBlock, index) in bgdRectBlocks"
@@ -317,7 +320,10 @@
             </defs>
 
             <g ref="graph-container" id="graph-container">
-              <g id="pipeline-extra-container" v-if="isPipelineLayout && nodeOrder.length > 0">
+              <g
+                id="pipeline-extra-container"
+                v-if="isPipelineLayout && nodeOrder.length > 0"
+              >
                 <text
                   v-for="(opNode, index) in opNodes"
                   :key="'mini_extra_' + index"
@@ -529,13 +535,13 @@ import {
   getTreeData,
   levelOrder,
   getStrategyInfo,
-} from '@/js/profile-graph/build-graph.js';
-import * as d3 from 'd3';
-import {layout} from '@/js/profile-graph/force-layout.js';
-import {extractVisNodeAndEdge} from '@/js/profile-graph/graph-process.js';
-import {TreeSelect} from 'ant-design-vue';
-import RequestService from '@/services/request-service';
-import {Canvas} from '@/js/profile-graph/canvas.js';
+} from "@/js/profile-graph/build-graph.js";
+import * as d3 from "d3";
+import { layout } from "@/js/profile-graph/force-layout.js";
+import { extractVisNodeAndEdge } from "@/js/profile-graph/graph-process.js";
+import { TreeSelect } from "ant-design-vue";
+import RequestService from "@/services/request-service";
+import { Canvas } from "@/js/profile-graph/canvas.js";
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
 export default {
@@ -562,7 +568,7 @@ export default {
       normalEdgesBackup: [],
       extraEdges: {},
       graphData: {},
-      clickedNodeId: '',
+      clickedNodeId: "",
       isomorphicSubgraphCircles: [],
       canvas: null,
       hoverNodeEdges: [],
@@ -583,14 +589,14 @@ export default {
         }
       }
     },
-    '$store.state.profileNamespaces': function(val) {
+    "$store.state.profileNamespaces": function (val) {
       this.selectNamespaces = val;
       this.onNameScopeChanged();
     },
-    '$store.state.profileTreeData': function(val) {
+    "$store.state.profileTreeData": function (val) {
       this.treeData = val;
     },
-    '$store.state.profileShowSpecialEdgeTypes': function(val) {
+    "$store.state.profileShowSpecialEdgeTypes": function (val) {
       for (const showSpecialEdgeType of val[0]) {
         for (const specialEdgesGroup of this.specialEdges) {
           specialEdgesGroup[showSpecialEdgeType].display = false;
@@ -602,7 +608,7 @@ export default {
         }
       }
     },
-    '$store.state.graphData': function(val) {
+    "$store.state.graphData": function (val) {
       this.graphData = val;
 
       this.initGraph();
@@ -611,10 +617,10 @@ export default {
         this.initNodeEdgeMap();
       });
     },
-    '$store.state.nameScopeToParallelStrategy': function(val) {
+    "$store.state.nameScopeToParallelStrategy": function (val) {
       this.onRecieveOneScope(val);
     },
-    '$store.state.selectOpname': function(val) {
+    "$store.state.selectOpname": function (val) {
       this.onRecieveOneOp(val);
     },
   },
@@ -623,7 +629,7 @@ export default {
     haloInfo() {
       const res = [];
       for (const namespace of this.selectNamespaces) {
-        const childrenIndex = namespace.split('-');
+        const childrenIndex = namespace.split("-");
         childrenIndex.shift();
         let selectNode = this.treeData[Number(childrenIndex[0])];
         const rankID = childrenIndex[0];
@@ -634,9 +640,9 @@ export default {
         const nodeGroup = [];
         // iterate subtree
         this.preOrder(
-            selectNode,
-            nodeGroup,
-          this.isPipelineLayout ? rankID : 0,
+          selectNode,
+          nodeGroup,
+          this.isPipelineLayout ? rankID : 0
         );
         nodeGroup = nodeGroup.filter((v) => v !== undefined);
         nodeGroup = Array.from(new Set(nodeGroup));
@@ -704,29 +710,29 @@ export default {
           if (!Object.keys(this.nodeEdgesMap).includes(source.id)) {
             this.nodeEdgesMap[source.id] = [];
           }
-          this.nodeEdgesMap[source.id].push({source: source, target: target});
+          this.nodeEdgesMap[source.id].push({ source: source, target: target });
           if (!Object.keys(this.nodeEdgesMap).includes(target.id)) {
             this.nodeEdgesMap[target.id] = [];
           }
-          this.nodeEdgesMap[target.id].push({source: source, target: target});
+          this.nodeEdgesMap[target.id].push({ source: source, target: target });
         });
       });
     },
 
     onNodeClick(node) {
       if (
-        ['send', 'receive', 'allreduce', 'allgather', 'reducescatter'].includes(
-            node.type.toLowerCase(),
+        ["send", "receive", "allreduce", "allgather", "reducescatter"].includes(
+          node.type.toLowerCase()
         )
       ) {
         // console.log(node, "是通信节点");
         const index = this.findNodeIndex(node);
-        this.$store.commit('setSelectCommunicateOpnode', [node.type, index]);
+        this.$store.commit("setSelectCommunicateOpnode", [node.type, index]);
       }
       // d3.select(node).style("stroke", "red");
       this.clickedNodeId = node.id;
-      this.$store.commit('setNameScopeToPerformanceView', node.scope);
-      this.$store.commit('setSelectedGraphNode', node);
+      this.$store.commit("setNameScopeToPerformanceView", node.scope);
+      this.$store.commit("setSelectedGraphNode", node);
     },
 
     onRecieveOneOp(val) {
@@ -736,7 +742,7 @@ export default {
         const viewBox = this.canvas.getViewBox();
         this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
         // this.clickedNodeId = node.id;
-        this.$store.commit('setSelectedGraphNode', node);
+        this.$store.commit("setSelectedGraphNode", node);
       }
     },
 
@@ -774,7 +780,7 @@ export default {
     },
 
     onNodeMouseover(e, node) {
-      const {right, bottom} = e.target.getBoundingClientRect();
+      const { right, bottom } = e.target.getBoundingClientRect();
       this.hoveredNodeInfo = {
         node: node,
         x: right,
@@ -807,15 +813,15 @@ export default {
 
         newHaloInfo.forEach(([namescope, nodeGroup], index) => {
           nodeGroup
-              .filter((v) => v !== undefined)
-              .forEach((node) => {
-                if (node.x < minX) {
-                  minX = node.x;
-                  if (node.y < minY) {
-                    minY = node.y;
-                  }
+            .filter((v) => v !== undefined)
+            .forEach((node) => {
+              if (node.x < minX) {
+                minX = node.x;
+                if (node.y < minY) {
+                  minY = node.y;
                 }
-              });
+              }
+            });
         });
         this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
       }
@@ -854,7 +860,7 @@ export default {
       for (let i = 0; i < this.nodeOrder.length; i++) {
         const thisNodeBlock = this.nodeOrder[i];
         const [nodeGroupIndex, startNodeID, endNodeID] =
-          thisNodeBlock.split('-');
+          thisNodeBlock.split("-");
         const startNodeIndex = this.idToIndexs[nodeGroupIndex][startNodeID];
         const endNodeIndex = this.idToIndexs[nodeGroupIndex][endNodeID];
 
@@ -871,8 +877,8 @@ export default {
                 lastDependNodeBlockEndX
               ) {
                 lastDependNodeBlockEndX = Math.max(
-                    lastDependNodeBlockEndX,
-                    nodeBlockBorders[this.nodeOrder[j]].rightBorder,
+                  lastDependNodeBlockEndX,
+                  nodeBlockBorders[this.nodeOrder[j]].rightBorder
                 );
               }
             }
@@ -914,7 +920,7 @@ export default {
       // console.log("initGraph");
       for (let i = 0; i < this.nodeMaps.length; i++) {
         const nodeMap = this.nodeMaps[i];
-        const [normalEdgesBackup, {specialEdges, normalEdges, opNodes}] =
+        const [normalEdgesBackup, { specialEdges, normalEdges, opNodes }] =
           extractVisNodeAndEdge(nodeMap);
         this.normalEdgesBackup.push(normalEdgesBackup);
         this.specialEdges.push(specialEdges);
@@ -931,7 +937,7 @@ export default {
         });
       }
       this.specialEdgeTypes = Array.from(new Set(this.specialEdgeTypes));
-      this.$store.commit('setProfileSpecialEdgeTypes', this.specialEdgeTypes);
+      this.$store.commit("setProfileSpecialEdgeTypes", this.specialEdgeTypes);
 
       for (const opNodes of this.opNodes) {
         const idToIndex = {};
@@ -984,17 +990,17 @@ export default {
       const reds = d3.schemeReds[9];
       // console.log(this.nodeMaps[0]);
       Object.keys(this.parallelStrategyRawData).forEach((key) => {
-        const [nodeGroupIndex, sourceID, targetID] = key.split('-');
+        const [nodeGroupIndex, sourceID, targetID] = key.split("-");
         const [sourceNode, targetNode] = [
           this.nodeMaps[nodeGroupIndex][sourceID],
           this.nodeMaps[nodeGroupIndex][targetID],
         ];
         if (!sourceNode || !targetNode) return;
-        if (sourceNode.type === 'Load' || targetNode.type === 'Load') return;
+        if (sourceNode.type === "Load" || targetNode.type === "Load") return;
 
         if (
           !this.normalEdgesBackup[nodeGroupIndex].includes(
-              `${sourceID}-${targetID}`,
+            `${sourceID}-${targetID}`
           )
         ) {
           if (!(nodeGroupIndex in this.extraEdges)) {
@@ -1016,11 +1022,11 @@ export default {
         }
         // 计算小矩形的各种坐标
         const centerDist = Math.hypot(
-            targetNode.x - sourceNode.x,
-            targetNode.y - sourceNode.y,
+          targetNode.x - sourceNode.x,
+          targetNode.y - sourceNode.y
         );
         const theta = Math.asin(
-            Math.abs(targetNode.y - sourceNode.y) / centerDist,
+          Math.abs(targetNode.y - sourceNode.y) / centerDist
         );
         const offset = 2;
         const [sourceRadius, targetRadius] = [sourceNode.r, targetNode.r];
@@ -1096,7 +1102,7 @@ export default {
 
     fetchData() {
       const res = this.graphData;
-      if ('graphs' in res) {
+      if ("graphs" in res) {
         this.isPipelineLayout = true;
         buildPipelinedStageInfo(res.graphs);
         ({
@@ -1120,7 +1126,7 @@ export default {
         this.nodeMaps.push(processedGraph.nodeMap);
       }
       // this.treeData = getTreeData().children;
-      this.$store.commit('setNodeMaps', this.nodeMaps);
+      this.$store.commit("setNodeMaps", this.nodeMaps);
     },
   },
 };
