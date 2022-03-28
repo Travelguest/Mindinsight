@@ -159,7 +159,7 @@ export default {
   watch: {
     stageDeviceArr: function (newVal, oldVal) {
       if (oldVal.length) {
-        this.height += (newVal.length - oldVal.length) * 30;
+        this.height += (newVal.length - oldVal.length) * 20;
       }
       this.stageMareyGraphRender();
       this.mareyGraphReRender();
@@ -334,7 +334,7 @@ export default {
         .brushX() // Add the brush feature using the d3.brush function
         .extent([
           [0, -this.offset],
-          [this.innerWidth, this.innerHeight - 4 * this.offset],
+          [this.innerWidth, this.height - 3 * this.offset],
         ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
         .on("end", this.updateChart);
     },
@@ -567,8 +567,6 @@ export default {
             }
           }
         }
-        // console.log("合并后", filterRes.length);
-        // console.log("filterRes", filterRes);
         this.polygonData = filterRes;
       } else {
         this.polygonData = polygonData;
@@ -915,7 +913,7 @@ export default {
   pointer-events: none;
 }
 .brush-switch {
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 50px;
   display: flex;

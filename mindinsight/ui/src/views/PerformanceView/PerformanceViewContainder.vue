@@ -303,6 +303,24 @@ export default {
   flex-direction: row;
   overflow-y: scroll;
 }
+/* 修改滚动轴样式 */
+.performance-view-container .top .right .view::-webkit-scrollbar {
+  width: 8px;
+}
+.performance-view-container .top .right .view::-webkit-scrollbar-track {
+  background: rgb(239, 239, 239);
+  border-radius: 2px;
+}
+.performance-view-container .top .right .view::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 10px;
+}
+.performance-view-container .top .right .view::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+.performance-view-container .top .right .view::-webkit-scrollbar-corner {
+  background: #179a16;
+}
 .performance-view-container .top .right .view .stage-tree {
   min-height: 101%;
   width: 250px;

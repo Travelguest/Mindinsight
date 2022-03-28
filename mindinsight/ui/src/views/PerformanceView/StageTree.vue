@@ -142,7 +142,7 @@ export default {
     stageDeviceArr: function (newVal, oldVal) {
       console.log("newVal", newVal, oldVal);
       if (oldVal.length) {
-        this.height += (newVal.length - oldVal.length) * 30;
+        this.height += (newVal.length - oldVal.length) * 20;
       }
     },
     stageDeviceRelationship: function () {
