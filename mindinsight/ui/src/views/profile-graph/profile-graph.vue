@@ -81,10 +81,17 @@
                   <stop offset="0%" :stop-color="haloColorScale(namespace)" />
                   <stop offset="100%" stop-color="rgba(255,255,255,0)" />
                 </radialGradient>
+                <radialGradient id="highlight_halo" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" :stop-color="haloColorScale()" />
+                  <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+                </radialGradient>
               </defs>
 
               <g ref="graph-container" id="graph-container">
-                <g id="pipeline-extra-container" v-if="isPipelineLayout">
+                <g
+                  id="pipeline-extra-container"
+                  v-if="isPipelineLayout && nodeOrder.length > 0"
+                >
                   <text
                     v-for="(opNode, index) in opNodes"
                     :key="'host_extra' + index"
@@ -92,7 +99,7 @@
                     :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
                     style="font-size: 40; font-weight: bold"
                   >
-                    Stage {{ index + 1 }}
+                    Stage {{ index }}
                   </text>
                   <rect
                     v-for="(bgdRectBlock, index) in bgdRectBlocks"
@@ -121,6 +128,16 @@
                       :fill="`url(#${namespace}_halo)`"
                     ></circle>
                   </g>
+                </g>
+                <g id="graph-highlight-container">
+                  <circle
+                    v-for="(node, index) in selectHighlightNodes"
+                    :key="'host_hightlight_' + index"
+                    :cx="node.x"
+                    :cy="node.y"
+                    r="50"
+                    :fill="`url(#highlight_halo)`"
+                  ></circle>
                 </g>
 
                 <g id="graph-edge-container">
@@ -317,7 +334,10 @@
             </defs>
 
             <g ref="graph-container" id="graph-container">
-              <g id="pipeline-extra-container" v-if="isPipelineLayout">
+              <g
+                id="pipeline-extra-container"
+                v-if="isPipelineLayout && nodeOrder.length > 0"
+              >
                 <text
                   v-for="(opNode, index) in opNodes"
                   :key="'mini_extra_' + index"
@@ -567,6 +587,7 @@ export default {
       canvas: null,
       hoverNodeEdges: [],
       nodeEdgesMap: {},
+      selectHighlightNodes: [],
     };
   },
 
@@ -668,8 +689,8 @@ export default {
     initNodeEdgeMap() {
       this.normalEdges.forEach((group) => {
         group.forEach((edge) => {
-          var source = edge.source;
-          var target = edge.target;
+          const source = edge.source;
+          const target = edge.target;
           if (!Object.keys(this.nodeEdgesMap).includes(source.id)) {
             this.nodeEdgesMap[source.id] = [];
           }
@@ -684,8 +705,8 @@ export default {
         Object.keys(group).forEach((type) => {
           // console.log(group[type]);
           group[type].values.forEach((edge) => {
-            var source = edge.source;
-            var target = edge.target;
+            const source = edge.source;
+            const target = edge.target;
             if (!Object.keys(this.nodeEdgesMap).includes(source.id)) {
               this.nodeEdgesMap[source.id] = [];
             }
@@ -699,8 +720,8 @@ export default {
       });
       Object.keys(this.extraEdges).forEach((stage) => {
         this.extraEdges[stage].forEach((edge) => {
-          var source = edge[4];
-          var target = edge[5];
+          const source = edge[4];
+          const target = edge[5];
           if (!Object.keys(this.nodeEdgesMap).includes(source.id)) {
             this.nodeEdgesMap[source.id] = [];
           }
@@ -715,12 +736,12 @@ export default {
 
     onNodeClick(node) {
       if (
-        ["send", "receive", "allreduce", "allgather", "reducescatter"].includes(
+        ["receive", "allreduce", "allgather", "reducescatter"].includes(
           node.type.toLowerCase()
         )
       ) {
         // console.log(node, "是通信节点");
-        var index = this.findNodeIndex(node);
+        const index = this.findNodeIndex(node);
         this.$store.commit("setSelectCommunicateOpnode", [node.type, index]);
       }
       // d3.select(node).style("stroke", "red");
@@ -730,19 +751,21 @@ export default {
     },
 
     onRecieveOneOp(val) {
-      console.log(val);
-      var node = this.findNodeName(val[0], val[1]);
+      this.selectHighlightNodes = [];
+      const node = this.findNodeName(val[0], val[1]);
+      this.selectHighlightNodes.push(node);
       if (node != null) {
-        var viewBox = this.canvas.getViewBox();
+        const viewBox = this.canvas.getViewBox();
         this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
         // this.clickedNodeId = node.id;
+        this.$store.commit("setSelectErrorOp", node);
         this.$store.commit("setSelectedGraphNode", node);
       }
     },
 
     findNodeName(type, id) {
-      var findIndex = 0;
-      var outnode = null;
+      let findIndex = 0;
+      let outnode = null;
       this.opNodes.forEach((nodeGroup) => {
         if (findIndex != id) {
           nodeGroup.forEach((node) => {
@@ -760,8 +783,8 @@ export default {
     },
 
     findNodeIndex(node) {
-      var nodeId = Number(node.id);
-      var index = 0;
+      const nodeId = Number(node.id);
+      let index = 0;
       this.opNodes.forEach((nodeGroup) => {
         nodeGroup.forEach((n) => {
           if (node.type == n.type && Number(n.id) <= nodeId) {
@@ -799,11 +822,11 @@ export default {
     },
 
     onNameScopeChanged() {
-      var newHaloInfo = this.haloInfo;
+      const newHaloInfo = this.haloInfo;
       if (newHaloInfo.length != 0) {
-        var viewBox = this.canvas.getViewBox();
-        var minX = Number.MAX_VALUE,
-          minY = Number.MAX_VALUE;
+        const viewBox = this.canvas.getViewBox();
+        let minX = Number.MAX_VALUE;
+        let minY = Number.MAX_VALUE;
 
         newHaloInfo.forEach(([namescope, nodeGroup], index) => {
           nodeGroup
@@ -823,15 +846,16 @@ export default {
 
     onRecieveOneScope(scope) {
       // console.log(this.opNodes);
-      // console.log(scope);
-      var scopeStr = scope.substring(1);
-      var minX = Number.MAX_VALUE,
-        minY = Number.MAX_VALUE;
-      var exist = false;
-      var viewBox = this.canvas.getViewBox();
+      this.selectHighlightNodes = [];
+      const scopeStr = scope.substring(1);
+      let minX = Number.MAX_VALUE;
+      let minY = Number.MAX_VALUE;
+      let exist = false;
+      const viewBox = this.canvas.getViewBox();
       this.opNodes.forEach((nodeGroup) => {
         nodeGroup.forEach((node) => {
           if (node.name.startsWith(scopeStr)) {
+            this.selectHighlightNodes.push(node);
             if (node.x < minX) {
               minX = node.x;
               if (node.y < minY) {
@@ -982,6 +1006,7 @@ export default {
     calcStrategyPara() {
       this.parallelStrategyParas = {};
       const reds = d3.schemeReds[9];
+      // console.log(this.nodeMaps[0]);
       Object.keys(this.parallelStrategyRawData).forEach((key) => {
         const [nodeGroupIndex, sourceID, targetID] = key.split("-");
         const [sourceNode, targetNode] = [
@@ -1009,6 +1034,10 @@ export default {
           ]);
         }
 
+        if (!sourceNode.x || !sourceNode.y || !targetNode.x || !targetNode.y) {
+          // console.log(sourceNode, targetNode);
+          return;
+        }
         // 计算小矩形的各种坐标
         const centerDist = Math.hypot(
           targetNode.x - sourceNode.x,

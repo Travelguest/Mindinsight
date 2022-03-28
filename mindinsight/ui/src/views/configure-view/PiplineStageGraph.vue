@@ -25,6 +25,11 @@
     </div>
     <!-- pipeline stage graph -->
     <div class="training-pipeline-graph">
+      <!-- <Empty
+        v-if="pipelineNodeInfo == null"
+        image="{Empty.PRESENTED_IMAGE_SIMPLE}"
+      /> -->
+      <a-empty v-if="pipelineNodeInfo == null" :image="simpleImage" />
       <svg
         id="training-pipeline-graph-svg"
         v-if="pipelineNodeInfo !== null"
@@ -155,10 +160,15 @@ import { buildPipelinedStageInfo, changeShowRankId } from "@/js/build-graph.js";
 import PipelineLink from "@/assets/images/svg/link.svg";
 import { buildGraph } from "@/js/profile-graph/build-graph.js";
 import * as d3 from "d3";
+import { Empty } from "ant-design-vue";
 
 export default {
+  beforeCreate() {
+    this.simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
+  },
   components: {
     PipelineLink,
+    // Empty,
   },
 
   data() {

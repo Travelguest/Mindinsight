@@ -100,6 +100,7 @@ export default {
 
       linecharOption: null,
       linechart: null,
+      // maxBarValue: {},
     };
   },
   mounted() {
@@ -112,7 +113,6 @@ export default {
       this.renderNetwork();
     },
     "$store.state.selectCommunicateOpnode": function (val) {
-      // console.log(val);
       this.recieveOpnode(val[0], val[1]);
     },
     // window.communicategraph: function (val) {
@@ -235,6 +235,7 @@ export default {
               var node_pair = link.split("-");
               new_link.source = node_pair[0];
               new_link.target = node_pair[1];
+
               if (
                 !this.communicateGraphData.hasOwnProperty(
                   "device" + new_link.source
@@ -250,6 +251,15 @@ export default {
               new_link.communication_duration = link_info[link][type][0];
               new_link.traffic = link_info[link][type][1];
               new_link.bandWidth = link_info[link][type][2];
+              // console.log(step, this.maxBarValue[step][0]);
+              // this.maxBarValue[step].duration = Math.max(
+              //   this.maxBarValue[step].duration,
+              //   link_info[link][type][0]
+              // );
+              // this.maxBarValue[step].traffic = Math.max(
+              //   this.maxBarValue[step].traffic,
+              //   link_info[link][type][1]
+              // );
               this.communicateEdges[step_info["step_num"]].push(new_link);
             }
           }
@@ -267,6 +277,10 @@ export default {
                 var duration = op_info[op_name][3][link][link_type][0];
                 var traffic = op_info[op_name][3][link][link_type][1];
                 var bandWidth = op_info[op_name][3][link][link_type][2];
+
+                // this.maxBarValue = this.maxBarValue[step_info["step_num"]]
+                // this.maxBarValue = Math.max(traffic, this.maxBarValue);
+                // this.maxBarValue = Math.max(traffic, this.maxBarValue);
                 this.communicateOps[step][link].push({
                   op_name: op_name,
                   duration: duration,
@@ -340,13 +354,14 @@ export default {
       var matrix_layer = svg.append("g").attr("id", "matrix");
       var force_layer = svg.append("g").attr("id", "force");
       var path_layer = svg.append("g").attr("id", "path");
-
+      console.log(this.maxBarValue);
       window.communicategraph = new Graph(width, height, this);
       window.communicategraph.init(dataLink, dataNode);
     },
 
     setSelectOpname(opname) {
       // this.sendOpnode(opname);
+      // console.log(opname);
       this.$store.commit("setSelectOpname", opname.split("_"));
     },
 

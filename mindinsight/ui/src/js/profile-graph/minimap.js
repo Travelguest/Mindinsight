@@ -55,8 +55,9 @@ Minimap.prototype.create = function () {
     .style("stroke", "gray");
   var box = container.select("#graph-container").node().getBBox();
   this.widthScale = this.width / (maxX - minX);
-  this.store.setMiniScale(this.width / (maxX - minX));
   this.heightScale = this.height / box.height;
+  this.widthScale = Math.min(this.widthScale, this.heightScale);
+  this.store.setMiniScale(this.widthScale);
   container
     .select("#graph-container")
     .attr(

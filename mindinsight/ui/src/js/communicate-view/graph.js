@@ -343,7 +343,7 @@ function initNodes(
       }
     })
     .attr("r", function (d) {
-      return Math.log(d.c_cost + d.w_cost);
+      return Math.abs(Math.log(d.c_cost + d.w_cost));
     })
     .attr("id", function (d) {
       return d.id;
@@ -405,7 +405,8 @@ function initLinks(linksData, network) {
       else return "#a1a1a1";
     })
     .attr("stroke-width", function (d) {
-      return Math.log(d.weight);
+      // return Math.log(d.weight);
+      return 1;
     })
     .attr("marker-end", function (d) {
       if (d.link_type == "SDMA") return "url(#arrowSDMA)";
