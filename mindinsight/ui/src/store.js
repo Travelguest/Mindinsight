@@ -57,7 +57,7 @@ export default new Vuex.Store({
     nodeMaps: [],
 
     stepNum: 1,
-    nameScopeToParallelStrategy: "", //传给ParallelStrategyScope
+    nameScopeToParallelStrategy: null, //传给ParallelStrategyScope
     nameScopeToPerformanceView: "", //传给PerformanceView的nameScope
 
     communicateNodes: null, //LineChart依赖数据
