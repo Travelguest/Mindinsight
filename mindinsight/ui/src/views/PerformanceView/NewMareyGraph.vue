@@ -914,7 +914,7 @@ export default {
 }
 .brush-switch {
   position: fixed;
-  top: 0;
+  top: 53%;
   right: 50px;
   display: flex;
   justify-content: center;

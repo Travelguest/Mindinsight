@@ -6,11 +6,11 @@
         <communication-view-graph />
       </div>
       <div class="right">
-        <svg style="position: absolute" width="1px" height="100%">
+        <svg style="position: absolute; left: 0" width="3px" height="100%">
           <line
-            x1="0"
+            x1="1"
             y1="2%"
-            x2="0"
+            x2="1"
             y2="98%"
             stroke="#ccc"
             stroke-width="1"
