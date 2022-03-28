@@ -573,6 +573,7 @@ export default {
       canvas: null,
       hoverNodeEdges: [],
       nodeEdgesMap: {},
+      selectNamescopeNodes: [],
     };
   },
 
@@ -721,7 +722,7 @@ export default {
 
     onNodeClick(node) {
       if (
-        ["send", "receive", "allreduce", "allgather", "reducescatter"].includes(
+        ["receive", "allreduce", "allgather", "reducescatter"].includes(
           node.type.toLowerCase()
         )
       ) {
@@ -736,12 +737,12 @@ export default {
     },
 
     onRecieveOneOp(val) {
-      console.log(val);
       const node = this.findNodeName(val[0], val[1]);
       if (node != null) {
         const viewBox = this.canvas.getViewBox();
         this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
         // this.clickedNodeId = node.id;
+        this.$store.commit("setSelectErrorOp", node);
         this.$store.commit("setSelectedGraphNode", node);
       }
     },
@@ -829,7 +830,7 @@ export default {
 
     onRecieveOneScope(scope) {
       // console.log(this.opNodes);
-      // console.log(scope);
+      console.log(scope);
       const scopeStr = scope.substring(1);
       let minX = Number.MAX_VALUE;
       let minY = Number.MAX_VALUE;

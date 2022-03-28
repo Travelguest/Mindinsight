@@ -113,7 +113,6 @@ export default {
       this.renderNetwork();
     },
     "$store.state.selectCommunicateOpnode": function (val) {
-      // console.log(val);
       this.recieveOpnode(val[0], val[1]);
     },
     // window.communicategraph: function (val) {
@@ -362,6 +361,7 @@ export default {
 
     setSelectOpname(opname) {
       // this.sendOpnode(opname);
+      // console.log(opname);
       this.$store.commit("setSelectOpname", opname.split("_"));
     },
 

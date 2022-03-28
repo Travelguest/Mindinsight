@@ -66,6 +66,8 @@ export default new Vuex.Store({
     selectCommunicateOpnode: ["", 0],
 
     selectOpname: "", //在通信图矩阵boxplot中选择异常节点的名字
+
+    selectErrorOp: null, //选择的异常节点的信息
   },
   mutations: {
     // set cancelTokenArr
@@ -163,6 +165,9 @@ export default new Vuex.Store({
     },
     setSelectOpname(state, val) {
       state.selectOpname = [val[0].toLowerCase(), Number(val[1])];
+    },
+    setSelectErrorOp(state, val) {
+      state.selectErrorOp = val;
     },
   },
   actions: {
