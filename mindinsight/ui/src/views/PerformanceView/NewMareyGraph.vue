@@ -770,12 +770,15 @@ export default {
     },
     handleClick(opName) {
       const nameScope = this.opToNameScope[opName];
-      // console.log("点击", nameScope, opName);
-      if (!nameScope) {
+      const opType = this.getOperatorType(opName);
+      if (!nameScope && opType === FBOP) {
         console.log("没有该命名空间");
         return;
       }
-      this.$store.commit("setNameScopeToParallelStrategy", nameScope);
+      this.$store.commit("setNameScopeToParallelStrategy", {
+        nameScope,
+        opName,
+      });
     },
     handleDblclick() {
       console.log("双击");
