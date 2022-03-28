@@ -182,8 +182,6 @@ export default {
       // console.log("nameScopeToPerformanceView变了", oldVal, newVal);
       //聚焦
       const opArr = this.nameScopeToOp.get("/" + newVal);
-      // console.log("看看", this.nameScopeToOp);
-      // console.log("对应opArr", opArr);
       if (!opArr || !opArr.length) {
         return;
       }
@@ -195,6 +193,33 @@ export default {
           minT = Math.min(dt.x1, minT);
           maxT = Math.max(dt.x2, maxT);
         });
+      });
+      if (minT === Infinity || maxT === -Infinity) {
+        return;
+      }
+      //保存一个高亮集合
+      this.highLightOpSet = new Set(opArr);
+      this.reRenderChart(minT, maxT);
+    },
+    errorOp: function () {
+      const { scope, name } = this.errorOp;
+      const opName = name.split("/").pop();
+      const opArr = this.nameScopeToOp.get("/" + scope);
+      console.log("errorOpName-opArr", opName, opArr);
+      if (!opArr || !opArr.length) {
+        return;
+      }
+      let minT = Infinity;
+      let maxT = -Infinity;
+      opArr.forEach((op) => {
+        //仅展示单个问题点
+        if (op === opName) {
+          const curOpDeviceData = this.displayedData[op] || [];
+          curOpDeviceData.forEach((dt) => {
+            minT = Math.min(dt.x1, minT);
+            maxT = Math.max(dt.x2, maxT);
+          });
+        }
       });
       if (minT === Infinity || maxT === -Infinity) {
         return;
@@ -312,7 +337,10 @@ export default {
           [this.innerWidth, this.innerHeight - 4 * this.offset],
         ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
         .on("end", this.updateChart);
-    }
+    },
+    errorOp() {
+      return this.$store.state.selectErrorOp;
+    },
   },
   mounted() {
     const { width, height } = this.$refs.container.getBoundingClientRect();
@@ -754,12 +782,15 @@ export default {
     },
     handleClick(opName) {
       const nameScope = this.opToNameScope[opName];
-      console.log("点击", nameScope, opName);
-      if (!nameScope) {
+      const opType = this.getOperatorType(opName);
+      if (!nameScope && opType === FBOP) {
         console.log("没有该命名空间");
         return;
       }
-      this.$store.commit("setNameScopeToParallelStrategy", nameScope);
+      this.$store.commit("setNameScopeToParallelStrategy", {
+        nameScope,
+        opName,
+      });
     },
     handleDblclick() {
       console.log("双击");

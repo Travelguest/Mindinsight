@@ -81,6 +81,10 @@
                   <stop offset="0%" :stop-color="haloColorScale(namespace)" />
                   <stop offset="100%" stop-color="rgba(255,255,255,0)" />
                 </radialGradient>
+                <radialGradient id="highlight_halo" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" :stop-color="haloColorScale()" />
+                  <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+                </radialGradient>
               </defs>
 
               <g ref="graph-container" id="graph-container">
@@ -124,6 +128,16 @@
                       :fill="`url(#${namespace}_halo)`"
                     ></circle>
                   </g>
+                </g>
+                <g id="graph-highlight-container">
+                  <circle
+                    v-for="(node, index) in selectHighlightNodes"
+                    :key="'host_hightlight_' + index"
+                    :cx="node.x"
+                    :cy="node.y"
+                    r="50"
+                    :fill="`url(#highlight_halo)`"
+                  ></circle>
                 </g>
 
                 <g id="graph-edge-container">
@@ -573,6 +587,7 @@ export default {
       canvas: null,
       hoverNodeEdges: [],
       nodeEdgesMap: {},
+      selectHighlightNodes: [],
     };
   },
 
@@ -721,7 +736,7 @@ export default {
 
     onNodeClick(node) {
       if (
-        ["send", "receive", "allreduce", "allgather", "reducescatter"].includes(
+        ["receive", "allreduce", "allgather", "reducescatter"].includes(
           node.type.toLowerCase()
         )
       ) {
@@ -736,13 +751,18 @@ export default {
     },
 
     onRecieveOneOp(val) {
-      console.log(val);
+      this.selectHighlightNodes = [];
       const node = this.findNodeName(val[0], val[1]);
+
       if (node != null) {
+        this.selectHighlightNodes.push(node);
         const viewBox = this.canvas.getViewBox();
         this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
         // this.clickedNodeId = node.id;
+        this.$store.commit("setSelectErrorOp", node);
         this.$store.commit("setSelectedGraphNode", node);
+      } else {
+        console.log("不能找到该算子", val);
       }
     },
 
@@ -829,7 +849,7 @@ export default {
 
     onRecieveOneScope(scope) {
       // console.log(this.opNodes);
-      // console.log(scope);
+      this.selectHighlightNodes = [];
       const scopeStr = scope.substring(1);
       let minX = Number.MAX_VALUE;
       let minY = Number.MAX_VALUE;
@@ -839,6 +859,7 @@ export default {
         nodeGroup.forEach((node) => {
           console.log("查询,", scopeStr, node.name);
           if (node.name.startsWith(scopeStr)) {
+            this.selectHighlightNodes.push(node);
             if (node.x < minX) {
               minX = node.x;
               if (node.y < minY) {
@@ -851,6 +872,8 @@ export default {
       });
       if (exist) {
         this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
+      } else {
+        console.log("找不到该scope", scope);
       }
     },
 
