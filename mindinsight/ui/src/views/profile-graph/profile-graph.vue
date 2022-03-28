@@ -652,6 +652,9 @@ export default {
     "$store.state.selectOpname": function (val) {
       this.onRecieveOneOp(val);
     },
+    "$store.state.pipelineOpnodeId": function (val) {
+      this.onRevievePiplineId(val);
+    },
   },
 
   computed: {
@@ -771,7 +774,10 @@ export default {
       if (node != null) {
         this.selectHighlightNodes.push(node);
         const viewBox = this.canvas.getViewBox();
-        this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
+        this.canvas.changeViewBox(
+          [node.x, node.y, viewBox[2], viewBox[3]],
+          true
+        );
         // this.clickedNodeId = node.id;
         this.$store.commit("setSelectErrorOp", node);
         this.$store.commit("setSelectedGraphNode", node);
@@ -857,7 +863,7 @@ export default {
               }
             });
         });
-        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
+        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]], true);
       }
     },
 
@@ -870,13 +876,34 @@ export default {
           var namelst = node.name.split("/");
           if (name == namelst[namelst.length - 1]) {
             exist = true;
-            this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
+            this.canvas.changeViewBox(
+              [node.x, node.y, viewBox[2], viewBox[3]],
+              true
+            );
             this.selectHighlightNodes.push(node);
+            // this.$store.commit("setSelectedGraphNode", node);
           }
           // console.log(node.name.spl);
         });
       });
       return exist;
+    },
+
+    onRevievePiplineId(nodeId) {
+      this.selectHighlightNodes = [];
+      const viewBox = this.canvas.getViewBox();
+      this.opNodes.forEach((nodeGroup) => {
+        nodeGroup.forEach((node) => {
+          if (node.id == nodeId) {
+            this.canvas.changeViewBox(
+              [node.x, node.y, viewBox[2], viewBox[3]],
+              true
+            );
+            this.selectHighlightNodes.push(node);
+            console.log(node);
+          }
+        });
+      });
     },
 
     onRecieveOneScope(scope) {
@@ -902,7 +929,7 @@ export default {
         });
       });
       if (exist) {
-        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
+        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]], true);
       } else {
         console.log("找不到该scope", scope);
       }

@@ -389,6 +389,7 @@ export default {
       }
     },
     clickPipelineRect(nodeID, stageID) {
+      this.$store.commit("setPipelineOpnodeId", nodeID);
       this.showRankId = stageID + "";
       changeShowRankId(this.showRankId);
       this.getDisplayedGraph(this.showNodeType, this.showRankId);

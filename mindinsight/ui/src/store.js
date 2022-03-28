@@ -70,6 +70,8 @@ export default new Vuex.Store({
     selectErrorOp: null, //选择的异常节点的信息
 
     allReduceMap: null, //allReduce对照表
+
+    pipelineOpnodeId: -1,
   },
   mutations: {
     // set cancelTokenArr
@@ -173,6 +175,9 @@ export default new Vuex.Store({
     },
     setAllReduceMap(state, val) {
       state.allReduceMap = val;
+    },
+    setPipelineOpnodeId(state, val) {
+      state.pipelineOpnodeId = val;
     },
   },
   actions: {
