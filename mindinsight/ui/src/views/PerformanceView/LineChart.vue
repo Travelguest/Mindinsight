@@ -2,27 +2,36 @@
   <div class="line-chart-container">
     <svg style="position: absolute; top: 4%" width="100%" height="15px">
       <rect
-        x="20%"
+        x="10%"
         y="1"
         width="25px"
         height="14px"
         fill-opacity="0.5"
         style="rx: 4px; fill: #a1a1a1"
       ></rect>
-      <text x="24%" y="13" style="font-size: 13px; opacity: 0.7">
-        Total training time of a rank
+      <text x="14%" y="13" style="font-size: 13px; opacity: 0.7">
+        Total training time of a device
       </text>
 
       <rect
-        x="43%"
+        x="33%"
         y="1"
         width="25px"
         height="14px"
-        fill-opacity="0.5"
-        style="rx: 4px; fill: #e6882f"
+        style="rx: 4px; fill: #CEAB93"
       ></rect>
-      <text x="47%" y="13" style="font-size: 13px; opacity: 0.7">
-        Average communication and waiting time of ranks
+      <text x="37%" y="13" style="font-size: 13px; opacity: 0.7">
+        Average communication time of devices
+      </text>
+      <rect
+        x="63%"
+        y="1"
+        width="25px"
+        height="14px"
+        style="rx: 4px; fill: #AD8B73"
+      ></rect>
+      <text x="67%" y="13" style="font-size: 13px; opacity: 0.7">
+        Average waiting time of devices
       </text>
     </svg>
     <div id="line-chart"></div>
@@ -94,30 +103,6 @@ export default {
         tooltip: {
           trigger: "axis",
         },
-        // legend: {
-        //   formatter: function (name) {
-        //     return name.startsWith("device")
-        //       ? 'Total training time of a rank"'
-        //       : "Average communication and waiting time of ranks";
-        //   },
-        //   data: [
-        //     // {
-        //     //   name: "Total training time of a rank",
-        //     //   icon: "rect",
-        //     //   textStyle: {
-        //     //     color: "#A1A1A1",
-        //     //   },
-        //     // },
-        //     // {
-        //     //   // name: "Average communication and waiting time of ranks",
-        //     //   name: "communication cost",
-        //     //   icon: "rect",
-        //     //   textStyle: {
-        //     //     color: "#E6882F",
-        //     //   },
-        //     // },
-        //   ],
-        // },
         grid: {
           top: "20%",
           left: "5%",
@@ -182,7 +167,7 @@ export default {
             name: "Communication cost(ms)",
             // minInterval: 1000,
             nameLocation: "middle",
-            nameGap: 55,
+            nameGap: 60,
             nameTextStyle: {
               fontStyle: "normal",
               fontWeight: "bold",
@@ -248,26 +233,26 @@ export default {
       }
       const series = [
         {
-          name: "communication cost",
+          name: "Average communication time of devices",
           yAxisIndex: 1,
           type: "line",
           stack: "Total",
-          color: "#E6882F",
-          itemStyle: {
-            opacity: 0.5,
-          },
+          color: "#CEAB93",
+          // itemStyle: {
+          //   opacity: 0.5,
+          // },
           showSymbol: false,
           data: communicationList,
         },
         {
-          name: "waiting cost",
+          name: "Average waiting time of devices",
           yAxisIndex: 1,
           type: "line",
           stack: "Total",
-          color: "#E6882F",
-          itemStyle: {
-            opacity: 0.5,
-          },
+          color: "#AD8B73",
+          // itemStyle: {
+          //   opacity: 0.5,
+          // },
           showSymbol: false,
           data: waitingList,
         },

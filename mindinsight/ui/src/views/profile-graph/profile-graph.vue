@@ -633,7 +633,21 @@ export default {
       });
     },
     "$store.state.nameScopeToParallelStrategy": function (val) {
-      this.onRecieveOneScope(val);
+      console.log(val);
+
+      var nameExist = this.onRecieveOneOpname(val.opName);
+      if (!nameExist) {
+        if (!val.nameScope) {
+          console.log("使用namescope");
+          this.onRecieveOneScope(val.nameScope);
+        } else {
+          console.log("无法使用name，且namescope为undefined");
+        }
+      }
+      // } else {
+      //   console.log("有namescope");
+      //   this.onRecieveOneScope(val.nameScope);
+      // }
     },
     "$store.state.selectOpname": function (val) {
       this.onRecieveOneOp(val);
@@ -753,13 +767,16 @@ export default {
     onRecieveOneOp(val) {
       this.selectHighlightNodes = [];
       const node = this.findNodeName(val[0], val[1]);
-      this.selectHighlightNodes.push(node);
+
       if (node != null) {
+        this.selectHighlightNodes.push(node);
         const viewBox = this.canvas.getViewBox();
         this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
         // this.clickedNodeId = node.id;
         this.$store.commit("setSelectErrorOp", node);
         this.$store.commit("setSelectedGraphNode", node);
+      } else {
+        console.log("不能找到该算子", val);
       }
     },
 
@@ -844,6 +861,24 @@ export default {
       }
     },
 
+    onRecieveOneOpname(name) {
+      this.selectHighlightNodes = [];
+      const viewBox = this.canvas.getViewBox();
+      var exist = false;
+      this.opNodes.forEach((nodeGroup) => {
+        nodeGroup.forEach((node) => {
+          var namelst = node.name.split("/");
+          if (name == namelst[namelst.length - 1]) {
+            exist = true;
+            this.canvas.changeViewBox([node.x, node.y, viewBox[2], viewBox[3]]);
+            this.selectHighlightNodes.push(node);
+          }
+          // console.log(node.name.spl);
+        });
+      });
+      return exist;
+    },
+
     onRecieveOneScope(scope) {
       // console.log(this.opNodes);
       this.selectHighlightNodes = [];
@@ -868,6 +903,8 @@ export default {
       });
       if (exist) {
         this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]]);
+      } else {
+        console.log("找不到该scope", scope);
       }
     },
 
