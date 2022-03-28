@@ -63,12 +63,12 @@
         />
       </div>
       <div class="right">
-        <svg style="position: absolute" width="1px" height="250px">
+        <svg style="position: absolute" width="1px" height="180px">
           <line
             x1="0"
             y1="5%"
             x2="0"
-            y2="95%"
+            y2="100%"
             stroke="#ccc"
             stroke-width="1"
             stroke-dasharray="4"
@@ -285,14 +285,19 @@ export default {
   width: 100%;
 }
 .performance-view-container .top .right .view {
+  height: 313px;
   flex-grow: 1;
   display: flex;
   flex-direction: row;
+  overflow-y: scroll;
 }
 .performance-view-container .top .right .view .stage-tree {
+  min-height: 101%;
+  width: 250px;
   flex-basis: 250px;
 }
 .performance-view-container .top .right .view .marey-graph {
+  min-height: 101%;
   flex: 1;
 }
 .performance-view-container .bottom {
