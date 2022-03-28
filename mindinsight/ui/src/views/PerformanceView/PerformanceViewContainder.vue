@@ -221,7 +221,7 @@ export default {
             opName.startsWith("All") ||
             opName.startsWith("Send") ||
             opName.startsWith("Receive") ||
-            opName.startsWith("Reduce")
+            opName.startsWith("ReduceScatter")
           ) {
             const opType = opName.split("-")[0];
             if (!opNameMap[device][opType]) {
