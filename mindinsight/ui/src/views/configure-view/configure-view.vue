@@ -38,8 +38,13 @@
       </a-select>
     </div>
     <a-collapse class="configure-collapse" v-model="activeKey">
-      <a-collapse-panel key="1" header="Namespace">
-        <div class="scope-search-wrap">
+      <a-collapse-panel
+        key="1"
+        header="Namespace"
+        :forceRender="true"
+        :style="customeStyle"
+      >
+        <div class="scope-search-wrap" :style="'height: ' + scopeHeight">
           <a-tree-select
             ref="configure-select"
             class="configure-select"
@@ -50,7 +55,10 @@
             tree-checkable
             :show-checked-strategy="SHOW_PARENT"
             search-placeholder="Please select"
-            :dropdownStyle="{ height: '70px', top: '150px!important' }"
+            :dropdownStyle="{
+              height: scrollHeight,
+              top: '170px!important',
+            }"
             :treeDefaultExpandedKeys="expandedKeys"
             dropdownMatchSelectWidth
             :getPopupContainer="
@@ -84,9 +92,13 @@
             </template>
           </a-tree-select>
         </div>
-        <!-- </div> -->
       </a-collapse-panel>
-      <a-collapse-panel key="2" header="Hidden Edge">
+      <a-collapse-panel
+        key="2"
+        header="Hidden Edge"
+        :forceRender="true"
+        :style="customeStyle"
+      >
         <div class="edge-config">
           <div class="special-edge-checkbox">
             <el-checkbox-group v-model="showSpecialEdgeTypes">
@@ -101,7 +113,11 @@
           </div>
         </div>
       </a-collapse-panel>
-      <a-collapse-panel key="3" header="Stage" :forceRender="true"
+      <a-collapse-panel
+        key="3"
+        header="Stage"
+        :forceRender="true"
+        :style="customeStyle"
         ><div class="stage-panel"><PipelineStageGraph /></div
       ></a-collapse-panel>
     </a-collapse>
@@ -130,6 +146,8 @@ export default {
 
   data() {
     return {
+      scopeHeight: "100px",
+      scrollHeight: "80px",
       selectNamespaces: [],
       treeData: [],
       showTreeData: [],
@@ -140,7 +158,13 @@ export default {
       expandedKeys: [],
       dataSource: "",
       nameScopeFromMarey: [],
-      activeKey: ["1", "3"],
+      activeKey: ["1", "2", "3"],
+      height2: 0,
+      height3: 0,
+      height0: 0,
+      titleHeight: 0,
+      lastKey: ["1", "2", "3"],
+      customeStyle: "background:#ffffff;border-radius:0px;",
     };
   },
 
@@ -151,10 +175,47 @@ export default {
       this.dataSource = value;
       console.log("切换数据到", value);
     }
+    this.$nextTick(() => {
+      // this.height2 =
+      //   document.getElementsByClassName("edge-config")[0].clientHeight;
+      // console.log(document.getElementsByClassName("ant-collapse-item").length);
+      this.height0 =
+        document.getElementsByClassName("configuration-view-box")[0]
+          .clientHeight -
+        document.getElementsByClassName("data-selection-border")[0]
+          .clientHeight;
+      this.titleHeight = document.getElementsByClassName(
+        "ant-collapse-header"
+      )[0].clientHeight;
+      this.height2 = document.getElementsByClassName(
+        "ant-collapse-content-box"
+      )[1].clientHeight;
+      this.height3 = document.getElementsByClassName(
+        "ant-collapse-content-box"
+      )[2].clientHeight;
+      // console.log(this.height0, this.titleHeight, this.height2, this.height3);
+      this.activeKey = ["1", "3"];
+    });
   },
 
   watch: {
-    activeKey(key) {},
+    activeKey(key) {
+      // this.changeActiveKey(key);
+      if (key.length == 3) {
+        this.activeKey.splice(0, 1);
+      } else if (key.length == 1) {
+        if (!this.lastKey.includes("1")) {
+          this.activeKey.push("1");
+        } else if (!this.lastKey.includes("2")) {
+          this.activeKey.push("2");
+        } else {
+          this.activeKey.push("3");
+        }
+      } else {
+        this.lastKey = key;
+        this.changeActiveKey(key);
+      }
+    },
     "$store.state.profileSpecialEdgeTypes": function (val) {
       this.specialEdgeTypes = val;
     },
@@ -181,6 +242,15 @@ export default {
     //   this.$store.commit("setProfileTreeData", this.treeData);
     // },
     haloColorScale: d3.scaleOrdinal(d3.schemeAccent),
+    changeActiveKey(key) {
+      if (key.includes("1") && key.includes("2")) {
+        this.scopeHeight = "173px";
+        this.scrollHeight = "153px";
+      } else if (key.includes("1") && key.includes("3")) {
+        this.scopeHeight = "163px";
+        this.scrollHeight = "143px";
+      }
+    },
     modifyTreeData(node) {
       if (!node) return;
       const newChildren = [];
@@ -333,9 +403,9 @@ export default {
   text-align: center;
 }
 
-.scope-search-wrap {
+/* .scope-search-wrap {
   height: 100px;
-}
+} */
 /* .scope-tree {
   height: 230px;
   width: 90%;
@@ -357,7 +427,7 @@ export default {
   /* position: relative;
   margin-left: 32px;
   margin-top: 10px; */
-  height: 160px;
+  height: 163px;
 }
 .config-sub-title {
   font-weight: 500;
@@ -374,10 +444,10 @@ export default {
 }
 .stage-panel {
   /* position: relative; */
-  height: 170px;
+  height: 173px;
   width: 100%;
   /* margin-top: 13px; */
-  /* flex-grow: 1; */
+  flex-grow: 1;
 }
 .ant-select-open .ant-select-selection {
   border-color: #fff !important;
@@ -405,6 +475,22 @@ export default {
 }
 .ant-select-dropdown::-webkit-scrollbar-corner {
   background: #179a16;
+}
+
+.ant-collapse-header {
+  padding: 6px 32px !important;
+  border-radius: 0px !important;
+  color: none !important;
+}
+
+.ant-collapse-item:last-child > .ant-collapse-content {
+  border-radius: 0px !important;
+}
+.ant-collapse {
+  border-radius: 0px !important;
+}
+.ant-collapse-content {
+  border-top: none !important;
 }
 
 /* .namespace-dropdown {
