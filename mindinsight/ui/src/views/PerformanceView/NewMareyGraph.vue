@@ -203,30 +203,19 @@ export default {
       this.reRenderChart(minT, maxT);
     },
     errorOp: function () {
-      const { scope, name } = this.errorOp;
-      const opName = name.split("/").pop();
-      const opArr = this.nameScopeToOp.get("/" + scope);
-      console.log("errorOpName-opArr", opName, opArr);
-      if (!opArr || !opArr.length) {
-        return;
-      }
+      const opName = this.errorOp;
       let minT = Infinity;
       let maxT = -Infinity;
-      opArr.forEach((op) => {
-        //仅展示单个问题点
-        if (op === opName) {
-          const curOpDeviceData = this.displayedData[op] || [];
-          curOpDeviceData.forEach((dt) => {
-            minT = Math.min(dt.x1, minT);
-            maxT = Math.max(dt.x2, maxT);
-          });
-        }
+      const curOpDeviceData = this.displayedData[opName] || [];
+      curOpDeviceData.forEach((dt) => {
+        minT = Math.min(dt.x1, minT);
+        maxT = Math.max(dt.x2, maxT);
       });
       if (minT === Infinity || maxT === -Infinity) {
         return;
       }
       //保存一个高亮集合
-      this.highLightOpSet = new Set(opArr);
+      this.highLightOpSet = new Set([opName]);
       this.reRenderChart(minT, maxT);
     },
   },
