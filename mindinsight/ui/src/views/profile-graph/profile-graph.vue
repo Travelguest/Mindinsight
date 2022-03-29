@@ -1262,6 +1262,7 @@ export default {
 
 #profile-graph .active circle.node {
   stroke: #cb6056;
+  stroke-width: 2;
 }
 
 #profile-graph circle.node {
