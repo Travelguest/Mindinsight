@@ -38,6 +38,7 @@
               :timeLineData="timeLineData"
               :FLOPsData="FLOPsData"
               :MemoryDataProps="MemoryData"
+              :deviceToStage="deviceToStage"
             />
           </div>
         </div>

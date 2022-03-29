@@ -140,7 +140,6 @@ export default {
   },
   watch: {
     stageDeviceArr: function (newVal, oldVal) {
-      console.log("newVal", newVal, oldVal);
       if (oldVal.length) {
         this.height += (newVal.length - oldVal.length) * 20;
       }
@@ -273,7 +272,7 @@ export default {
         maxFLOPS = Math.max(maxFLOPS, FLOPS);
         maxFLOPs = Math.max(maxFLOPs, FLOPs);
       });
-      console.log("stageData", stageData);
+      // console.log("stageData", stageData);
       deviceName.forEach((device) => {
         const { FLOPS, FLOPs, abnomalContent, isAnomaly } =
           this.FLOPsData[device].summary || {};
@@ -330,8 +329,8 @@ export default {
         }
       });
 
-      console.log("closeCircleData", closeCircleData);
-      console.log("FLOPMapData", FLOPMapData);
+      // console.log("closeCircleData", closeCircleData);
+      // console.log("FLOPMapData", FLOPMapData);
       this.FLOPMapData = FLOPMapData;
       this.closeCircleData = closeCircleData;
 

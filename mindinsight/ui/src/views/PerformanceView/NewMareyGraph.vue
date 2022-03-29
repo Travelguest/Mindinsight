@@ -75,7 +75,7 @@
             stroke-width="2px"
             @mousemove="onNodeMouseover($event, data, 'device')"
             @mouseout="onNodeMouseout"
-            @click="handleClick(data.op)"
+            @click="handleClick(data.op, data.device)"
           />
         </g>
         <!-- stage-marey-graph -->
@@ -155,6 +155,7 @@ export default {
     timeLineData: Object,
     FLOPsData: Object,
     MemoryDataProps: Object,
+    deviceToStage: Map,
   },
   watch: {
     stageDeviceArr: function (newVal, oldVal) {
@@ -619,7 +620,7 @@ export default {
         polygonData.push(...priorityQueue);
         this.polygonData = polygonData;
       }
-      console.log("priorityQueue", priorityQueue);
+      // console.log("priorityQueue", priorityQueue);
     },
     nameScopeProcessing() {
       const { scope_map } = this.timeLineData || {};
@@ -827,16 +828,22 @@ export default {
       this.stageMareyGraphRender(left, right); //刷新stageMareyGraph
       this.mareyGraphReRender(left, right); //刷新mareyGraph
     },
-    handleClick(opName) {
+    handleClick(opName, deviceArr) {
       const nameScope = this.opToNameScope[opName];
-      const opType = this.getOperatorType(opName);
-      if (!nameScope && opType === FBOP) {
+      if (!nameScope) {
         console.log("没有该命名空间");
         return;
       }
+      // const opType = this.getOperatorType(opName);
+      const stageSet = new Set();
+      deviceArr.forEach((device) => {
+        const stage = this.deviceToStage.get(device);
+        stageSet.add(stage);
+      });
       this.$store.commit("setNameScopeToParallelStrategy", {
         nameScope,
         opName,
+        stage: [...stageSet],
       });
     },
     handleDblclick() {
