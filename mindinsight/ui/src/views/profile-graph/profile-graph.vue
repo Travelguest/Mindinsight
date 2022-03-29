@@ -748,6 +748,7 @@ export default {
     },
 
     onNodeClick(node) {
+      this.$store.commit("setSelectCommunicateOpnode", null);
       if (
         ["receive", "allreduce", "allgather", "reducescatter"].includes(
           node.type.toLowerCase()

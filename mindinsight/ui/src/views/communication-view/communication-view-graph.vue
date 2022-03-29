@@ -395,61 +395,67 @@ export default {
     },
 
     recieveOpnode(opName) {
-      console.log(this.opNameMap, this.communicateNodes[this.stepNum], opName);
-      var nameList = opName.split("/");
-      var name = nameList[nameList.length - 1];
-      nameList = name.split("-");
-      var type = nameList[0];
+      if (opName != null) {
+        console.log(
+          this.opNameMap,
+          this.communicateNodes[this.stepNum],
+          opName
+        );
+        var nameList = opName.split("/");
+        var name = nameList[nameList.length - 1];
+        nameList = name.split("-");
+        var type = nameList[0];
 
-      var opNodeList = [];
-      Object.keys(this.opNameMap).forEach((device) => {
-        // console.log(device, this.opNameMap[device][type]);
-        var opIndex = this.opNameMap[device][type].indexOf(name);
-        if (opIndex > -1) {
-          // console.log(device, opIndex, name);
-          opNodeList.push({ device: device, type: type, index: opIndex + 1 });
-        }
-      });
+        var opNodeList = [];
+        Object.keys(this.opNameMap).forEach((device) => {
+          // console.log(device, this.opNameMap[device][type]);
+          var opIndex = this.opNameMap[device][type].indexOf(name);
+          if (opIndex > -1) {
+            // console.log(device, opIndex, name);
+            opNodeList.push({ device: device, type: type, index: opIndex + 1 });
+          }
+        });
 
-      var matrixOpData = [];
+        var matrixOpData = [];
 
-      opNodeList.forEach((opInfo) => {
-        var targetName = opInfo.type + "_" + opInfo.index;
-        targetName = targetName.toLowerCase();
-        // console.log(nodeInfo.device, this.communicateNodes[this.stepNum]);
-        this.communicateNodes[this.stepNum]
-          .filter((d) => d.name == opInfo.device)
-          .forEach((nodeData) => {
-            console.log(nodeData.opNodes);
-            for (var i = 0; i < Object.keys(nodeData.opNodes).length; i++) {
-              if (
-                Object.keys(nodeData.opNodes)
-                  [i].toLowerCase()
-                  .startsWith(targetName)
-              ) {
-                var findData =
-                  nodeData.opNodes[Object.keys(nodeData.opNodes)[i]];
+        opNodeList.forEach((opInfo) => {
+          var targetName = opInfo.type + "_" + opInfo.index;
+          targetName = targetName.toLowerCase();
+          // console.log(nodeInfo.device, this.communicateNodes[this.stepNum]);
+          this.communicateNodes[this.stepNum]
+            .filter((d) => d.name == opInfo.device)
+            .forEach((nodeData) => {
+              console.log(nodeData.opNodes);
+              for (var i = 0; i < Object.keys(nodeData.opNodes).length; i++) {
+                if (
+                  Object.keys(nodeData.opNodes)
+                    [i].toLowerCase()
+                    .startsWith(targetName)
+                ) {
+                  var findData =
+                    nodeData.opNodes[Object.keys(nodeData.opNodes)[i]];
 
-                if (findData[3] != {}) {
-                  console.log(findData[3]);
-                  Object.keys(findData[3]).forEach((link) => {
-                    // console.log(link);
-                    var linkList = link.split("-");
-                    var link_type = Object.keys(findData[3][link])[0];
-                    matrixOpData.push({
-                      source: "device" + linkList[0],
-                      target: "device" + linkList[1],
-                      opValue: findData[3][link][link_type],
+                  if (findData[3] != {}) {
+                    console.log(findData[3]);
+                    Object.keys(findData[3]).forEach((link) => {
+                      // console.log(link);
+                      var linkList = link.split("-");
+                      var link_type = Object.keys(findData[3][link])[0];
+                      matrixOpData.push({
+                        source: "device" + linkList[0],
+                        target: "device" + linkList[1],
+                        opValue: findData[3][link][link_type],
+                      });
                     });
-                  });
+                  }
+                  break;
                 }
-                break;
               }
-            }
-          });
-      });
-      window.communicategraph.showOpNode(matrixOpData);
-      console.log(matrixOpData);
+            });
+        });
+        window.communicategraph.showOpNode(matrixOpData);
+        console.log(matrixOpData);
+      }
     },
   },
 };
