@@ -129,7 +129,7 @@
                     ></circle>
                   </g>
                 </g>
-                <g id="graph-highlight-container">
+                <!-- <g id="graph-highlight-container">
                   <circle
                     v-for="(node, index) in selectHighlightNodes"
                     :key="'host_hightlight_' + index"
@@ -138,7 +138,7 @@
                     r="50"
                     :fill="`url(#highlight_halo)`"
                   ></circle>
-                </g>
+                </g> -->
 
                 <g id="graph-edge-container">
                   <g id="normal-edge-container">
@@ -588,6 +588,8 @@ export default {
       hoverNodeEdges: [],
       nodeEdgesMap: {},
       selectHighlightNodes: [],
+
+      oldHaloInfo: [],
     };
   },
 
@@ -605,6 +607,11 @@ export default {
       }
     },
     "$store.state.profileNamespaces": function (val) {
+      // this.oldHaloInfo = this.haloInfo;
+      this.oldHaloInfo = [];
+      this.haloInfo.forEach(([namescope, nodeGroup], index) => {
+        this.oldHaloInfo.push(namescope);
+      });
       this.selectNamespaces = val;
       this.onNameScopeChanged();
     },
@@ -632,23 +639,7 @@ export default {
         this.initNodeEdgeMap();
       });
     },
-    "$store.state.nameScopeToParallelStrategy": function (val) {
-      console.log(val);
 
-      var nameExist = this.onRecieveOneOpname(val.opName);
-      if (!nameExist) {
-        if (!val.nameScope) {
-          console.log("使用namescope");
-          this.onRecieveOneScope(val.nameScope);
-        } else {
-          console.log("无法使用name，且namescope为undefined");
-        }
-      }
-      // } else {
-      //   console.log("有namescope");
-      //   this.onRecieveOneScope(val.nameScope);
-      // }
-    },
     "$store.state.selectOpname": function (val) {
       this.onRecieveOneOp(val);
     },
@@ -845,16 +836,15 @@ export default {
     },
 
     onNameScopeChanged() {
+      console.log(this.oldHaloInfo);
       const newHaloInfo = this.haloInfo;
       if (newHaloInfo.length != 0) {
-        const viewBox = this.canvas.getViewBox();
+        let viewBox = this.canvas.getViewBox();
         let minX = Number.MAX_VALUE;
         let minY = Number.MAX_VALUE;
-
         newHaloInfo.forEach(([namescope, nodeGroup], index) => {
-          nodeGroup
-            .filter((v) => v !== undefined)
-            .forEach((node) => {
+          if (!this.oldHaloInfo.includes(namescope)) {
+            nodeGroup.forEach((node) => {
               if (node.x < minX) {
                 minX = node.x;
                 if (node.y < minY) {
@@ -862,8 +852,12 @@ export default {
                 }
               }
             });
+            this.canvas.changeViewBox(
+              [minX, minY, viewBox[2], viewBox[3]],
+              true
+            );
+          }
         });
-        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]], true);
       }
     },
 

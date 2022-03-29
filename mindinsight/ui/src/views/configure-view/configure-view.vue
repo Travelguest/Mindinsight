@@ -174,6 +174,10 @@ export default {
       this.graphData = val;
       this.initView();
     },
+    "$store.state.nameScopeToParallelStrategy": function (val) {
+      if (val.nameScope) console.log(val);
+      this.selectNewScopeFromMarey(val);
+    },
   },
 
   methods: {
@@ -223,6 +227,13 @@ export default {
     initView() {
       this.fetchData();
       // console.log(this.$refs["configure-select"]);
+    },
+    selectNewScopeFromMarey(val) {
+      // console.log(val.nameScope);
+      // // console.log(val);
+      // console.log(this.treeData);
+      //TODO: 从marey收到一个namescope
+      this.handleTreeChange();
     },
     handleTreeChange(value, label) {
       this.$store.commit("setProfileNamespaces", this.selectNamespaces);

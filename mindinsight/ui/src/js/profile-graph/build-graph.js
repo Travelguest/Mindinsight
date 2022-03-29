@@ -5,10 +5,9 @@ import {
   MIN_COUNT_OF_NODE_STACK,
   SCOPE_SEPARATOR,
   INSERTED_ATTR,
-} from '@/js/const.js';
+} from "@/js/const.js";
 
-import { _checkShardMethod } from '../util';
-
+import { _checkShardMethod } from "../util";
 
 const debug = false;
 export let processedGraph = {
@@ -20,15 +19,14 @@ export let processedGraph = {
 
 const insertedAttr = [];
 const COMM_LIST = new Set([
-  'AllReduce',
-  'AllGather',
-  'AllToAll',
-  'ReduceScatter',
+  "AllReduce",
+  "AllGather",
+  "AllToAll",
+  "ReduceScatter",
 ]);
 
 export const edgeIdMap = {};
 let specialNodesMap = {};
-
 
 let nodeBlocks = [];
 let nodeOrder = [];
@@ -118,7 +116,7 @@ function _createParameter(param) {
     id: param.node_id,
     name: param.name,
     type: NODE_TYPE.parameter,
-    parent: '',
+    parent: "",
     value: param.attr || {},
   };
 }
@@ -133,19 +131,19 @@ function _createConst(con) {
     id: con.node_id,
     name: con.name,
     type: NODE_TYPE.const,
-    parent: '',
+    parent: "",
     value: con.attr[con.node_id] || {},
   };
 }
 
-let treeData = {id: null, key: null, children: []};
+let treeData = { id: null, key: null, children: [] };
 
 function getTreeData() {
   return treeData;
 }
 
 function _insertNodeOld(insertNode, scopeString, root) {
-  if (scopeString === '' || !scopeString) return;
+  if (scopeString === "" || !scopeString) return;
 
   const scopes = scopeString.split(SCOPE_SEPARATOR);
   const children = root.children;
@@ -159,18 +157,18 @@ function _insertNodeOld(insertNode, scopeString, root) {
 
   if (hasSuffixChild) {
     _insertNodeOld(
-        insertNode,
-        scopes.splice(1).join(SCOPE_SEPARATOR),
-        hasSuffixChild,
+      insertNode,
+      scopes.splice(1).join(SCOPE_SEPARATOR),
+      hasSuffixChild
     );
   } else {
     if (children.length === 0) {
-      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      const newNode = { id: insertNode.name, key: scopes[0], children: [] };
       children.push(newNode);
       _insertNodeOld(
-          insertNode,
-          scopes.splice(1).join(SCOPE_SEPARATOR),
-          newNode,
+        insertNode,
+        scopes.splice(1).join(SCOPE_SEPARATOR),
+        newNode
       );
     } else {
       let validPosition = 0;
@@ -179,19 +177,19 @@ function _insertNodeOld(insertNode, scopeString, root) {
           validPosition++;
         }
       }
-      const newNode = {id: insertNode.name, key: scopes[0], children: []};
+      const newNode = { id: insertNode.name, key: scopes[0], children: [] };
       children.splice(validPosition, 0, newNode);
       _insertNodeOld(
-          insertNode,
-          scopes.splice(1).join(SCOPE_SEPARATOR),
-          newNode,
+        insertNode,
+        scopes.splice(1).join(SCOPE_SEPARATOR),
+        newNode
       );
     }
   }
 }
 
 function _insertNode(insertNode, scopeString, root) {
-  if (scopeString === '' || !scopeString) return;
+  if (scopeString === "" || !scopeString) return;
 
   const scopes = scopeString.split(SCOPE_SEPARATOR);
   const children = root.children;
@@ -205,13 +203,13 @@ function _insertNode(insertNode, scopeString, root) {
 
   if (hasSuffixChild) {
     _insertNode(
-        insertNode,
-        scopes.splice(1).join(SCOPE_SEPARATOR),
-        hasSuffixChild,
+      insertNode,
+      scopes.splice(1).join(SCOPE_SEPARATOR),
+      hasSuffixChild
     );
   } else {
     if (children.length === 0) {
-      const newNode = {id: insertNode.node_id, key: scopes[0], children: []};
+      const newNode = { id: insertNode.node_id, key: scopes[0], children: [] };
       children.push(newNode);
       _insertNode(insertNode, scopes.splice(1).join(SCOPE_SEPARATOR), newNode);
     } else {
@@ -221,7 +219,7 @@ function _insertNode(insertNode, scopeString, root) {
           validPosition++;
         }
       }
-      const newNode = {id: insertNode.node_id, key: scopes[0], children: []};
+      const newNode = { id: insertNode.node_id, key: scopes[0], children: [] };
       children.splice(validPosition, 0, newNode);
       _insertNode(insertNode, scopes.splice(1).join(SCOPE_SEPARATOR), newNode);
     }
@@ -233,7 +231,7 @@ function levelOrder(tree) {
 
   queue.push(tree);
   tree.title = tree.key;
-  tree.key = tree.value = '0';
+  tree.key = tree.value = "0";
 
   while (queue.length !== 0) {
     const front = queue[0];
@@ -248,7 +246,7 @@ function levelOrder(tree) {
 }
 
 function buildTreeDataOld(nodes) {
-  treeData = {id: null, key: null, children: []};
+  treeData = { id: null, key: null, children: [] };
   for (const sNode of nodes) {
     _insertNodeOld(sNode, sNode.fullName, treeData);
   }
@@ -258,7 +256,7 @@ function buildTreeDataOld(nodes) {
 function buildTreeData(nodes) {
   const thisTreeData = {
     id: null,
-    key: `Device ${treeData.children.length + 1}`,
+    key: `Stage ${treeData.children.length + 1}`,
     children: [],
   };
   for (const sNode of nodes) {
@@ -269,10 +267,10 @@ function buildTreeData(nodes) {
 }
 
 function buildPipelineGraph(
-    pipelinedStageInfo,
-    nodeBlocks,
-    idToBlock,
-    indegrees,
+  pipelinedStageInfo,
+  nodeBlocks,
+  idToBlock,
+  indegrees
 ) {
   const graph = {};
   const reverseGraph = {};
@@ -303,8 +301,8 @@ function buildPipelineGraph(
   }
 
   Object.keys(pipelinedStageInfo).forEach((key) => {
-    const sendRankID = key.split('-')[0];
-    const recvRankID = key.split('-')[1];
+    const sendRankID = key.split("-")[0];
+    const recvRankID = key.split("-")[1];
     Object.keys(pipelinedStageInfo[key]).forEach((key1) => {
       const sendIndex = pipelinedStageInfo[key][key1][0];
       const recvIndex = pipelinedStageInfo[key][key1][1];
@@ -348,7 +346,7 @@ function buildPipelineGraph(
   }
   // console.log(graph, dependNodes);
 
-  return {pipelineGraph: graph, dependNodes: dependNodes};
+  return { pipelineGraph: graph, dependNodes: dependNodes };
 }
 
 function dfs(graph, curNode, isVisit, visitNodes, isFinish) {
@@ -367,12 +365,12 @@ function dfs(graph, curNode, isVisit, visitNodes, isFinish) {
 }
 
 function dfsInBlockGraph(
-    graph,
-    blockPath,
-    curBlock,
-    isVisit,
-    isFinish,
-    nodeBlockOrder,
+  graph,
+  blockPath,
+  curBlock,
+  isVisit,
+  isFinish,
+  nodeBlockOrder
 ) {
   if (!(curBlock in graph)) {
     // isFinish = true;
@@ -390,12 +388,12 @@ function dfsInBlockGraph(
       isVisit.set(nextBlock, true);
       blockPath.push(nextBlock);
       dfsInBlockGraph(
-          graph,
-          blockPath,
-          nextBlock,
-          isVisit,
-          isFinish,
-          nodeBlockOrder,
+        graph,
+        blockPath,
+        nextBlock,
+        isVisit,
+        isFinish,
+        nodeBlockOrder
       );
       // if (isFinish) return;
       isVisit.set(nextBlock, false);
@@ -429,7 +427,7 @@ function getTopologicalOrder(graph, indegrees) {
   }
 
   if (cnt < Object.keys(graph).length) {
-    console.log('Error! Not DAG!');
+    console.log("Error! Not DAG!");
   }
 
   return topOrder;
@@ -440,17 +438,17 @@ function buildPipelinedStageInfo(data) {
   const pipelinedStageInfo = {};
   const idToBlock = new Map();
   for (const rankID of Object.keys(data)) {
-    const opNodes = data[rankID]['op_nodes'];
+    const opNodes = data[rankID]["op_nodes"];
     const nodeBlock = [];
     let lastBlockNodeID = 1;
     for (const opNode of opNodes) {
-      if (opNode.type === 'Send' || opNode.type === 'Receive') {
+      if (opNode.type === "Send" || opNode.type === "Receive") {
         const block = `${rankID}-${lastBlockNodeID}-${opNode.node_id}`;
         nodeBlock.push(block);
         lastBlockNodeID = Number(opNode.node_id) + 1;
         idToBlock.set(`${rankID}-${opNode.node_id}`, block);
         const thisStr =
-          opNode.type === 'Send'
+          opNode.type === "Send"
             ? `${rankID}-${opNode.attr.dest_rank}`
             : `${opNode.attr.src_rank}-${rankID}`;
         if (!(thisStr in pipelinedStageInfo)) {
@@ -459,9 +457,9 @@ function buildPipelinedStageInfo(data) {
         if (!(opNode.attr.sr_tag in pipelinedStageInfo[thisStr])) {
           pipelinedStageInfo[thisStr][opNode.attr.sr_tag] = [];
         }
-        if (opNode.type === 'Send') {
+        if (opNode.type === "Send") {
           pipelinedStageInfo[thisStr][opNode.attr.sr_tag].unshift(
-              opNode.node_id,
+            opNode.node_id
           );
         } else {
           pipelinedStageInfo[thisStr][opNode.attr.sr_tag].push(opNode.node_id);
@@ -473,8 +471,8 @@ function buildPipelinedStageInfo(data) {
     }`;
     nodeBlock.push(lastBlock);
     idToBlock.set(
-        `${rankID}-${opNodes[opNodes.length - 1].node_id}`,
-        lastBlock,
+      `${rankID}-${opNodes[opNodes.length - 1].node_id}`,
+      lastBlock
     );
     nodeBlocks.push(nodeBlock);
   }
@@ -483,7 +481,7 @@ function buildPipelinedStageInfo(data) {
   pipelineGraph = {};
   indegrees = {};
   dependNodes = {};
-  ({pipelineGraph: pipelineGraph, dependNodes: dependNodes} =
+  ({ pipelineGraph: pipelineGraph, dependNodes: dependNodes } =
     buildPipelineGraph(pipelinedStageInfo, nodeBlocks, idToBlock, indegrees));
   nodeOrder = getTopologicalOrder(pipelineGraph, indegrees);
   // console.log(nodeOrder);
@@ -523,8 +521,8 @@ function getPipelineBlockInfo() {
 function _processNodes(data) {
   const nodes = data.op_nodes || [];
   // debug && console.log(JSON.parse(JSON.stringify(nodes)));
-  const {parameter_nodes: parameterNodes, const_nodes: constNodes} = data;
-  const {nodeMap, parameterMap, constMap} = processedGraph;
+  const { parameter_nodes: parameterNodes, const_nodes: constNodes } = data;
+  const { nodeMap, parameterMap, constMap } = processedGraph;
   // 保存所有存在的命名空间的ID
   const nameScopeSet = new Set();
 
@@ -547,7 +545,7 @@ function _processNodes(data) {
 
 function _processNodesOld(data) {
   const nodes = data.node || [];
-  const {nodeMap, parameterMap, constMap} = processedGraph;
+  const { nodeMap, parameterMap, constMap } = processedGraph;
   // 保存所有存在的命名空间的ID
 
   for (const sNode of nodes) {
@@ -560,29 +558,29 @@ function _processNodesOld(data) {
 }
 
 export const pruneSet = new Set([
-  'MakeTuple',
-  'TupleGetItem',
-  'SyncBatchNorm',
-  'StridedSlice',
-  'Depend',
-  'Load',
-  'GetNext',
+  "MakeTuple",
+  "TupleGetItem",
+  "SyncBatchNorm",
+  "StridedSlice",
+  "Depend",
+  "Load",
+  "GetNext",
   // 'UpdateState',
 ]);
 
 function stackOptimizer() {
-  const {nodeMap} = processedGraph;
+  const { nodeMap } = processedGraph;
   const maxId = Object.keys(nodeMap)[Object.keys(nodeMap).length - 1];
   let curId = 1;
 
   while (curId <= maxId) {
-    if (nodeMap[curId] && nodeMap[curId].scope.indexOf('optimizer') !== -1) {
+    if (nodeMap[curId] && nodeMap[curId].scope.indexOf("optimizer") !== -1) {
       const oldId = curId;
       const stackedOptimizerNode = {};
-      stackedOptimizerNode.type = 'StackedOptimizer';
+      stackedOptimizerNode.type = "StackedOptimizer";
       stackedOptimizerNode.input = [];
       stackedOptimizerNode.output = [];
-      stackedOptimizerNode.id = stackedOptimizerNode.name = curId + '';
+      stackedOptimizerNode.id = stackedOptimizerNode.name = curId + "";
       stackedOptimizerNode.parent = stackedOptimizerNode.scope =
         nodeMap[curId].scope;
       stackedOptimizerNode.stackedIDs = [curId];
@@ -591,7 +589,7 @@ function stackOptimizer() {
       while (
         curId <= maxId &&
         nodeMap[curId] &&
-        nodeMap[curId].scope.indexOf('optimizer') !== -1
+        nodeMap[curId].scope.indexOf("optimizer") !== -1
       ) {
         stackedOptimizerNode.input = [
           ...stackedOptimizerNode.input,
@@ -631,10 +629,10 @@ function _processSourceData(data) {
 }
 
 function pruneTupleGetItem() {
-  const {nodeMap} = processedGraph;
+  const { nodeMap } = processedGraph;
   Object.values(nodeMap).forEach((v) => {
-    if (v.type === 'TupleGetItem') {
-      const {input, output} = v;
+    if (v.type === "TupleGetItem") {
+      const { input, output } = v;
       const preNode = nodeMap[input[0]];
       preNode.output.splice(preNode.output.indexOf(v.id), 1);
       preNode.output = Array.from(new Set([...preNode.output, ...output]));
@@ -653,7 +651,7 @@ function pruneTupleGetItem() {
 
 function processUpdateStateOp() {
   Object.values(processedGraph.nodeMap).forEach((v) => {
-    if (v.type === 'UpdateState') {
+    if (v.type === "UpdateState") {
       v.input = [];
     }
   });
@@ -690,13 +688,18 @@ function getStrategyInfo(data) {
   const strategyInfo = {};
   Object.keys(data).forEach((rankID) => {
     const graph = data[rankID];
-    const nodes = [...graph.op_nodes, ...graph.const_nodes, ...graph.parameter_nodes];
+    const nodes = [
+      ...graph.op_nodes,
+      ...graph.const_nodes,
+      ...graph.parameter_nodes,
+    ];
     for (const node of nodes) {
       const strategy = node.parallel_shard;
       if (strategy.length !== 0) {
         strategy = JSON.parse(strategy);
         for (let i = 0; i < strategy.length; i++) {
-          strategyInfo[`${rankID}-${node.input[i]}-${node.node_id}`] = strategy[i];
+          strategyInfo[`${rankID}-${node.input[i]}-${node.node_id}`] =
+            strategy[i];
         }
       }
     }
@@ -714,10 +717,10 @@ function _processNodesGlobalCnt() {
     if (isNaN(id)) return;
     const node = nodeMap[id];
     if (_checkShardMethod(node.parallel_shard)) {
-      if (specialNodesMap.hasOwnProperty('hasStrategy')) {
-        specialNodesMap['hasStrategy']++;
+      if (specialNodesMap.hasOwnProperty("hasStrategy")) {
+        specialNodesMap["hasStrategy"]++;
       } else {
-        specialNodesMap['hasStrategy'] = 1;
+        specialNodesMap["hasStrategy"] = 1;
       }
     }
     if (node.instance_type !== undefined) {
