@@ -157,7 +157,10 @@ export default {
     MemoryDataProps: Object,
   },
   watch: {
-    stageDeviceArr: function () {
+    stageDeviceArr: function (newVal, oldVal) {
+      if (oldVal.length) {
+        this.height += (newVal.length - oldVal.length) * 20;
+      }
       this.stageMareyGraphRender();
       this.mareyGraphReRender();
     },
@@ -266,7 +269,7 @@ export default {
         xValue: 0,
         yValue: 0,
       },
-      brush: null,
+      // brush: null,
       OperatorColor: new Map(),
       OperatorColorOpacity: new Map(),
       isOpenSwitch: true,
@@ -325,6 +328,15 @@ export default {
     },
     nameScope() {
       return this.$store.state.nameScopeToPerformanceView;
+    },
+    brush() {
+      return d3
+        .brushX() // Add the brush feature using the d3.brush function
+        .extent([
+          [0, -this.offset],
+          [this.innerWidth, this.height - 3 * this.offset],
+        ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+        .on("end", this.updateChart);
     },
     errorOp() {
       return this.$store.state.selectErrorOp;
@@ -604,7 +616,7 @@ export default {
         filterRes.push(...priorityQueue);
         this.polygonData = filterRes;
       } else {
-        polygonData = polygonData.push(...priorityQueue);
+        polygonData.push(...priorityQueue);
         this.polygonData = polygonData;
       }
       console.log("priorityQueue", priorityQueue);
@@ -786,15 +798,15 @@ export default {
       this.Memory.max = max;
     },
     initBrush() {
-      const brush = d3
-        .brushX() // Add the brush feature using the d3.brush function
-        .extent([
-          [0, -this.offset],
-          [this.innerWidth, this.innerHeight - 4 * this.offset],
-        ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
-        .on("end", this.updateChart);
-      this.brush = brush;
-      this.g.select(".brush").call(brush);
+      // const brush = d3
+      //   .brushX() // Add the brush feature using the d3.brush function
+      //   .extent([
+      //     [0, -this.offset],
+      //     [this.innerWidth, this.innerHeight - 4 * this.offset],
+      //   ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+      //   .on("end", this.updateChart);
+      // this.brush = brush;
+      this.g.select(".brush").call(this.brush);
     },
     updateChart() {
       const extent = d3.event.selection;
@@ -950,8 +962,8 @@ export default {
   pointer-events: none;
 }
 .brush-switch {
-  position: absolute;
-  top: 0;
+  position: fixed;
+  top: 53%;
   right: 50px;
   display: flex;
   justify-content: center;
