@@ -203,30 +203,19 @@ export default {
       this.reRenderChart(minT, maxT);
     },
     errorOp: function () {
-      const { scope, name } = this.errorOp;
-      const opName = name.split("/").pop();
-      const opArr = this.nameScopeToOp.get("/" + scope);
-      console.log("errorOpName-opArr", opName, opArr);
-      if (!opArr || !opArr.length) {
-        return;
-      }
+      const opName = this.errorOp;
       let minT = Infinity;
       let maxT = -Infinity;
-      opArr.forEach((op) => {
-        //仅展示单个问题点
-        if (op === opName) {
-          const curOpDeviceData = this.displayedData[op] || [];
-          curOpDeviceData.forEach((dt) => {
-            minT = Math.min(dt.x1, minT);
-            maxT = Math.max(dt.x2, maxT);
-          });
-        }
+      const curOpDeviceData = this.displayedData[opName] || [];
+      curOpDeviceData.forEach((dt) => {
+        minT = Math.min(dt.x1, minT);
+        maxT = Math.max(dt.x2, maxT);
       });
       if (minT === Infinity || maxT === -Infinity) {
         return;
       }
       //保存一个高亮集合
-      this.highLightOpSet = new Set(opArr);
+      this.highLightOpSet = new Set([opName]);
       this.reRenderChart(minT, maxT);
     },
   },
@@ -372,7 +361,8 @@ export default {
       if (!this.stageDisplayedData) {
         return;
       }
-      let stagePolygonData = [];
+      const priorityQueue = []; //高亮算子，最后绘制
+      const stagePolygonData = [];
       const offset = 100; //brush偏移值
       Object.keys(this.stageDisplayedData).forEach((op) => {
         const curOpStageData = this.stageDisplayedData[op];
@@ -398,15 +388,21 @@ export default {
             } else if (j === 3) {
               type = InnerLayer;
             }
-            stagePolygonData.push({
+            const areaObj = {
               op,
               data: area,
               type,
               stage: d.y,
-            });
+            };
+            if (this.highLightOpSet && this.highLightOpSet.has(op)) {
+              priorityQueue.push(areaObj);
+            } else {
+              stagePolygonData.push(areaObj);
+            }
           }
         }
       });
+      stagePolygonData.push(...priorityQueue);
       this.stagePolygonData = stagePolygonData;
       // console.log("stagePolygonData", stagePolygonData);
     },
