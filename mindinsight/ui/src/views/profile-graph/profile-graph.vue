@@ -129,7 +129,7 @@
                     ></circle>
                   </g>
                 </g>
-                <!-- <g id="graph-highlight-container">
+                <g id="graph-highlight-container">
                   <circle
                     v-for="(node, index) in selectHighlightNodes"
                     :key="'host_hightlight_' + index"
@@ -138,7 +138,7 @@
                     r="50"
                     :fill="`url(#highlight_halo)`"
                   ></circle>
-                </g> -->
+                </g>
 
                 <g id="graph-edge-container">
                   <g id="normal-edge-container">
@@ -640,8 +640,13 @@ export default {
       });
     },
 
-    "$store.state.selectOpname": function (val) {
-      // this.onRecieveOneOp(val);//TODO
+    // "$store.state.selectOpname": function (val) {
+    //   // this.onRecieveOneOp(val);//TODO
+    // },
+
+    "$store.state.selectErrorOp": function (val) {
+      // console.log("profile收到异常节点", val);
+      this.onRecieveErrorOp(val);
     },
     "$store.state.pipelineOpnodeId": function (val) {
       this.onRevievePiplineId(val);
@@ -749,8 +754,10 @@ export default {
         )
       ) {
         // console.log(node, "是通信节点");
-        const index = this.findNodeIndex(node);
-        this.$store.commit("setSelectCommunicateOpnode", [node.type, index]);
+        // const index = this.findNodeIndex(node);
+        this.$store.commit("setSelectCommunicateOpnode", node.name);
+      } else if (node.type.toLowerCase() == "send") {
+        console.log("拓扑图不支持send节点交互");
       }
       // d3.select(node).style("stroke", "red");
       this.clickedNodeId = node.id;
@@ -758,24 +765,52 @@ export default {
       this.$store.commit("setSelectedGraphNode", node);
     },
 
-    onRecieveOneOp(val) {
-      this.selectHighlightNodes = [];
-      const node = this.findNodeName(val[0], val[1]);
-
-      if (node != null) {
-        this.selectHighlightNodes.push(node);
+    onRecieveErrorOp(val) {
+      console.log("profile收到异常节点", val);
+      var findNode = null;
+      this.opNodes.forEach((nodeGroup) => {
+        nodeGroup.forEach((node) => {
+          var nodeNameList = node.name.split("/");
+          var nodeName = nodeNameList[nodeNameList.length - 1];
+          if (nodeName == val) {
+            // console.log(node);
+            findNode = node;
+          }
+        });
+      });
+      if (findNode != null) {
         const viewBox = this.canvas.getViewBox();
         this.canvas.changeViewBox(
-          [node.x, node.y, viewBox[2], viewBox[3]],
+          [findNode.x, findNode.y, viewBox[2], viewBox[3]],
           true
         );
-        // this.clickedNodeId = node.id;
-        // this.$store.commit("setSelectErrorOp", node);
-        this.$store.commit("setSelectedGraphNode", node);
+        // this.selectHighlightNodes.push(findNode);
+        this.clickedNodeId = findNode.id;
+        this.$store.commit("setSelectedGraphNode", findNode);
       } else {
-        console.log("不能找到该算子", val);
+        // this.selectHighlightNodes = [];
+        console.log("profile找不到该算子", val);
       }
     },
+
+    // onRecieveOneOp(val) {
+    //   this.selectHighlightNodes = [];
+    //   const node = this.findNodeName(val[0], val[1]);
+
+    //   if (node != null) {
+    //     this.selectHighlightNodes.push(node);
+    //     const viewBox = this.canvas.getViewBox();
+    //     this.canvas.changeViewBox(
+    //       [node.x, node.y, viewBox[2], viewBox[3]],
+    //       true
+    //     );
+    //     // this.clickedNodeId = node.id;
+    //     // this.$store.commit("setSelectErrorOp", node);
+    //     this.$store.commit("setSelectedGraphNode", node);
+    //   } else {
+    //     console.log("不能找到该算子", val);
+    //   }
+    // },
 
     findNodeName(type, id) {
       let findIndex = 0;
@@ -836,55 +871,48 @@ export default {
     },
 
     onNameScopeChanged() {
-      console.log(this.oldHaloInfo);
-      const newHaloInfo = this.haloInfo;
+      var newHaloInfo = this.haloInfo;
       if (newHaloInfo.length != 0) {
         let viewBox = this.canvas.getViewBox();
         let minX = Number.MAX_VALUE;
         let minY = Number.MAX_VALUE;
-        newHaloInfo.forEach(([namescope, nodeGroup], index) => {
-          if (!this.oldHaloInfo.includes(namescope)) {
-            nodeGroup.forEach((node) => {
-              if (node.x < minX) {
-                minX = node.x;
-                if (node.y < minY) {
-                  minY = node.y;
-                }
-              }
-            });
-            this.canvas.changeViewBox(
-              [minX, minY, viewBox[2], viewBox[3]],
-              true
-            );
+        console.log(newHaloInfo);
+        newHaloInfo[newHaloInfo.length - 1][1].forEach((node) => {
+          if (node.x < minX) {
+            minX = node.x;
+            if (node.y < minY) {
+              minY = node.y;
+            }
           }
         });
+        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]], true);
       }
     },
 
-    onRecieveOneOpname(name) {
-      this.selectHighlightNodes = [];
-      const viewBox = this.canvas.getViewBox();
-      var exist = false;
-      this.opNodes.forEach((nodeGroup) => {
-        nodeGroup.forEach((node) => {
-          var namelst = node.name.split("/");
-          if (name == namelst[namelst.length - 1]) {
-            exist = true;
-            this.canvas.changeViewBox(
-              [node.x, node.y, viewBox[2], viewBox[3]],
-              true
-            );
-            this.selectHighlightNodes.push(node);
-            // this.$store.commit("setSelectedGraphNode", node);
-          }
-          // console.log(node.name.spl);
-        });
-      });
-      return exist;
-    },
+    // onRecieveOneOpname(name) {
+    //   this.selectHighlightNodes = [];
+    //   const viewBox = this.canvas.getViewBox();
+    //   var exist = false;
+    //   this.opNodes.forEach((nodeGroup) => {
+    //     nodeGroup.forEach((node) => {
+    //       var namelst = node.name.split("/");
+    //       if (name == namelst[namelst.length - 1]) {
+    //         exist = true;
+    //         this.canvas.changeViewBox(
+    //           [node.x, node.y, viewBox[2], viewBox[3]],
+    //           true
+    //         );
+    //         this.selectHighlightNodes.push(node);
+    //         // this.$store.commit("setSelectedGraphNode", node);
+    //       }
+    //       // console.log(node.name.spl);
+    //     });
+    //   });
+    //   return exist;
+    // },
 
     onRevievePiplineId(nodeId) {
-      this.selectHighlightNodes = [];
+      // this.selectHighlightNodes = [];
       const viewBox = this.canvas.getViewBox();
       this.opNodes.forEach((nodeGroup) => {
         nodeGroup.forEach((node) => {
@@ -893,8 +921,11 @@ export default {
               [node.x, node.y, viewBox[2], viewBox[3]],
               true
             );
-            this.selectHighlightNodes.push(node);
-            console.log(node);
+            // this.clickedNodeId = node.id;
+            // this.$store.commit("setSelectedGraphNode", node);
+            // // this.selectHighlightNodes.push(node);
+            // console.log(node);
+            this.onNodeClick(node);
           }
         });
       });
