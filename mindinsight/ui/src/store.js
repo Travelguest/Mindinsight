@@ -70,6 +70,8 @@ export default new Vuex.Store({
     selectErrorOp: null, //选择的异常节点的信息
 
     opNameMap: null, //opName对照表
+
+    pipelineOpnodeId: -1,
   },
   mutations: {
     // set cancelTokenArr
@@ -173,6 +175,9 @@ export default new Vuex.Store({
     },
     setOpNameMap(state, val) {
       state.opNameMap = val;
+    },
+    setPipelineOpnodeId(state, val) {
+      state.pipelineOpnodeId = val;
     },
   },
   actions: {
