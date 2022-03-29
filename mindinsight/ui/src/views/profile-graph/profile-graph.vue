@@ -129,7 +129,7 @@
                     ></circle>
                   </g>
                 </g>
-                <!-- <g id="graph-highlight-container">
+                <g id="graph-highlight-container">
                   <circle
                     v-for="(node, index) in selectHighlightNodes"
                     :key="'host_hightlight_' + index"
@@ -138,7 +138,7 @@
                     r="50"
                     :fill="`url(#highlight_halo)`"
                   ></circle>
-                </g> -->
+                </g>
 
                 <g id="graph-edge-container">
                   <g id="normal-edge-container">
@@ -640,8 +640,13 @@ export default {
       });
     },
 
-    "$store.state.selectOpname": function (val) {
-      // this.onRecieveOneOp(val);//TODO
+    // "$store.state.selectOpname": function (val) {
+    //   // this.onRecieveOneOp(val);//TODO
+    // },
+
+    "$store.state.selectErrorOp": function (val) {
+      // console.log("profile收到异常节点", val);
+      this.onRecieveErrorOp(val);
     },
     "$store.state.pipelineOpnodeId": function (val) {
       this.onRevievePiplineId(val);
@@ -756,6 +761,33 @@ export default {
       this.clickedNodeId = node.id;
       this.$store.commit("setNameScopeToPerformanceView", node.scope);
       this.$store.commit("setSelectedGraphNode", node);
+    },
+
+    onRecieveErrorOp(val) {
+      console.log("profile收到异常节点", val);
+      var findNode = null;
+      this.opNodes.forEach((nodeGroup) => {
+        nodeGroup.forEach((node) => {
+          var nodeNameList = node.name.split("/");
+          var nodeName = nodeNameList[nodeNameList.length - 1];
+          if (nodeName == val) {
+            // console.log(node);
+            findNode = node;
+          }
+        });
+      });
+      if (findNode != null) {
+        const viewBox = this.canvas.getViewBox();
+        this.canvas.changeViewBox(
+          [findNode.x, findNode.y, viewBox[2], viewBox[3]],
+          true
+        );
+        this.selectHighlightNodes.push(findNode);
+        this.$store.commit("setSelectedGraphNode", findNode);
+      } else {
+        this.selectHighlightNodes = [];
+        console.log("profile找不到该算子", val);
+      }
     },
 
     onRecieveOneOp(val) {
