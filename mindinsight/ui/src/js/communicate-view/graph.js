@@ -44,8 +44,8 @@ Graph.prototype.init = function (links, nodes) {
   this.renderNet();
 };
 Graph.prototype.selectOpname = "";
-Graph.prototype.setSelectOpname = function (opname) {
-  this.father.setSelectOpname(opname);
+Graph.prototype.setSelectOpname = function (op) {
+  this.father.setSelectErrorOp(op);
 };
 Graph.prototype.getMatrixSize = function () {
   return this.matrix_size;

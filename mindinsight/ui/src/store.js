@@ -69,7 +69,7 @@ export default new Vuex.Store({
 
     selectErrorOp: null, //选择的异常节点的信息
 
-    allReduceMap: null, //allReduce对照表
+    opNameMap: null, //opName对照表
 
     pipelineOpnodeId: -1,
   },
@@ -173,8 +173,8 @@ export default new Vuex.Store({
     setSelectErrorOp(state, val) {
       state.selectErrorOp = val;
     },
-    setAllReduceMap(state, val) {
-      state.allReduceMap = val;
+    setOpNameMap(state, val) {
+      state.opNameMap = val;
     },
     setPipelineOpnodeId(state, val) {
       state.pipelineOpnodeId = val;

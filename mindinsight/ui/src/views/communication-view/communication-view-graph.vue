@@ -100,7 +100,8 @@ export default {
 
       linecharOption: null,
       linechart: null,
-      // maxBarValue: {},
+
+      opNameMap: null,
     };
   },
   mounted() {
@@ -115,9 +116,9 @@ export default {
     "$store.state.selectCommunicateOpnode": function (val) {
       this.recieveOpnode(val[0], val[1]);
     },
-    // window.communicategraph: function (val) {
-    //   console.log(val);
-    // },
+    "$store.state.opNameMap": function (val) {
+      this.opNameMap = val;
+    },
   },
 
   methods: {
@@ -207,9 +208,6 @@ export default {
       const res = (await requestService.getCommunicationGraph()).data;
       this.communicateGraphData = res;
       for (var device in this.communicateGraphData) {
-        // var new_node=Object.create(device_node)
-        // console.log(this.communicateGraphData[device]);
-        // console.log(device);
         for (var i in this.communicateGraphData[device]) {
           var step_info = this.communicateGraphData[device][i];
           var new_node = Object.create(device_node);
@@ -282,6 +280,7 @@ export default {
                 // this.maxBarValue = Math.max(traffic, this.maxBarValue);
                 // this.maxBarValue = Math.max(traffic, this.maxBarValue);
                 this.communicateOps[step][link].push({
+                  device: device,
                   op_name: op_name,
                   duration: duration,
                   traffic: traffic,
@@ -292,7 +291,6 @@ export default {
           }
         }
       }
-      // console.log(this.communicateOps);
     },
     renderNetwork() {
       // network data
@@ -318,9 +316,21 @@ export default {
         var link_str = d.source + "-" + d.target;
         var op_info = this.communicateOps[this.stepNum][link_str];
         op_info.forEach((i) => {
-          op_duration.push({ name: i["op_name"], value: i["duration"] });
-          op_traffic.push({ name: i["op_name"], value: i["traffic"] });
-          op_bandWidth.push({ name: i["op_name"], value: i["bandWidth"] });
+          op_duration.push({
+            name: i["op_name"],
+            value: i["duration"],
+            device: i["device"],
+          });
+          op_traffic.push({
+            name: i["op_name"],
+            value: i["traffic"],
+            device: i["device"],
+          });
+          op_bandWidth.push({
+            name: i["op_name"],
+            value: i["bandWidth"],
+            device: i["device"],
+          });
         });
         dataLink.push({
           source: "device" + d.source,
@@ -359,26 +369,40 @@ export default {
       window.communicategraph.init(dataLink, dataNode);
     },
 
-    setSelectOpname(opname) {
-      // this.sendOpnode(opname);
-      // console.log(opname);
-      this.$store.commit("setSelectOpname", opname.split("_"));
+    setSelectErrorOp(op) {
+      var opname = this.transformOpId2Name(op.device, op.name);
+      if (opname) this.$store.commit("setSelectErrorOp", opname);
+
+      // this.$store.commit("setSelectOpname", opname.split("_"));
+    },
+
+    transformOpId2Name(opDevice, opname) {
+      var opType = opname.split("_")[0];
+      var opId = Number(opname.split("_")[1]);
+      var resName = undefined;
+      if (opType == "allReduce") opType = "AllReduce";
+      else if (opType == "send") opType = "Send";
+      else if (opType == "receive") opType = "Receive";
+      else {
+        console.log("不能在opNameMap中找到类型", opType);
+        return resName;
+      }
+      var deviceOpMap = this.opNameMap[opDevice][opType];
+      console.log("对应算子名", deviceOpMap[opId - 1]);
+      if (deviceOpMap[opId - 1]) resName = deviceOpMap[opId - 1];
+      else console.log("不能在opNameMap中找到该算子", opDevice, opname);
+      return resName;
     },
 
     recieveOpnode(type, index) {
-      // console.log(type, index);
-      // console.log(this.communicateNodes[this.stepNum]);
       var nodeData = [];
       this.communicateNodes[this.stepNum].forEach((device) => {
-        // var opNodes = this.communicateNodes[this.stepNum][device];
-        // console.log(device.opNodes);
         Object.keys(device.opNodes).forEach((nodeName, i) => {
           var nameList = nodeName.split("_");
           if (
             nameList[0].toLowerCase() == type.toLowerCase() &&
             Number(nameList[1]) == index
           ) {
-            // console.log(nodeName, device.opNodes[nodeName]);
             if (device.opNodes[nodeName][3] != {}) {
               Object.keys(device.opNodes[nodeName][3]).forEach((link) => {
                 var link_type = Object.keys(

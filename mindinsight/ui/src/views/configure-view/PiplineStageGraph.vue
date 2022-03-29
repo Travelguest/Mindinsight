@@ -176,8 +176,8 @@ export default {
       pipelineRectWidth: 10,
       pipelineRectMargin: 2,
 
-      pipelineSendRectColor: "#e9a39d",
-      pipelineReceiveRectColor: "#8fc6ad",
+      pipelineSendRectColor: "#bf73d6",
+      pipelineReceiveRectColor: "#4192d3",
       pipelineArrowColor: "#e4e4e4",
       pipelinedStageInfo: null,
       pipelineNodeInfo: null,
