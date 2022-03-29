@@ -372,7 +372,8 @@ export default {
       if (!this.stageDisplayedData) {
         return;
       }
-      let stagePolygonData = [];
+      const priorityQueue = []; //高亮算子，最后绘制
+      const stagePolygonData = [];
       const offset = 100; //brush偏移值
       Object.keys(this.stageDisplayedData).forEach((op) => {
         const curOpStageData = this.stageDisplayedData[op];
@@ -398,15 +399,21 @@ export default {
             } else if (j === 3) {
               type = InnerLayer;
             }
-            stagePolygonData.push({
+            const areaObj = {
               op,
               data: area,
               type,
               stage: d.y,
-            });
+            };
+            if (this.highLightOpSet && this.highLightOpSet.has(op)) {
+              priorityQueue.push(areaObj);
+            } else {
+              stagePolygonData.push(areaObj);
+            }
           }
         }
       });
+      stagePolygonData.push(...priorityQueue);
       this.stagePolygonData = stagePolygonData;
       // console.log("stagePolygonData", stagePolygonData);
     },
