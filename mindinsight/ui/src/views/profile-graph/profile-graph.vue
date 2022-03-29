@@ -82,7 +82,7 @@
                   <stop offset="100%" stop-color="rgba(255,255,255,0)" />
                 </radialGradient>
                 <radialGradient id="highlight_halo" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" :stop-color="haloColorScale()" />
+                  <stop offset="0%" :stop-color="'yellow'" />
                   <stop offset="100%" stop-color="rgba(255,255,255,0)" />
                 </radialGradient>
               </defs>

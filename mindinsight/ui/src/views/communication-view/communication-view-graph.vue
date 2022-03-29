@@ -100,7 +100,6 @@ export default {
 
       linecharOption: null,
       linechart: null,
-      // maxBarValue: {},
     };
   },
   mounted() {
@@ -115,9 +114,9 @@ export default {
     "$store.state.selectCommunicateOpnode": function (val) {
       this.recieveOpnode(val[0], val[1]);
     },
-    // window.communicategraph: function (val) {
-    //   console.log(val);
-    // },
+    "$store.state.allReduceMap": function (val) {
+      console.log(val);
+    },
   },
 
   methods: {
@@ -207,9 +206,6 @@ export default {
       const res = (await requestService.getCommunicationGraph()).data;
       this.communicateGraphData = res;
       for (var device in this.communicateGraphData) {
-        // var new_node=Object.create(device_node)
-        // console.log(this.communicateGraphData[device]);
-        // console.log(device);
         for (var i in this.communicateGraphData[device]) {
           var step_info = this.communicateGraphData[device][i];
           var new_node = Object.create(device_node);
@@ -360,25 +356,18 @@ export default {
     },
 
     setSelectOpname(opname) {
-      // this.sendOpnode(opname);
-      // console.log(opname);
       this.$store.commit("setSelectOpname", opname.split("_"));
     },
 
     recieveOpnode(type, index) {
-      // console.log(type, index);
-      // console.log(this.communicateNodes[this.stepNum]);
       var nodeData = [];
       this.communicateNodes[this.stepNum].forEach((device) => {
-        // var opNodes = this.communicateNodes[this.stepNum][device];
-        // console.log(device.opNodes);
         Object.keys(device.opNodes).forEach((nodeName, i) => {
           var nameList = nodeName.split("_");
           if (
             nameList[0].toLowerCase() == type.toLowerCase() &&
             Number(nameList[1]) == index
           ) {
-            // console.log(nodeName, device.opNodes[nodeName]);
             if (device.opNodes[nodeName][3] != {}) {
               Object.keys(device.opNodes[nodeName][3]).forEach((link) => {
                 var link_type = Object.keys(
