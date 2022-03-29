@@ -402,10 +402,54 @@ export default {
         return;
       }
       let polygonData = [];
+      const priorityQueue = []; //高亮算子，最后绘制
       const offset = 100; //brush偏移值
-
+      // console.log("displayedData", this.displayedData);
       Object.keys(this.displayedData).forEach((op) => {
         const curOpDeviceData = this.displayedData[op];
+        //被选中的——高亮，不合并
+        if (this.highLightOpSet && this.highLightOpSet.has(op)) {
+          //可能要对y——device排个序
+          let points = "";
+          const deviceArr = [];
+          for (let i = 0; i < curOpDeviceData.length; i++) {
+            const dt = curOpDeviceData[i];
+            //不在brush范围内，直接跳过
+            if (
+              dt.x1 < left - offset ||
+              dt.x2 > right + offset ||
+              !this.stageDeviceArr.includes(dt.y)
+            ) {
+              continue;
+            }
+            points += `${this.xScale(dt.x1)},${
+              this.yScale(dt.y) - this.offset
+            } ${this.xScale(dt.x1)},${this.yScale(dt.y) + this.offset} `;
+            deviceArr.push(dt.y);
+          }
+          for (let i = curOpDeviceData.length - 1; i >= 0; i--) {
+            const dt = curOpDeviceData[i];
+            //不在brush范围内，直接跳过
+            if (
+              dt.x1 < left - offset ||
+              dt.x2 > right + offset ||
+              !this.stageDeviceArr.includes(dt.y)
+            ) {
+              continue;
+            }
+            points += `${this.xScale(dt.x2)},${
+              this.yScale(dt.y) + this.offset
+            } ${this.xScale(dt.x2)},${this.yScale(dt.y) - this.offset} `;
+          }
+          priorityQueue.push({
+            op,
+            data: points,
+            device: deviceArr,
+            type: "selected", //被选中的人
+          });
+          return;
+        }
+        //未被选中的
         const areaArr = []; //保存各个区域
         let pointsArr = [];
         let preDevice = "";
@@ -456,7 +500,7 @@ export default {
             areaArr.push({
               op,
               data: pointsArr.join(" "),
-              device: [preDevice, dt.y], //间隔算下一个块的
+              device: [preDevice, dt.y],
               type: "gap", //块间隔
             });
             pointsArr = [leftBottom, rightBootm]; //清空
@@ -556,11 +600,14 @@ export default {
           }
         }
         // console.log("合并后", filterRes.length);
-        // console.log("filterRes", filterRes);
+        // console.log("filterRes1", filterRes);
+        filterRes.push(...priorityQueue);
         this.polygonData = filterRes;
       } else {
+        polygonData = polygonData.push(...priorityQueue);
         this.polygonData = polygonData;
       }
+      console.log("priorityQueue", priorityQueue);
     },
     nameScopeProcessing() {
       const { scope_map } = this.timeLineData || {};
