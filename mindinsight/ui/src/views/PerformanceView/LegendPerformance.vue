@@ -211,7 +211,7 @@ export default {
     };
   },
   mounted() {
-    this.colorStop = d3.range(0, 1.01, 0.1).map((d) => {
+    this.colorStop = d3.range(0.2, 1.01, 0.1).map((d) => {
       return { offset: d, color: this.colorScale(d), value: d };
     });
   },

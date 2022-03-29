@@ -28,6 +28,7 @@
               :stageDeviceRelationship="stageDeviceRelationship"
               :FLOPsData="FLOPsData"
               :deviceToStage="deviceToStage"
+              :MemoryData="MemoryData"
               @clickArrowIcon="handleClickArrowIcon"
             />
           </div>
@@ -337,8 +338,8 @@ export default {
 }
 .performance-view-container .top .right .view .stage-tree {
   min-height: 101%;
-  width: 250px;
-  flex-basis: 250px;
+  width: 260px;
+  flex-basis: 260px;
 }
 .performance-view-container .top .right .view .marey-graph {
   min-height: 101%;

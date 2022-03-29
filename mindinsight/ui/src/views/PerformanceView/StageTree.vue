@@ -50,26 +50,26 @@
             <circle
               cx="0"
               :cy="yScale(data.y)"
-              r="10"
-              stroke="red"
+              r="7.5"
+              stroke="#cb6056"
               fill="transparent"
               stroke-width="2"
             />
             <line
-              x1="-5"
-              :y1="yScale(data.y) - 5"
-              x2="5"
-              :y2="yScale(data.y) + 5"
-              stroke="red"
+              x1="-3.25"
+              :y1="yScale(data.y) - 3.25"
+              x2="3.25"
+              :y2="yScale(data.y) + 3.25"
+              stroke="#cb6056"
               fill="transparent"
               stroke-width="2"
             />
             <line
-              x1="-5"
-              :y1="yScale(data.y) + 5"
-              x2="5"
-              :y2="yScale(data.y) - 5"
-              stroke="red"
+              x1="-3.25"
+              :y1="yScale(data.y) + 3.25"
+              x2="3.25"
+              :y2="yScale(data.y) - 3.25"
+              stroke="#cb6056"
               fill="transparent"
               stroke-width="2"
             />
@@ -97,12 +97,11 @@
         </g>
         <g class="FLOP-name">
           <text
-            v-for="name in FLOPArr"
+            v-for="name in xAxisArr"
             :key="name"
-            :x="xScale(name) - 3"
-            :y="name === 'FLOPs' ? 15 : 40"
-            transform="rotate(-25)"
-            transform-origin="50px 0px"
+            :x="xScale(name) - 13"
+            :y="-10"
+            :transform="`rotate(-25, ${xScale(name) - 13}, -10)`"
           >
             {{ name }}
           </text>
@@ -115,11 +114,16 @@
             :y="yScale(data.y) - offset"
             :width="offset * 2"
             :height="offset * 2"
-            :fill="
-              data.x === 'FLOPS'
-                ? FLOPSColorScale(data.value)
-                : FLOPsColorScale(data.value)
-            "
+            :fill="colorScale(data.value + 0.2)"
+          ></rect>
+          <rect
+            v-for="data in MemoryMapData"
+            :key="`${data.y}-${data.x}`"
+            :x="xScale(data.x) - offset"
+            :y="yScale(data.y) - offset"
+            :width="offset * 2"
+            :height="offset * 2"
+            :fill="colorScale(data.value + 0.2)"
           ></rect>
         </g>
       </g>
@@ -137,6 +141,7 @@ export default {
     stageDeviceRelationship: Object,
     FLOPsData: Object,
     deviceToStage: Map,
+    MemoryData: Object,
   },
   watch: {
     stageDeviceArr: function (newVal, oldVal) {
@@ -147,31 +152,35 @@ export default {
     stageDeviceRelationship: function () {
       this.treeLineProcessing();
       this.FLOPMapData = null;
+      this.closeCircleData = null;
+      this.MemoryMapData = null;
       requestIdleCallback(this.FLOPMapDataProcessing);
+      requestIdleCallback(this.MemoryDataProcessing);
     },
     // deviceToStage: function () {
     //   console.log("deviceToStage变了", this.deviceToStage);
     // },
-    // FLOPsData: function () {
-    //   console.log("FLOPsData变了", this.FLOPsData);
+    // MemoryData: function () {
+    //   this.MemoryDataProcessing();
     // },
   },
   data() {
     return {
       svg: null,
       g: null,
-      margin: { top: 50, right: 0, bottom: 10, left: 30 },
+      margin: { top: 50, right: 10, bottom: 10, left: 30 },
       width: 200,
       height: 200,
       offset: 8,
 
       treeLineData: null,
       FLOPMapData: null,
+      MemoryMapData: null,
       stageName: null,
       closeCircleData: null,
       // valueFLOPS: { max: 0, min: 0 },
       // valueFLOPs: { max: 0, min: 0 },
-      FLOPArr: ["FLOPs", "FLOPS"],
+      xAxisArr: ["FLOPs", "FLOPS", "PeakMem"],
 
       hoveredNodeInfo: {
         show: false,
@@ -190,7 +199,7 @@ export default {
       return this.width - this.margin.left - this.margin.right;
     },
     xScale() {
-      return d3.scaleBand().domain(this.FLOPArr).range([120, this.innerWidth]);
+      return d3.scaleBand().domain(this.xAxisArr).range([115, this.innerWidth]);
     },
     yScale() {
       return d3
@@ -198,13 +207,7 @@ export default {
         .domain(this.stageDeviceArr)
         .range([0, this.innerHeight]);
     },
-    FLOPSColorScale() {
-      return d3
-        .scaleSequential()
-        .domain([0, 1])
-        .interpolator(d3.interpolateGreys);
-    },
-    FLOPsColorScale() {
+    colorScale() {
       return d3
         .scaleSequential()
         .domain([0, 1])
@@ -227,12 +230,54 @@ export default {
     handleClick(stage) {
       this.$emit("clickArrowIcon", stage);
     },
+    MemoryDataProcessing() {
+      if (
+        !this.deviceToStage ||
+        !this.stageDeviceRelationship ||
+        !this.MemoryData
+      )
+        return;
+      const MemoryMapData = [];
+      const stageData = {};
+      const stageName = Object.keys(this.stageDeviceRelationship);
+
+      stageName.forEach((stage) => {
+        stageData[stage] = {
+          averageValue: 0,
+          cnt: 0,
+        };
+      });
+      const deviceName = Object.keys(this.MemoryData);
+      deviceName.forEach((device) => {
+        const { capacity, peak_mem } = this.MemoryData[device].summary || {};
+        //1.先统计stage
+        const stage = this.deviceToStage.get(device);
+        stageData[stage].averageValue += peak_mem / capacity;
+        stageData[stage].cnt++;
+        if (this.stageDeviceRelationship[stage].length > 0) {
+          MemoryMapData.push({
+            x: "PeakMem",
+            y: device,
+            value: peak_mem / capacity,
+          });
+        }
+      });
+      //2.加入stage
+      stageName.forEach((stage) => {
+        const { averageValue, cnt } = stageData[stage] || {};
+        MemoryMapData.push({
+          x: "PeakMem",
+          y: stage,
+          value: averageValue / cnt,
+        });
+      });
+      this.MemoryMapData = MemoryMapData;
+    },
     FLOPMapDataProcessing() {
       if (
         !this.deviceToStage ||
         !this.stageDeviceRelationship ||
-        !this.FLOPsData ||
-        !this.stageDeviceRelationship
+        !this.FLOPsData
       )
         return;
       const FLOPMapData = [];
@@ -249,8 +294,6 @@ export default {
           abnomalContent: [],
         };
       });
-      // const valueFLOPS = { max: -Infinity, min: Infinity };
-      // const valueFLOPs = { max: -Infinity, min: Infinity };
       let maxFLOPS = -Infinity;
       let maxFLOPs = -Infinity;
       const deviceName = Object.keys(this.FLOPsData);
@@ -265,14 +308,9 @@ export default {
         stageData[stage].isAnomaly = isAnomaly || false;
         stageData[stage].abnomalContent.concat(abnomalContent);
 
-        // valueFLOPS.min = Math.min(FLOPS, valueFLOPS.min);
-        // valueFLOPS.max = Math.max(FLOPS, valueFLOPS.max);
-        // valueFLOPs.min = Math.min(FLOPS, valueFLOPs.min);
-        // valueFLOPs.max = Math.max(FLOPS, valueFLOPs.max);
         maxFLOPS = Math.max(maxFLOPS, FLOPS);
         maxFLOPs = Math.max(maxFLOPs, FLOPs);
       });
-      // console.log("stageData", stageData);
       deviceName.forEach((device) => {
         const { FLOPS, FLOPs, abnomalContent, isAnomaly } =
           this.FLOPsData[device].summary || {};

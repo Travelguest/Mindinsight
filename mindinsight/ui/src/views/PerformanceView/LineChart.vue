@@ -12,7 +12,6 @@
       <text x="14%" y="13" style="font-size: 13px; opacity: 0.7">
         Total training time of a device
       </text>
-
       <rect
         x="33%"
         y="1"
