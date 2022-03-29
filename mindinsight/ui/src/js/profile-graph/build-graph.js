@@ -256,7 +256,7 @@ function buildTreeDataOld(nodes) {
 function buildTreeData(nodes) {
   const thisTreeData = {
     id: null,
-    key: `Stage ${treeData.children.length + 1}`,
+    key: `stage${treeData.children.length}`,
     children: [],
   };
   for (const sNode of nodes) {

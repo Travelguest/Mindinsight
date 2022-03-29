@@ -836,28 +836,21 @@ export default {
     },
 
     onNameScopeChanged() {
-      console.log(this.oldHaloInfo);
-      const newHaloInfo = this.haloInfo;
+      var newHaloInfo = this.haloInfo;
       if (newHaloInfo.length != 0) {
         let viewBox = this.canvas.getViewBox();
         let minX = Number.MAX_VALUE;
         let minY = Number.MAX_VALUE;
-        newHaloInfo.forEach(([namescope, nodeGroup], index) => {
-          if (!this.oldHaloInfo.includes(namescope)) {
-            nodeGroup.forEach((node) => {
-              if (node.x < minX) {
-                minX = node.x;
-                if (node.y < minY) {
-                  minY = node.y;
-                }
-              }
-            });
-            this.canvas.changeViewBox(
-              [minX, minY, viewBox[2], viewBox[3]],
-              true
-            );
+        console.log(newHaloInfo);
+        newHaloInfo[newHaloInfo.length - 1][1].forEach((node) => {
+          if (node.x < minX) {
+            minX = node.x;
+            if (node.y < minY) {
+              minY = node.y;
+            }
           }
         });
+        this.canvas.changeViewBox([minX, minY, viewBox[2], viewBox[3]], true);
       }
     },
 

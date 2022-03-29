@@ -129,6 +129,7 @@ import { getTreeData, levelOrder } from "@/js/profile-graph/build-graph.js";
 import { TreeSelect, Select, Icon } from "ant-design-vue";
 import PipelineStageGraph from "./PiplineStageGraph.vue";
 import RequestService from "@/services/request-service";
+import * as _ from "lodash";
 
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
@@ -151,6 +152,7 @@ export default {
       graphData: {},
       expandedKeys: [],
       dataSource: "",
+      nameScopeFromMarey: [],
     };
   },
 
@@ -229,12 +231,78 @@ export default {
       // console.log(this.$refs["configure-select"]);
     },
     selectNewScopeFromMarey(val) {
-      // console.log(val.nameScope);
-      // // console.log(val);
-      // console.log(this.treeData);
+      if (this.nameScopeFromMarey.length > 0) {
+        this.nameScopeFromMarey.forEach((namescope) => {
+          var index = this.selectNamespaces.indexOf(namescope);
+          if (index != -1) {
+            this.selectNamespaces.splice(index, 1);
+          }
+        });
+        this.nameScopeFromMarey = [];
+      }
+      var data = [];
+      for (var i = 0; i < this.treeData.length; i++) {
+        if (val.stage.includes(this.treeData[i].title)) {
+          data.push(this.treeData[i]);
+        }
+      }
+
+      data.forEach((stageData) => {
+        var reData = _.cloneDeep(stageData);
+        var nameLst = val.nameScope.split("/");
+        var familyLst = [reData];
+        if (nameLst[0] == "") {
+          nameLst.splice(0, 1);
+        }
+        while (nameLst.length != 0) {
+          var childIndex;
+          for (
+            childIndex = 0;
+            childIndex < reData.children.length;
+            childIndex++
+          ) {
+            if (reData.children[childIndex].title == nameLst[0]) {
+              break;
+            }
+          }
+          if (childIndex == reData.children.length) {
+            break;
+          } else {
+            reData = reData.children[childIndex];
+            familyLst.push(reData);
+            nameLst.splice(0, 1);
+          }
+        }
+
+        if (nameLst.length == 0) {
+          for (i = familyLst.length - 2; i >= 0; i--) {
+            if (familyLst[i].children.length == 1) {
+              reData = familyLst[i];
+            } else {
+              break;
+            }
+          }
+
+          console.log("能找到对应namescope-father", reData);
+
+          var findIndex = this.selectNamespaces.indexOf(reData.key);
+          if (findIndex != -1) {
+            this.selectNamespaces.splice(findIndex, 1);
+          } else {
+            this.nameScopeFromMarey.push(reData.key);
+          }
+          this.selectNamespaces.push(reData.key);
+          console.log(this.selectNamespaces, this.haloColorScale(reData.key));
+          console.log(this.selectNamespaces.includes(reData.key));
+          this.handleTreeChange();
+        } else {
+          console.log("不能找到对应namescope", reData, nameLst);
+        }
+      });
+
       //TODO: 从marey收到一个namescope
-      this.handleTreeChange();
     },
+
     handleTreeChange(value, label) {
       this.$store.commit("setProfileNamespaces", this.selectNamespaces);
     },
