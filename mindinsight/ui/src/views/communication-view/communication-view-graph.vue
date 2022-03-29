@@ -403,6 +403,7 @@ export default {
         );
         var nameList = opName.split("/");
         var name = nameList[nameList.length - 1];
+        this.$store.commit("setSelectErrorOp", name);
         nameList = name.split("-");
         var type = nameList[0];
 
