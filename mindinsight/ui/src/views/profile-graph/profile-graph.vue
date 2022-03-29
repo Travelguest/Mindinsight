@@ -910,6 +910,7 @@ export default {
       const viewBox = this.canvas.getViewBox();
       this.opNodes.forEach((nodeGroup) => {
         nodeGroup.forEach((node) => {
+          console.log("查询,", scopeStr, node.name);
           if (node.name.startsWith(scopeStr)) {
             this.selectHighlightNodes.push(node);
             if (node.x < minX) {
