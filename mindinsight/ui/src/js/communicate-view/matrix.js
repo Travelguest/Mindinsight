@@ -398,7 +398,7 @@ Matrix.prototype.renderBoxPlot = function (
           this.locallayer.select("#hover-circle-text").remove();
         })
         .on("click", () => {
-          window.communicategraph.setSelectOpname(d.name);
+          window.communicategraph.setSelectOpname(d);
           // console.log(window.communicategraph.selectOpname);
           // this.$store.emit("setInfo", val);
         });

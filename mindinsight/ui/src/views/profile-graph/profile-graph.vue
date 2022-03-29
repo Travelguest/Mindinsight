@@ -641,7 +641,7 @@ export default {
     },
 
     "$store.state.selectOpname": function (val) {
-      this.onRecieveOneOp(val);
+      // this.onRecieveOneOp(val);//TODO
     },
     "$store.state.pipelineOpnodeId": function (val) {
       this.onRevievePiplineId(val);
@@ -770,7 +770,7 @@ export default {
           true
         );
         // this.clickedNodeId = node.id;
-        this.$store.commit("setSelectErrorOp", node);
+        // this.$store.commit("setSelectErrorOp", node);
         this.$store.commit("setSelectedGraphNode", node);
       } else {
         console.log("不能找到该算子", val);

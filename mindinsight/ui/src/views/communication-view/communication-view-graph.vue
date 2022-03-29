@@ -100,6 +100,8 @@ export default {
 
       linecharOption: null,
       linechart: null,
+
+      opNameMap: null,
     };
   },
   mounted() {
@@ -114,8 +116,8 @@ export default {
     "$store.state.selectCommunicateOpnode": function (val) {
       this.recieveOpnode(val[0], val[1]);
     },
-    "$store.state.allReduceMap": function (val) {
-      console.log(val);
+    "$store.state.opNameMap": function (val) {
+      this.opNameMap = val;
     },
   },
 
@@ -278,6 +280,7 @@ export default {
                 // this.maxBarValue = Math.max(traffic, this.maxBarValue);
                 // this.maxBarValue = Math.max(traffic, this.maxBarValue);
                 this.communicateOps[step][link].push({
+                  device: device,
                   op_name: op_name,
                   duration: duration,
                   traffic: traffic,
@@ -288,7 +291,6 @@ export default {
           }
         }
       }
-      // console.log(this.communicateOps);
     },
     renderNetwork() {
       // network data
@@ -314,9 +316,21 @@ export default {
         var link_str = d.source + "-" + d.target;
         var op_info = this.communicateOps[this.stepNum][link_str];
         op_info.forEach((i) => {
-          op_duration.push({ name: i["op_name"], value: i["duration"] });
-          op_traffic.push({ name: i["op_name"], value: i["traffic"] });
-          op_bandWidth.push({ name: i["op_name"], value: i["bandWidth"] });
+          op_duration.push({
+            name: i["op_name"],
+            value: i["duration"],
+            device: i["device"],
+          });
+          op_traffic.push({
+            name: i["op_name"],
+            value: i["traffic"],
+            device: i["device"],
+          });
+          op_bandWidth.push({
+            name: i["op_name"],
+            value: i["bandWidth"],
+            device: i["device"],
+          });
         });
         dataLink.push({
           source: "device" + d.source,
@@ -355,8 +369,29 @@ export default {
       window.communicategraph.init(dataLink, dataNode);
     },
 
-    setSelectOpname(opname) {
-      this.$store.commit("setSelectOpname", opname.split("_"));
+    setSelectErrorOp(op) {
+      var opname = this.transformOpId2Name(op.device, op.name);
+      if (opname) this.$store.commit("setSelectErrorOp", opname);
+
+      // this.$store.commit("setSelectOpname", opname.split("_"));
+    },
+
+    transformOpId2Name(opDevice, opname) {
+      var opType = opname.split("_")[0];
+      var opId = Number(opname.split("_")[1]);
+      var resName = undefined;
+      if (opType == "allReduce") opType = "AllReduce";
+      else if (opType == "send") opType = "Send";
+      else if (opType == "receive") opType = "Receive";
+      else {
+        console.log("不能在opNameMap中找到类型", opType);
+        return resName;
+      }
+      var deviceOpMap = this.opNameMap[opDevice][opType];
+      console.log("对应算子名", deviceOpMap[opId - 1]);
+      if (deviceOpMap[opId - 1]) resName = deviceOpMap[opId - 1];
+      else console.log("不能在opNameMap中找到该算子", opDevice, opname);
+      return resName;
     },
 
     recieveOpnode(type, index) {
