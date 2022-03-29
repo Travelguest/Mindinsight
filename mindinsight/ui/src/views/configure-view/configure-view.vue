@@ -49,7 +49,6 @@
         :show-checked-strategy="SHOW_PARENT"
         search-placeholder="Please select"
         :dropdownStyle="{ height: '70px' }"
-        :maxTagCount="Number(1)"
         :treeDefaultExpandedKeys="expandedKeys"
         dropdownMatchSelectWidth
         open
