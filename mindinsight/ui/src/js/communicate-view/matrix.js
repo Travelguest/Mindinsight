@@ -142,18 +142,18 @@ Matrix.prototype.render = function (nodeValue = []) {
           // }
           return "#999999";
           // return "none";
-        })
-        .call(
-          d3.drag().on("drag", function (d) {
-            var matrix = matrix_list[d.id];
-            var mat = d3.selectAll(".matrix" + d.id);
-            matrix.x = d3.event.x - d.i * matrix.unitsize;
-            matrix.y = d3.event.y - d.j * matrix.unitsize;
-            matrix.render();
-            window.paths.updateData();
-            window.paths.render();
-          })
-        );
+        });
+      // .call(
+      //   d3.drag().on("drag", function (d) {
+      //     var matrix = matrix_list[d.id];
+      //     var mat = d3.selectAll(".matrix" + d.id);
+      //     matrix.x = d3.event.x - d.i * matrix.unitsize;
+      //     matrix.y = d3.event.y - d.j * matrix.unitsize;
+      //     matrix.render();
+      //     window.paths.updateData();
+      //     window.paths.render();
+      //   })
+      // );
 
       if (_this.adj_matrix[j][i].exist == true) {
         _this.locallayer

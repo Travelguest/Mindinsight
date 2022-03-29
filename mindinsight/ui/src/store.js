@@ -63,7 +63,7 @@ export default new Vuex.Store({
     communicateNodes: null, //LineChart依赖数据
     communicationData: null, //getCommunicationData的数据
 
-    selectCommunicateOpnode: ["", 0],
+    selectCommunicateOpnode: "", //parallel->拓扑，通信算子名
 
     selectOpname: "", //在通信图矩阵boxplot中选择异常节点的名字
 
