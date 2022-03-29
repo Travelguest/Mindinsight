@@ -275,8 +275,8 @@ Matrix.prototype.render = function (nodeValue = []) {
     }
   }
 
-  var xtrans = -this.locallayer.node().getBBox().x + 5;
-  var ytrans = -this.locallayer.node().getBBox().y + 5;
+  var xtrans = -this.locallayer.node().getBBox().x + 15;
+  var ytrans = -this.locallayer.node().getBBox().y + 15;
   var scale = (this.matrix_size - 10) / this.locallayer.node().getBBox().height;
 
   this.locallayer.attr(
@@ -296,14 +296,14 @@ Matrix.prototype.render = function (nodeValue = []) {
     labelWrapper
       .append("text")
       .text(nodename.replace("device", ""))
-      .attr("x", 0)
+      .attr("x", 5)
       .attr("y", y);
 
     labelWrapper
       .append("text")
       .text(nodename.replace("device", ""))
       .attr("x", y)
-      .attr("y", 10);
+      .attr("y", 15);
   });
 };
 

@@ -1,25 +1,27 @@
 <template>
   <div class="attribute-panel-container" id="attribute-collapse">
-    <LeeCollapse v-model="expname" @change="handleChange" >
-      <LeeCollapseItem title="Special operator statiatics" name="1" >
+    <LeeCollapse v-model="expname" @change="handleChange">
+      <LeeCollapseItem title="Special operator statiatics" name="1">
         <div class="graph-strategy-info">
-          <div class="second-title" style="font-size: 10px;">
+          <div class="second-title" style="font-size: 10px">
             {{ this.$t("profiling.hasStrategy") }}:
-            <span style="font-weight: normal;">{{
-              specialNodesMap["hasStrategy"] ? specialNodesMap["hasStrategy"] : 0
+            <span style="font-weight: normal">{{
+              specialNodesMap["hasStrategy"]
+                ? specialNodesMap["hasStrategy"]
+                : 0
             }}</span>
           </div>
-          <div class="second-title" style="font-size: 10px;">
+          <div class="second-title" style="font-size: 10px">
             {{ this.$t("profiling.redistribution") }}:
-            <span style="font-weight: normal;">{{
+            <span style="font-weight: normal">{{
               specialNodesMap["Redistribution"]
                 ? specialNodesMap["Redistribution"]
                 : 0
             }}</span>
           </div>
-          <div class="second-title" style="font-size: 10px;">
+          <div class="second-title" style="font-size: 10px">
             {{ this.$t("profiling.gradientAggregate") }}:
-            <span style="font-weight: normal;">{{
+            <span style="font-weight: normal">{{
               specialNodesMap["GradientAggregation"]
                 ? specialNodesMap["GradientAggregation"]
                 : 0
@@ -28,10 +30,7 @@
         </div>
       </LeeCollapseItem>
       <LeeCollapseItem title="Node attributes" name="2">
-        <div
-          class="attribute-tooltip"
-          v-if="selectedNode !== null"
-        >
+        <div class="attribute-tooltip" v-if="selectedNode !== null">
           <div
             class="second-title"
             v-html="`Node ID: ${selectedNode.id}`"
@@ -48,7 +47,7 @@
                   v-for="(scope, index) in selectedNode.scope.split('/')"
                   :key="scope + index"
                   v-html="`${scope}/`"
-                  style="word-break: break-all;"
+                  style="word-break: break-all"
                 ></div>
               </div>
             </div>
@@ -60,9 +59,7 @@
                   :key="input"
                   v-html="
                     `${input} - ${
-                      !isNaN(input)
-                        ? nodeMaps[nodeGroupIndex][input].type
-                        : ''
+                      !isNaN(input) ? nodeMaps[nodeGroupIndex][input].type : ''
                     }`
                   "
                 ></div>
@@ -87,7 +84,7 @@
           </div>
         </div>
       </LeeCollapseItem>
-    </LeeCollapse> 
+    </LeeCollapse>
   </div>
 </template>
 
@@ -97,7 +94,7 @@
   top: 50px;
   right: 10px;
   width: 300px;
-  background: #fafafa; 
+  background: #fafafa;
 }
 #attribute-collapse .lee-collapse-item .itemtab {
   background: #ececec;
@@ -111,7 +108,7 @@
 #attribute-collapse .lee-collapse-item .itemcontentw {
   padding: 0 10px;
   border: none;
-  max-height: 300px;
+  max-height: 290px;
   overflow-y: scroll;
 }
 #attribute-collapse .lee-collapse-item:first-child .itemcontentw {
@@ -134,12 +131,11 @@
 .graph-strategy-info {
   padding-top: 5px;
 }
-
 </style>
 
 <script>
-import {LeeCollapse,LeeCollapseItem} from 'leevueplugin';
-import { getSpecialNodesMap } from '@/js/profile-graph/build-graph.js';
+import { LeeCollapse, LeeCollapseItem } from "leevueplugin";
+import { getSpecialNodesMap } from "@/js/profile-graph/build-graph.js";
 
 export default {
   components: {
@@ -148,20 +144,20 @@ export default {
   },
   data() {
     return {
-        expname: ['1'],
-        selectedNode: null,
-        nodeMaps: [],
-        nodeGroupIndex: '',
-        specialNodesMap: {},
-      };
+      expname: ["1"],
+      selectedNode: null,
+      nodeMaps: [],
+      nodeGroupIndex: "",
+      specialNodesMap: {},
+    };
   },
   watch: {
     "$store.state.selectedGraphNode": function (val) {
       this.selectedNode = val;
       this.nodeGroupIndex = Math.floor((this.selectedNode.y + 200) / 500);
-      this.expname = ['1','2'];
+      this.expname = ["1", "2"];
       // console.log(this.selectedNode)
-      // console.log(getSpecialNodesMap()) 
+      // console.log(getSpecialNodesMap())
     },
     "$store.state.nodeMaps": function (val) {
       this.nodeMaps = val;
@@ -176,5 +172,5 @@ export default {
       return getSpecialNodesMap();
     },
   },
-}
+};
 </script>

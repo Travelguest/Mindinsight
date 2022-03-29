@@ -37,7 +37,15 @@ Lasso.prototype.bind = function () {
       });
       // console.log(newNodes);
       if (Object.keys(newNodes).length != 0) {
+        if (Object.keys(newNodes).length < 3) {
+          window.communicategraph.setMatrixSize(
+            Object.keys(newNodes).length * 60
+          );
+        } else {
+          window.communicategraph.setMatrixSize(0);
+        }
         var m = new Matrix();
+
         window.communicategraph.renderMatrix(newNodes);
         m.create(Object.keys(newNodes));
       } else {

@@ -23,6 +23,15 @@ export function Graph(w, h, father) {
   this.matrix_size = w * 0.5;
   this.father = father;
 }
+
+Graph.prototype.setMatrixSize = function (newsize) {
+  if (newsize != 0) {
+    this.matrix_size = newsize;
+  } else {
+    this.matrix_size = this.w * 0.5;
+  }
+};
+
 Graph.prototype.init = function (links, nodes) {
   this.nodes = nodes;
   this.links = links;
@@ -73,11 +82,25 @@ Graph.prototype.renderNet = function () {
         })
     )
     .force("charge", d3.forceManyBody())
-    .force("center", d3.forceCenter(this.w / 2, this.h / 2))
-    .force("x", d3.forceX(this.w))
-    .force("y", d3.forceY(this.h));
+    .force("center", d3.forceCenter(this.w / 2, this.h / 2));
+  // .force("x", d3.forceX(this.w))
+  // .force("y", d3.forceY(this.h));
 
   simulation.nodes(forceNodes).on("tick", (d) => {
+    forceNodes.forEach((n) => {
+      if (n.x < 50) {
+        n.x = 50;
+      }
+      if (n.x > this.w - 50) {
+        n.x = this.w - 50;
+      }
+      if (n.y < 50) {
+        n.y = 50;
+      }
+      if (n.y > this.h - 20) {
+        n.y = this.h - 20;
+      }
+    });
     handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
   });
   simulation.force("link").links(forceLinks);
@@ -87,7 +110,9 @@ Graph.prototype.renderNet = function () {
     network,
     this.min_ratio,
     this.max_ratio,
-    simulation
+    simulation,
+    this.w,
+    this.h
   );
   var label = initLabels(forceNodes, network);
 
@@ -135,8 +160,9 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
       nodeBottom.fy = this.matrix_size;
       newNodes.push(nodeBottom);
       nodeRight.id = copyNode.id + "-right";
-      nodeRight.fx = this.matrix_size;
-      nodeRight.fy = (this.matrix_size / matrixNodeNum) * (index + 0.5);
+      nodeRight.fx = this.matrix_size + 5;
+      nodeRight.fy =
+        5 + ((this.matrix_size - 5) / matrixNodeNum) * (index + 0.5);
       newNodes.push(nodeRight);
     }
   });
@@ -176,15 +202,27 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
           return d.id;
         })
         .distance(function (d) {
-          return 20;
+          return 120;
         })
     )
     .force("charge", d3.forceManyBody())
-    .force("center", d3.forceCenter(this.w * 0.75, this.h / 2))
-    .force("x", d3.forceX(this.w * 0.5))
-    .force("y", d3.forceY(this.h * 0.9));
+    .force("center", d3.forceCenter(this.w * 0.5, this.h / 2));
 
   simulation.nodes(newNodes).on("tick", (d) => {
+    newNodes.forEach((n) => {
+      if (n.x < 50) {
+        n.x = 50;
+      }
+      if (n.x > this.w - 50) {
+        n.x = this.w - 50;
+      }
+      if (n.y < 50) {
+        n.y = 50;
+      }
+      if (n.y > this.h - 20) {
+        n.y = this.h - 20;
+      }
+    });
     handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
   });
   // .on("end", (d) => {
@@ -211,7 +249,9 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
     this.min_ratio,
     this.max_ratio,
     simulation,
-    true
+    true,
+    this.w,
+    this.h
   );
   var label = initLabels(newNodes, network);
   window.lasso = new Lasso();
@@ -221,14 +261,18 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
 function handleTick(node, link, label, w, h) {
   // console.log("tick");
   link.attr("d", function (d) {
-    var x1 = Math.min(d.source.x, w),
-      y1 = Math.min(d.source.y, h),
-      x2 = Math.min(d.target.x, w),
-      y2 = Math.min(d.target.y, h);
-    x1 = Math.max(0, x1);
-    x2 = Math.max(0, x2);
-    y1 = Math.max(0, y1);
-    y2 = Math.max(0, y2);
+    var x1 = d.source.x,
+      x2 = d.target.x,
+      y1 = d.source.y,
+      y2 = d.target.y;
+    // var x1 = Math.min(d.source.x, w),
+    //   y1 = Math.min(d.source.y, h),
+    //   x2 = Math.min(d.target.x, w),
+    //   y2 = Math.min(d.target.y, h);
+    // x1 = Math.max(20, x1);
+    // x2 = Math.max(20, x2);
+    // y1 = Math.max(20, y1);
+    // y2 = Math.max(20, y2);
 
     var dx = x2 - x1,
       dy = y2 - y1,
@@ -274,23 +318,31 @@ function handleTick(node, link, label, w, h) {
   });
   label
     .attr("x", function (d) {
-      return Math.min(d.x, w) + 10;
+      // var x = Math.min(d.x, w);
+      // x = Math.max(20, x);
+      return d.x + 10;
     })
     .attr("y", function (d) {
-      return Math.min(d.y, h) + 3;
+      // var y = Math.min(d.y, w);
+      // y = Math.max(20, y);
+      return d.y + 3;
     });
   node
     .attr("cx", function (d) {
+      // var x = Math.min(d.x, w);
+      // x = Math.max(20, x);
       // window.paths.data.forEach(function (dd) {
       //   if (dd.force_id == d.id) {
       //     dd.pos_end.x = d.x;
       //     dd.pos_end.y = d.y;
       //   }
       // });
-      return Math.min(d.x, w);
+      return d.x;
     })
     .attr("cy", function (d) {
-      return Math.min(d.y, h);
+      // var y = Math.min(d.y, w);
+      // y = Math.max(20, y);
+      return d.y;
     });
 }
 
@@ -324,7 +376,9 @@ function initNodes(
   minR,
   maxR,
   simulation,
-  draggable = true
+  draggable = true,
+  w,
+  h
 ) {
   network.select(".nodes").remove();
 
@@ -415,12 +469,12 @@ function initLinks(linksData, network) {
     .attr("pointer-events", "all")
     .style("cursor", "pointer")
     .on("mousedown", (d) => {
-      let id1 = d.source.id;
-      let id2 = d.target.id;
+      let id1 = d.source.id.split("-")[0];
+      let id2 = d.target.id.split("-")[0];
       var newNodes = {};
       newNodes[id1] = true;
       newNodes[id2] = true;
-
+      window.communicategraph.setMatrixSize(2 * 60);
       var m = new Matrix();
       var nodeList = Object.keys(newNodes).sort(
         (a, b) =>
@@ -456,7 +510,6 @@ Graph.prototype.showOpNode = function (nodeData) {
     });
   });
 
-  var m = new Matrix();
   var nodeList = Object.keys(matrixNodes).sort(
     (a, b) => Number(a.replace("device", "")) - Number(b.replace("device", ""))
   );
@@ -464,7 +517,13 @@ Graph.prototype.showOpNode = function (nodeData) {
   nodeList.forEach((n) => {
     matrixNodes[n] = true;
   });
+  if (Object.keys(matrixNodes).length < 3) {
+    window.communicategraph.setMatrixSize(Object.keys(matrixNodes).length * 60);
+  } else {
+    window.communicategraph.setMatrixSize(0);
+  }
   window.communicategraph.renderMatrix(matrixNodes);
+  var m = new Matrix();
   m.create(Object.keys(matrixNodes), false, nodeValue);
 };
 

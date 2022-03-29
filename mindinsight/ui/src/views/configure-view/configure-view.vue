@@ -37,95 +37,81 @@
         <a-select-option value="pangu_16p_0115">pangu_16p_0115</a-select-option>
       </a-select>
     </div>
-    <div class="scope-search">
-      <a-tree-select
-        ref="configure-select"
-        class="configure-select"
-        v-model="selectNamespaces"
-        size="small"
-        style="width: 80%; aria-expanded: true"
-        :tree-data="showTreeData"
-        tree-checkable
-        :show-checked-strategy="SHOW_PARENT"
-        search-placeholder="Please select"
-        :dropdownStyle="{ height: '70px' }"
-        :treeDefaultExpandedKeys="expandedKeys"
-        dropdownMatchSelectWidth
-        open
-        @change="handleTreeChange"
-      >
-        <template slot="title" slot-scope="item">
-          <span>
-            <svg
-              viewBox="0 0 15 10"
-              width="15"
-              height="10"
-              v-if="selectNamespaces.includes(item.key)"
-            >
-              <rect
-                x="0"
-                y="0"
-                width="15"
-                height="10"
-                rx="3"
-                ry="3"
-                :fill="haloColorScale(item.key)"
-              ></rect>
-            </svg>
-            {{ item.titleText }}
-          </span>
-        </template>
-      </a-tree-select>
-    </div>
-    <div class="edge-config">
-      <svg style="position: absolute; top: 0" width="100%" height="1px">
-        <line
-          x1="0"
-          y1="0"
-          x2="90%"
-          y2="0"
-          stroke="#ccc"
-          stroke-width="1"
-          stroke-dasharray="4"
-          stroke-dashoffset="22"
-        ></line>
-      </svg>
-      <div class="config-sub-title">Hidden Edge</div>
-      <div class="special-edge-checkbox">
-        <el-checkbox-group v-model="showSpecialEdgeTypes">
-          <el-checkbox
-            v-for="(specialEdgeType, index) in specialEdgeTypes"
-            :key="index"
-            :label="specialEdgeType"
-            style="display: block; height: 20px"
+    <a-collapse class="configure-collapse" v-model="activeKey">
+      <a-collapse-panel key="1" header="Namespace">
+        <div class="scope-search-wrap">
+          <a-tree-select
+            ref="configure-select"
+            class="configure-select"
+            v-model="selectNamespaces"
+            size="small"
+            style="width: 100%; aria-expanded: true"
+            :tree-data="showTreeData"
+            tree-checkable
+            :show-checked-strategy="SHOW_PARENT"
+            search-placeholder="Please select"
+            :dropdownStyle="{ height: '70px', top: '150px!important' }"
+            :treeDefaultExpandedKeys="expandedKeys"
+            dropdownMatchSelectWidth
+            :getPopupContainer="
+              (triggerNode) => {
+                return triggerNode || document.body;
+              }
+            "
+            open
+            @change="handleTreeChange"
           >
-          </el-checkbox>
-        </el-checkbox-group>
-      </div>
-    </div>
-    <div class="stage-panel">
-      <svg style="position: absolute; top: 0" width="100%" height="1px">
-        <line
-          x1="0"
-          y1="0"
-          x2="90%"
-          y2="0"
-          stroke="#ccc"
-          stroke-width="1"
-          stroke-dasharray="4"
-          stroke-dashoffset="22"
-        ></line>
-      </svg>
-      <div class="stage-panel-sub-title">Stage</div>
-      <PipelineStageGraph />
-    </div>
+            <template slot="title" slot-scope="item">
+              <span>
+                <svg
+                  viewBox="0 0 15 10"
+                  width="15"
+                  height="10"
+                  v-if="selectNamespaces.includes(item.key)"
+                >
+                  <rect
+                    x="0"
+                    y="0"
+                    width="15"
+                    height="10"
+                    rx="3"
+                    ry="3"
+                    :fill="haloColorScale(item.key)"
+                  ></rect>
+                </svg>
+                {{ item.titleText }}
+              </span>
+            </template>
+          </a-tree-select>
+        </div>
+        <!-- </div> -->
+      </a-collapse-panel>
+      <a-collapse-panel key="2" header="Hidden Edge">
+        <div class="edge-config">
+          <div class="special-edge-checkbox">
+            <el-checkbox-group v-model="showSpecialEdgeTypes">
+              <el-checkbox
+                v-for="(specialEdgeType, index) in specialEdgeTypes"
+                :key="index"
+                :label="specialEdgeType"
+                style="display: block; height: 20px"
+              >
+              </el-checkbox>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </a-collapse-panel>
+      <a-collapse-panel key="3" header="Stage" :forceRender="true"
+        ><div class="stage-panel"><PipelineStageGraph /></div
+      ></a-collapse-panel>
+    </a-collapse>
   </div>
 </template>
 
 <script>
 import * as d3 from "d3";
 import { getTreeData, levelOrder } from "@/js/profile-graph/build-graph.js";
-import { TreeSelect, Select, Icon } from "ant-design-vue";
+import { TreeSelect, Select, Icon, Collapse } from "ant-design-vue";
 import PipelineStageGraph from "./PiplineStageGraph.vue";
 import RequestService from "@/services/request-service";
 import * as _ from "lodash";
@@ -138,6 +124,8 @@ export default {
     "a-icon": Icon,
     "a-select": Select,
     "a-select-option": Select.Option,
+    "a-collapse": Collapse,
+    "a-collapse-panel": Collapse.Panel,
   },
 
   data() {
@@ -152,6 +140,7 @@ export default {
       expandedKeys: [],
       dataSource: "",
       nameScopeFromMarey: [],
+      activeKey: ["1", "3"],
     };
   },
 
@@ -165,6 +154,7 @@ export default {
   },
 
   watch: {
+    activeKey(key) {},
     "$store.state.profileSpecialEdgeTypes": function (val) {
       this.specialEdgeTypes = val;
     },
@@ -337,10 +327,14 @@ export default {
   margin-right: 10px;
 }
 .scope-search {
-  position: relative;
+  /* position: relative;
   margin-top: 10px;
-  height: 100px;
+  height: 100px; */
   text-align: center;
+}
+
+.scope-search-wrap {
+  height: 100px;
 }
 /* .scope-tree {
   height: 230px;
@@ -360,9 +354,9 @@ export default {
   /* flex-grow: 1; */
 }
 .edge-config {
-  position: relative;
+  /* position: relative;
   margin-left: 32px;
-  margin-top: 10px;
+  margin-top: 10px; */
   height: 160px;
 }
 .config-sub-title {
@@ -379,9 +373,10 @@ export default {
   text-align: left;
 }
 .stage-panel {
-  position: relative;
-  height: 150px;
-  margin-top: 13px;
+  /* position: relative; */
+  height: 170px;
+  width: 100%;
+  /* margin-top: 13px; */
   /* flex-grow: 1; */
 }
 .ant-select-open .ant-select-selection {
@@ -389,6 +384,7 @@ export default {
 }
 .ant-select-dropdown {
   /* border-shadow: */
+
   box-shadow: 0 0 !important;
 }
 /* 修改滚动轴样式 */
@@ -410,4 +406,8 @@ export default {
 .ant-select-dropdown::-webkit-scrollbar-corner {
   background: #179a16;
 }
+
+/* .namespace-dropdown {
+
+} */
 </style>
