@@ -6,11 +6,11 @@
         <communication-view-graph />
       </div>
       <div class="right">
-        <svg style="position: absolute" width="1px" height="100%">
+        <svg style="position: absolute; left: 0" width="3px" height="100%">
           <line
-            x1="0"
+            x1="1"
             y1="2%"
-            x2="0"
+            x2="1"
             y2="98%"
             stroke="#ccc"
             stroke-width="1"
@@ -38,6 +38,7 @@
               :timeLineData="timeLineData"
               :FLOPsData="FLOPsData"
               :MemoryDataProps="MemoryData"
+              :deviceToStage="deviceToStage"
             />
           </div>
         </div>
@@ -310,14 +311,37 @@ export default {
   width: 100%;
 }
 .performance-view-container .top .right .view {
+  height: 313px;
   flex-grow: 1;
   display: flex;
   flex-direction: row;
+  overflow-y: scroll;
+}
+/* 修改滚动轴样式 */
+.performance-view-container .top .right .view::-webkit-scrollbar {
+  width: 8px;
+}
+.performance-view-container .top .right .view::-webkit-scrollbar-track {
+  background: rgb(239, 239, 239);
+  border-radius: 2px;
+}
+.performance-view-container .top .right .view::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 10px;
+}
+.performance-view-container .top .right .view::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+.performance-view-container .top .right .view::-webkit-scrollbar-corner {
+  background: #179a16;
 }
 .performance-view-container .top .right .view .stage-tree {
+  min-height: 101%;
+  width: 250px;
   flex-basis: 250px;
 }
 .performance-view-container .top .right .view .marey-graph {
+  min-height: 101%;
   flex: 1;
 }
 .performance-view-container .bottom {

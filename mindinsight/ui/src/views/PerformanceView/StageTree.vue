@@ -139,6 +139,11 @@ export default {
     deviceToStage: Map,
   },
   watch: {
+    stageDeviceArr: function (newVal, oldVal) {
+      if (oldVal.length) {
+        this.height += (newVal.length - oldVal.length) * 20;
+      }
+    },
     stageDeviceRelationship: function () {
       this.treeLineProcessing();
       this.FLOPMapData = null;
@@ -267,6 +272,7 @@ export default {
         maxFLOPS = Math.max(maxFLOPS, FLOPS);
         maxFLOPs = Math.max(maxFLOPs, FLOPs);
       });
+      // console.log("stageData", stageData);
       deviceName.forEach((device) => {
         const { FLOPS, FLOPs, abnomalContent, isAnomaly } =
           this.FLOPsData[device].summary || {};
@@ -299,7 +305,7 @@ export default {
       //3.加入stage
       stageName.forEach((stage) => {
         const { sumFLOPS, sumFLOPs, cnt, isAnomaly, abnomalContent } =
-          stageData[stage];
+          stageData[stage] || {};
         FLOPMapData.push({
           x: "FLOPS",
           y: stage,
@@ -322,8 +328,12 @@ export default {
           });
         }
       });
+
+      // console.log("closeCircleData", closeCircleData);
+      // console.log("FLOPMapData", FLOPMapData);
       this.FLOPMapData = FLOPMapData;
       this.closeCircleData = closeCircleData;
+
       // this.valueFLOPS = valueFLOPS;
       // this.valueFLOPS = valueFLOPS;
     },
