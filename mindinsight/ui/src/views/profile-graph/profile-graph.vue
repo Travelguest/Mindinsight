@@ -177,7 +177,7 @@
                   </g>
                 </g>
 
-                <!-- <g id="graph-extra-edge-container">
+                <g id="graph-extra-edge-container">
                   <g
                     v-for="(value, key) in extraEdges"
                     :key="'host_extra_edge' + key"
@@ -191,7 +191,7 @@
                       :y2="edge[3]"
                     ></line>
                   </g>
-                </g> -->
+                </g>
 
                 <g id="graph-hovernode-edge-container">
                   <line
@@ -227,7 +227,7 @@
                     ></text>
                   </g>
                   <g
-                    v-for="(opNodesGroup, groupIndex) in opNodes"
+                    v-for="(opNodesGroup, groupIndex) in opNodesShow"
                     :key="'host_opNode' + groupIndex"
                   >
                     <g
@@ -345,7 +345,7 @@
                   :y="bgdRectBlocks[0].y + 250 * (2 * index + 1)"
                   style="font-size: 40; font-weight: bold"
                 >
-                  Device {{ index + 1 }}
+                  Stage {{ index }}
                 </text>
                 <rect
                   v-for="(bgdRectBlock, index) in bgdRectBlocks"
@@ -556,6 +556,7 @@ import { extractVisNodeAndEdge } from "@/js/profile-graph/graph-process.js";
 import { TreeSelect } from "ant-design-vue";
 import RequestService from "@/services/request-service";
 import { Canvas } from "@/js/profile-graph/canvas.js";
+import * as _ from "lodash";
 const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
 export default {
@@ -570,8 +571,10 @@ export default {
       dependNodes: {},
       bgdRectBlocks: [],
       opNodes: [],
+      opNodesShow: [],
       idToIndexs: [],
       normalEdges: [],
+      normalEdgesShow: [],
       specialEdges: [],
       specialEdgeTypes: [],
       showSpecialEdgeTypes: [],
@@ -590,6 +593,8 @@ export default {
       selectHighlightNodes: [],
 
       oldHaloInfo: [],
+
+      boxTransform: [0, 0],
     };
   },
 
@@ -695,9 +700,67 @@ export default {
   },
 
   methods: {
+    setBoxTransform(val) {
+      this.boxTransform = val;
+    },
+
+    viewboxChanged(viewbox) {
+      console.log("viewbox改变了", viewbox);
+      var nodesShow = [];
+
+      var xLeft = viewbox[0] + this.boxTransform[0],
+        xRight = viewbox[0] + viewbox[2] + this.boxTransform[0];
+      this.opNodes.forEach((nodeGroup) => {
+        //   // console.log(nodeGroup);
+        var leftIndex = this.lower_bound(nodeGroup, xLeft);
+        var rightIndex = this.upper_bound(nodeGroup, xRight);
+        // console.log(nodeGroup, rightIndex, xRight, leftIndex, xLeft);
+        nodesShow.push(nodeGroup.slice(leftIndex, rightIndex));
+      });
+      this.opNodesShow = nodesShow;
+      // console.log(this.opNodesShow);
+
+      // console.log(this.normalEdges);
+      // this.normalEdgesShow = this.normalEdges;
+    },
+    lower_bound(nums, target) {
+      var low = 0,
+        high = nums.length - 1,
+        res = 0;
+      while (low <= high) {
+        var mid = Math.floor((low + high) / 2);
+        if (nums[mid].x <= target) {
+          res = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      }
+      return res;
+    },
+    upper_bound(nums, target) {
+      // console.log(nums[0]);
+      if (nums[nums.length - 1].x <= target) {
+        return nums.length - 1;
+      }
+      var left = 0,
+        right = nums.length;
+      var result = 0;
+      while (left < right) {
+        var mid = Math.floor((left + right) / 2);
+        if (nums[mid].x <= target) {
+          left = mid + 1;
+        } else {
+          right = mid;
+          result = mid;
+        }
+      }
+      return result;
+    },
+
     initMiniMap() {
       // console.log("initMiniMap");
-      this.canvas = new Canvas();
+      this.canvas = new Canvas(this);
       this.canvas.create();
     },
 
