@@ -440,7 +440,7 @@ export default {
             let [curLeftTop, curLeftBottom, curRightBottom, curRightTop] =
               curRectDataArr;
             // 2.不是同一device：不合并
-            const threshold = this.innerWidth * 0.001; // 3.间隔超过 0.1%不合并
+            const threshold = this.innerWidth * 0.01; // 3.间隔超过 0.1%不合并
             if (
               preLeftTop[1] !== curLeftTop[1] ||
               preLeftBottom[1] !== curLeftBottom[1] ||
@@ -471,7 +471,7 @@ export default {
             }
           }
         }
-        // console.log("合并后", filterRes.length);
+        // console.log("stage合并后", filterRes.length);
         filterRes.push(...priorityQueue);
         this.stagePolygonData = filterRes;
       } else {
@@ -649,7 +649,7 @@ export default {
             // 2.不是同一device：不合并
             // 问题：依次比较可能是同一个图形的不同部分，y肯定不同——>按y排序
 
-            const threshold = this.innerWidth * 0.001; // 3.间隔超过 0.1%不合并
+            const threshold = this.innerWidth * 0.01; // 3.间隔超过 0.1%不合并
 
             if (
               preLeftTop[1] !== curLeftTop[1] ||

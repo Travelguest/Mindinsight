@@ -89,6 +89,9 @@ export default {
   mounted() {
     this.renderInit();
   },
+  beforeDestroy() {
+    this.lineChart.clear();
+  },
   computed: {
     communicateNodes() {
       return this.$store.state.communicateNodes;
