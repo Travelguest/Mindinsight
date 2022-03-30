@@ -97,7 +97,7 @@
         key="2"
         header="Hidden Edge"
         :forceRender="true"
-        :style="customeStyle"
+        :style="customeStyle1"
       >
         <div class="edge-config">
           <div class="special-edge-checkbox">
@@ -117,7 +117,7 @@
         key="3"
         header="Stage"
         :forceRender="true"
-        :style="customeStyle"
+        :style="customeStyle1"
         ><div class="stage-panel"><PipelineStageGraph /></div
       ></a-collapse-panel>
     </a-collapse>
@@ -164,7 +164,9 @@ export default {
       height0: 0,
       titleHeight: 0,
       lastKey: ["1", "2", "3"],
-      customeStyle: "background:#ffffff;border-radius:0px;",
+      customeStyle: "background:#ffffff;border-radius:0px;border:none",
+      customeStyle1:
+        "background:#ffffff;border-radius:0px;border-top: 1px solid #ccc",
     };
   },
 
@@ -290,6 +292,7 @@ export default {
       // console.log(this.$refs["configure-select"]);
     },
     selectNewScopeFromMarey(val) {
+      console.log("收到marey发来的namespace", val);
       if (this.nameScopeFromMarey.length > 0) {
         this.nameScopeFromMarey.forEach((namescope) => {
           var index = this.selectNamespaces.indexOf(namescope);
@@ -491,6 +494,13 @@ export default {
 }
 .ant-collapse-content {
   border-top: none !important;
+}
+.ant-collapse > .ant-collapse-item {
+  border-bottom: none !important;
+  /* !important; */
+}
+.ant-collapse {
+  border: none !important;
 }
 
 /* .namespace-dropdown {

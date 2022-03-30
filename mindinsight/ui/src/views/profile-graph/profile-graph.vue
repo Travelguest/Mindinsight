@@ -646,7 +646,11 @@ export default {
 
     "$store.state.selectErrorOp": function (val) {
       // console.log("profile收到异常节点", val);
-      this.onRecieveErrorOp(val);
+      if (val != "") {
+        this.onRecieveErrorOp(val);
+        this.$store.commit("setSelectErrorOp", "");
+        // console.log("profile收到异常节点", val);
+      }
     },
     "$store.state.pipelineOpnodeId": function (val) {
       this.onRevievePiplineId(val);
