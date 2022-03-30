@@ -258,7 +258,7 @@ Matrix.prototype.render = function (nodeValue = []) {
   // console.log(this.linkSelect, this.nodes);
   for (var i in this.nodes) {
     for (var j in this.nodes) {
-      console.log(this.nodes[j], this.nodes[i], this.linkSelect);
+      // console.log(this.nodes[j], this.nodes[i], this.linkSelect);
       if (
         (this.linkSelect != null &&
           this.nodes[j] == this.linkSelect[0] &&
@@ -280,13 +280,13 @@ Matrix.prototype.render = function (nodeValue = []) {
     }
   }
 
-  var xtrans = -this.locallayer.node().getBBox().x + 15;
-  var ytrans = -this.locallayer.node().getBBox().y + 15;
-  var scale = (this.matrix_size - 10) / this.locallayer.node().getBBox().height;
-
+  var xtrans = -this.locallayer.node().getBBox().x + 20;
+  var ytrans = -this.locallayer.node().getBBox().y + 20;
+  // var scale = (this.matrix_size - 10) / this.locallayer.node().getBBox().height;
+  var scale = (this.matrix_size - 20) / (this.unitsize * this.nodes.length);
   this.locallayer.attr(
     "transform",
-    "scale(" + scale + ")" + "translate(" + xtrans + "," + ytrans + ")"
+    "translate(" + xtrans + "," + ytrans + ")" + "scale(" + scale + ")"
   );
 
   d3.select("#mainsvg > g.matrix-lable").remove();
@@ -297,7 +297,7 @@ Matrix.prototype.render = function (nodeValue = []) {
     .attr("class", "matrix-lable");
   // console.log(this.matrix_size / this.nodes.length);
   this.nodes.forEach((nodename, index) => {
-    var y = 10 + (index + 0.5) * (this.matrix_size / this.nodes.length);
+    var y = 20 + (index + 0.5) * ((this.matrix_size - 20) / this.nodes.length);
     labelWrapper
       .append("text")
       .text(nodename.replace("device", ""))

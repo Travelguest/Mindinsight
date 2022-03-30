@@ -208,40 +208,38 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
     .force("charge", d3.forceManyBody())
     .force("center", d3.forceCenter(this.w * 0.75, this.h / 2));
 
-  simulation
-    .nodes(newNodes)
-    .on("tick", (d) => {
-      newNodes.forEach((n) => {
-        if (n.x < 50) {
-          n.x = 50;
-        } else if (n.x > this.w - 50) {
-          n.x = this.w - 50;
-        }
-        if (n.y < 50) {
-          n.y = 50;
-        } else if (n.y > this.h - 20) {
-          n.y = this.h - 20;
-        }
-        if (
-          n.showable &&
-          n.x <= this.matrix_size + 10 &&
-          n.y <= this.matrix_size + 10
-        ) {
-          n.x = this.matrix_size + 10;
-          n.fx = this.matrix_size + 10;
-        }
-      });
-      handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
-    })
-    .on("end", (d) => {
-      newNodes.forEach((n) => {
-        if (n.x <= this.matrix_size && n.y < this.matrix_size) {
-          n.x = Math.min(this.matrix_size + n.x, this.w - 50);
-        }
-      });
-
-      handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
+  simulation.nodes(newNodes).on("tick", (d) => {
+    newNodes.forEach((n) => {
+      if (n.x < 50) {
+        n.x = 50;
+      } else if (n.x > this.w - 50) {
+        n.x = this.w - 50;
+      }
+      if (n.y < 50) {
+        n.y = 50;
+      } else if (n.y > this.h - 20) {
+        n.y = this.h - 20;
+      }
+      if (
+        n.showable &&
+        n.x <= this.matrix_size + 10 &&
+        n.y <= this.matrix_size + 10
+      ) {
+        n.x = this.matrix_size + 10;
+        n.fx = this.matrix_size + 10;
+      }
     });
+    handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
+  });
+  // .on("end", (d) => {
+  //   newNodes.forEach((n) => {
+  //     if (n.x <= this.matrix_size && n.y < this.matrix_size) {
+  //       n.x = Math.min(this.matrix_size + n.x, this.w - 50);
+  //     }
+  //   });
+
+  //   handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
+  // });
   // .on("end", (d) => {
   //   console.log("forceend");
   //   newNodes.forEach((n) => {

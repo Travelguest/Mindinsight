@@ -426,7 +426,7 @@ export default {
           this.communicateNodes[this.stepNum]
             .filter((d) => d.name == opInfo.device)
             .forEach((nodeData) => {
-              console.log(nodeData.opNodes);
+              // console.log(nodeData.opNodes);
               for (var i = 0; i < Object.keys(nodeData.opNodes).length; i++) {
                 if (
                   Object.keys(nodeData.opNodes)
@@ -454,8 +454,13 @@ export default {
               }
             });
         });
-        window.communicategraph.showOpNode(matrixOpData);
-        console.log(matrixOpData);
+        if (matrixOpData.length > 0) {
+          window.communicategraph.showOpNode(matrixOpData);
+        } else {
+          console.log("拓扑图中无该节点信息");
+        }
+
+        // console.log(matrixOpData);
       }
     },
   },
