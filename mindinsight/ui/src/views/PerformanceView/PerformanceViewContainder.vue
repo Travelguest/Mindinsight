@@ -29,6 +29,7 @@
               :FLOPsData="FLOPsData"
               :deviceToStage="deviceToStage"
               :MemoryData="MemoryData"
+              :closeCircleProps="closeCircleProps"
               @clickArrowIcon="handleClickArrowIcon"
             />
           </div>
@@ -119,6 +120,7 @@ export default {
       isStageExpand: new Map(), //是否展开判断数组
       stageDeviceRelationship: null,
       deviceToStage: null, //device - stage的映射
+      closeCircleProps: null,
     };
   },
   mounted() {
@@ -132,6 +134,8 @@ export default {
       RequestService.getOverviewTime()
         .then(({ data }) => {
           this.overViewData = data;
+
+          this.getCloseCircleProps();
         })
         .catch((err) => {
           console.error(err);
@@ -140,6 +144,23 @@ export default {
     getStepNumber(stepNumber) {
       this.$store.commit("setStepNum", stepNumber);
       this.getTimeLineData();
+      this.getCloseCircleProps();
+    },
+    getCloseCircleProps() {
+      if (!this.overViewData) return;
+      const closeCircleProps = [];
+      Object.keys(this.overViewData).forEach((device) => {
+        const curDeviceData = this.overViewData[device];
+        const cueStepData = curDeviceData[this.stepNumber - 1];
+        if (cueStepData.isAnomaly) {
+          const { abnormalContent } = cueStepData;
+          closeCircleProps.push({
+            device,
+            abnormalContent,
+          });
+        }
+      });
+      this.closeCircleProps = closeCircleProps;
     },
     getTimeLineData() {
       RequestService.getTimeLineData(this.stepNumber)

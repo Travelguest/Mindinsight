@@ -177,7 +177,7 @@
                   </g>
                 </g>
 
-                <g id="graph-extra-edge-container">
+                <!-- <g id="graph-extra-edge-container">
                   <g
                     v-for="(value, key) in extraEdges"
                     :key="'host_extra_edge' + key"
@@ -191,7 +191,7 @@
                       :y2="edge[3]"
                     ></line>
                   </g>
-                </g>
+                </g> -->
 
                 <g id="graph-hovernode-edge-container">
                   <line
@@ -1089,7 +1089,7 @@ export default {
           rx: (right - left) / 2 + 40,
           ry: (top - bottom) / 2 + 40,
           // r: Math.max(right - left, top - bottom) / 2 + 15,
-          n: aggreNodes.length,
+          n: aggreNodes[0].contain.length,
         });
       }
       this.$nextTick(() => {

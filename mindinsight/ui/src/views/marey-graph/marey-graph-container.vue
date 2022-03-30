@@ -29,7 +29,7 @@
       </svg>
     </div>
     <div class="performance-view">
-      <PerformanceView />
+      <!-- <PerformanceView /> -->
     </div>
   </div>
 </template>
