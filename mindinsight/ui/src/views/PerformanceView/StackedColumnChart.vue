@@ -251,7 +251,13 @@ export default {
       const [intervalObj, propagationObj, tailObj] = this.option.series;
       const curStep = this.stepNumber - 1; //下标从0开始
       this.option.title.text = `Current Step: ${this.stepNumber}`;
-      Object.keys(this.overViewData).forEach((device) => {
+      const devices = Object.keys(this.overViewData);
+      devices.sort((a, b) => {
+        const numA = parseInt(a.match(/\d+/g)[0], 10);
+        const numB = parseInt(b.match(/\d+/g)[0], 10);
+        return numA - numB;
+      });
+      devices.forEach((device) => {
         if (!this.isxAisData) {
           this.option?.xAxis?.data.push(
             parseInt(device.replace("device", ""), 10)
