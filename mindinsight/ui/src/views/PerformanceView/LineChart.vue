@@ -17,7 +17,7 @@
         y="1"
         width="25px"
         height="14px"
-        style="rx: 4px; fill: #CEAB93"
+        style="rx: 4px; fill: #ceab93"
       ></rect>
       <text x="37%" y="13" style="font-size: 13px; opacity: 0.7">
         Average communication time of devices
@@ -27,7 +27,7 @@
         y="1"
         width="25px"
         height="14px"
-        style="rx: 4px; fill: #AD8B73"
+        style="rx: 4px; fill: #ad8b73"
       ></rect>
       <text x="67%" y="13" style="font-size: 13px; opacity: 0.7">
         Average waiting time of devices
@@ -39,6 +39,7 @@
 
 <script>
 import * as echarts from "echarts/core";
+import * as _ from "lodash";
 import {
   TitleComponent,
   TooltipComponent,
@@ -131,8 +132,8 @@ export default {
           {
             type: "value",
             name: "Total training time(ms)",
-            minInterval: 5000000000,
-            maxInterval: 50000000000,
+            // minInterval: 5000000000,
+            // maxInterval: 50000000000,
             min: function (value) {
               return value.min - 20;
             },
@@ -210,10 +211,12 @@ export default {
     renderUpdate() {
       if (!this.option.series || this.option.series.length < 3) return;
       this.lineChart.setOption(this.option);
-      this.lineChart.on("click", (params) => {
+
+      const handleClickFn = (params) => {
         console.log("点击step", params);
         this.$emit("getStepNumber", parseInt(params.name, 10));
-      });
+      };
+      this.lineChart.on("click", _.debounce(handleClickFn, 150));
     },
     communicateNodesProcessing() {
       const communicationList = [];

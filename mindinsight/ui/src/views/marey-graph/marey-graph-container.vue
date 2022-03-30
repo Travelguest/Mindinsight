@@ -2,7 +2,7 @@
   <div class="parallel-page">
     <div class="strategy-view">
       <div class="view-header">
-        <div class="title">Parallel Strategy View</div>
+        <div class="title">Parallelism Strategy View</div>
         <LegendStrategy />
       </div>
       <profile-graph />
@@ -104,7 +104,7 @@ export default {
   align-items: center;
 }
 .view-header .title {
-  width: 200px;
+  width: 300px;
   font-size: 16px;
   font-weight: 500;
   margin-left: 32px;
