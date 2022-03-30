@@ -705,7 +705,7 @@ export default {
     },
 
     viewboxChanged(viewbox) {
-      console.log("viewbox改变了", viewbox);
+      // console.log("viewbox改变了", viewbox);
       var nodesShow = [];
 
       var xLeft = viewbox[0] + this.boxTransform[0],

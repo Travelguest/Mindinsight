@@ -141,7 +141,7 @@ Canvas.prototype.changeViewBox = function (newViewBox, changeMinimap) {
     .select("#profile-graph")
     .attr("viewBox", this.viewBox.join(" "));
   if (changeMinimap == true) {
-    this.father.viewboxChanged(viewBox);
+    this.father.viewboxChanged(this.viewBox);
     this.store.changeViewBox(this.viewBox);
   }
 };
