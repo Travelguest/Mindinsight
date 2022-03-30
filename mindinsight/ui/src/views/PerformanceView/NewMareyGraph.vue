@@ -351,15 +351,6 @@ export default {
       this.OperatorColor.set(SOP, "#bf73d6");
       this.OperatorColor.set(ROP, "#4192d3");
       this.OperatorColor.set(CCOP, "#e6882e");
-      // this.OperatorColor.set(InnerLayer, "#789395");
-      // this.OperatorColor.set(InnerLayer, "#789395");
-      // // this.OperatorColor.set(MiddleLayer, "#94B49F");
-      // // this.OperatorColor.set(OuterLayer, "#B4CFB0");
-      // this.OperatorColorOpacity.set(InnerLayer, "1");
-      // this.OperatorColorOpacity.set(MiddleLayer, "1");
-      // this.OperatorColorOpacity.set(OuterLayer, "1");
-      // this.OperatorColor.set(MiddleLayer, "red");
-      // this.OperatorColor.set(OuterLayer, "green");
     },
     stageMareyGraphRender(left = Number.MIN_VALUE, right = Number.MAX_VALUE) {
       if (!this.stageDisplayedData) {
@@ -386,16 +377,9 @@ export default {
             } ${this.xScale(x2)},${
               this.yScale(d.y) + this.offset
             } ${this.xScale(x2)},${this.yScale(d.y) - this.offset}`;
-            // let type = OuterLayer;
-            // if (j === 2 || j === 4) {
-            //   type = MiddleLayer;
-            // } else if (j === 3) {
-            //   type = InnerLayer;
-            // }
             const areaObj = {
               op,
               data: area,
-              // type,
               stage: d.y,
             };
             if (this.highLightOpSet && this.highLightOpSet.has(op)) {
@@ -406,9 +390,94 @@ export default {
           }
         }
       });
-      stagePolygonData.push(...priorityQueue);
-      this.stagePolygonData = stagePolygonData;
       // console.log("stagePolygonData", stagePolygonData);
+      // console.log("stage合并前", stagePolygonData.length);
+      if (stagePolygonData.length > 100) {
+        // 1.先按x排序
+        stagePolygonData.sort((objA, objB) => {
+          const xA = parseFloat(
+            objA.data.split(" ").map((item) => item.split(","))[0][0]
+          );
+          const xB = parseFloat(
+            objB.data.split(" ").map((item) => item.split(","))[0][0]
+          );
+          return xA - xB;
+        });
+
+        // 2.再按y排序
+        stagePolygonData.sort((objA, objB) => {
+          const yA = parseFloat(
+            objA.data.split(" ").map((item) => item.split(","))[0][1]
+          );
+          const yB = parseFloat(
+            objB.data.split(" ").map((item) => item.split(","))[0][1]
+          );
+          return yA - yB;
+        });
+
+        const filterRes = [stagePolygonData[0]]; //保存筛选结果
+        for (let i = 1; i < stagePolygonData.length; i++) {
+          const preRect = filterRes[filterRes.length - 1];
+          const curRect = stagePolygonData[i];
+          //1. 不同类别算子：不合并
+          if (
+            this.getOperatorType(preRect.op) !==
+            this.getOperatorType(curRect.op)
+          ) {
+            filterRes.push(stagePolygonData[i]);
+          } else {
+            let preRectDataArr = preRect.data.split(" ");
+            let curRectDataArr = curRect.data.split(" ");
+
+            preRectDataArr = preRectDataArr.map((item) =>
+              item.split(",").map((d) => parseFloat(d))
+            );
+            curRectDataArr = curRectDataArr.map((item) =>
+              item.split(",").map((d) => parseFloat(d))
+            );
+            let [preLeftTop, preLeftBottom, preRightBottom, preRightTop] =
+              preRectDataArr;
+            let [curLeftTop, curLeftBottom, curRightBottom, curRightTop] =
+              curRectDataArr;
+            // 2.不是同一device：不合并
+            const threshold = this.innerWidth * 0.001; // 3.间隔超过 0.1%不合并
+            if (
+              preLeftTop[1] !== curLeftTop[1] ||
+              preLeftBottom[1] !== curLeftBottom[1] ||
+              Math.max(
+                Math.abs(curLeftTop[0] - preRightTop[0]),
+                Math.abs(curLeftBottom[0] - preRightBottom[0])
+              ) > threshold
+            ) {
+              filterRes.push(stagePolygonData[i]);
+            } else {
+              preLeftTop[0] = Math.min(preLeftTop[0], curLeftTop[0]);
+              preLeftBottom[0] = Math.min(preLeftBottom[0], curLeftBottom[0]);
+              preRightBottom[0] = Math.max(
+                preRightBottom[0],
+                curRightBottom[0]
+              );
+              preRightTop[0] = Math.max(preRightTop[0], curRightTop[0]);
+              const data = [
+                preLeftTop,
+                preLeftBottom,
+                preRightBottom,
+                preRightTop,
+              ]
+                .map((item) => item.join(","))
+                .join(" ");
+
+              preRect.data = data;
+            }
+          }
+        }
+        // console.log("合并后", filterRes.length);
+        filterRes.push(...priorityQueue);
+        this.stagePolygonData = filterRes;
+      } else {
+        stagePolygonData.push(...priorityQueue);
+        this.stagePolygonData = stagePolygonData;
+      }
     },
     mareyGraphReRender(left = Number.MIN_VALUE, right = Number.MAX_VALUE) {
       if (!this.displayedData) {
@@ -525,7 +594,7 @@ export default {
         }
       });
 
-      // console.log("合并前", polygonData.length);
+      // console.log("marey合并前", polygonData.length);
       // console.log("polygonData1", polygonData);
 
       // 限制图形数量，超过就合并
@@ -612,7 +681,7 @@ export default {
             }
           }
         }
-        // console.log("合并后", filterRes.length);
+        // console.log("marey合并后", filterRes.length);
         // console.log("filterRes1", filterRes);
         filterRes.push(...priorityQueue);
         this.polygonData = filterRes;
@@ -808,14 +877,6 @@ export default {
       this.Memory.max = max;
     },
     initBrush() {
-      // const brush = d3
-      //   .brushX() // Add the brush feature using the d3.brush function
-      //   .extent([
-      //     [0, -this.offset],
-      //     [this.innerWidth, this.innerHeight - 4 * this.offset],
-      //   ]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
-      //   .on("end", this.updateChart);
-      // this.brush = brush;
       this.g.select(".brush").call(this.brush);
     },
     updateChart() {
