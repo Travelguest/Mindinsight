@@ -7,16 +7,19 @@
         transform: `translate3d(${hoveredNodeInfo.x}px, ${hoveredNodeInfo.y}px, 0px)`,
       }"
     >
-      <div>OpName: {{ hoveredNodeInfo.opName }}</div>
-      <div>Class: {{ hoveredNodeInfo.class }}</div>
+      <div>{{ hoveredNodeInfo.class }}</div>
+      <div>name: {{ hoveredNodeInfo.opName }}</div>
       <div v-show="!hoveredNodeInfo.isMareyGraph">
-        x: {{ hoveredNodeInfo.xValue }}
+        time: {{ hoveredNodeInfo.xValue }}
       </div>
       <div v-show="!hoveredNodeInfo.isMareyGraph">
-        y: {{ hoveredNodeInfo.yValue }}
+        {{ hoveredNodeInfo.type }}: {{ hoveredNodeInfo.yValue }}
       </div>
     </div>
     <div class="brush-switch">
+      <svg class="icon" aria-hidden="true" @click="handleClickReset">
+        <use xlink:href="#icon-huanyuan"></use>
+      </svg>
       <div>Whether to open the brush</div>
       <a-switch
         v-model="isOpenSwitch"
@@ -85,8 +88,8 @@
             class="stage-marey-graph-polygon"
             :key="`${stepNumber}-stage-${data.op}-${index}`"
             :points="data.data"
-            :fill="OperatorColor.get(data.type)"
-            :fill-opacity="OperatorColorOpacity.get(data.type)"
+            fill="#789395"
+            fill-opacity="0.8"
             :stroke="
               highLightOpSet && highLightOpSet.has(data.op) ? 'black' : ''
             "
@@ -99,26 +102,26 @@
         <!-- flops-chart -->
         <g class="flops-chart" clip-path="url(#clip)">
           <path
-            v-for="(d, i) in MFLOPsData.filter((_, index) =>
-              stageDeviceArr.includes(`device${index}`)
+            v-for="(d, i) in MFLOPsData.filter((arr, index) =>
+              stageDeviceArr.includes(arr[0].device)
             )"
             :key="`FLOPs-Chart-${i}`"
             :d="MFLOPsLinePath(d)"
             class="performance-cls-2"
-            @mousemove="onNodeMouseover($event, d)"
+            @mousemove="onNodeMouseover($event, d, 'FLOPs')"
             @mouseout="onNodeMouseout"
           />
         </g>
         <!--memory-chart  -->
         <g class="memory-chart" clip-path="url(#clip)">
           <path
-            v-for="(d, i) in MemoryData.filter((_, index) =>
-              stageDeviceArr.includes(`device${index}`)
+            v-for="(d, i) in MemoryData.filter((arr, index) =>
+              stageDeviceArr.includes(arr[0].device)
             )"
             :key="`Memory-Chart-${i}`"
             :d="MemoryLinePath(d)"
             class="performance-cls-3"
-            @mousemove="onNodeMouseover($event, d)"
+            @mousemove="onNodeMouseover($event, d, 'memory')"
             @mouseout="onNodeMouseout"
           />
         </g>
@@ -214,6 +217,8 @@ export default {
       if (minT === Infinity || maxT === -Infinity) {
         return;
       }
+
+      // console.log("errorOp", opName);
       //保存一个高亮集合
       this.highLightOpSet = new Set([opName]);
       this.reRenderChart(minT, maxT);
@@ -223,7 +228,7 @@ export default {
     return {
       svg: null,
       g: null,
-      margin: { top: 50, right: 50, bottom: 10, left: 20 },
+      margin: { top: 50, right: 50, bottom: 10, left: 0 },
       width: 1000,
       height: 200,
       offset: 8,
@@ -258,6 +263,7 @@ export default {
         class: "",
         xValue: 0,
         yValue: 0,
+        type: "",
       },
       // brush: null,
       OperatorColor: new Map(),
@@ -297,17 +303,12 @@ export default {
         .range([this.offset, -this.offset]);
     },
     MFLOPsLinePath() {
-      //MFLOPsLinePath(curDeviceMFIPsData)
-      return (
-        d3
-          .line()
-          // .curve(d3.curveCatmullRom)
-          .x((d) => this.xScale(d.x))
-          .y((d) => this.yScale(d.device) + this.MFLOPsScale(d.y))
-      );
+      return d3
+        .line()
+        .x((d) => this.xScale(d.x))
+        .y((d) => this.yScale(d.device) + this.MFLOPsScale(d.y));
     },
     MemoryLinePath() {
-      //MemoryLinePath(curDeviceMemoryData)
       return (
         d3
           .line()
@@ -350,12 +351,15 @@ export default {
       this.OperatorColor.set(SOP, "#bf73d6");
       this.OperatorColor.set(ROP, "#4192d3");
       this.OperatorColor.set(CCOP, "#e6882e");
-      this.OperatorColor.set(InnerLayer, "#789395");
-      this.OperatorColor.set(MiddleLayer, "#94B49F");
-      this.OperatorColor.set(OuterLayer, "#B4CFB0");
-      this.OperatorColorOpacity.set(InnerLayer, "1");
-      this.OperatorColorOpacity.set(MiddleLayer, "#94B49F");
-      this.OperatorColorOpacity.set(OuterLayer, "#B4CFB0");
+      // this.OperatorColor.set(InnerLayer, "#789395");
+      // this.OperatorColor.set(InnerLayer, "#789395");
+      // // this.OperatorColor.set(MiddleLayer, "#94B49F");
+      // // this.OperatorColor.set(OuterLayer, "#B4CFB0");
+      // this.OperatorColorOpacity.set(InnerLayer, "1");
+      // this.OperatorColorOpacity.set(MiddleLayer, "1");
+      // this.OperatorColorOpacity.set(OuterLayer, "1");
+      // this.OperatorColor.set(MiddleLayer, "red");
+      // this.OperatorColor.set(OuterLayer, "green");
     },
     stageMareyGraphRender(left = Number.MIN_VALUE, right = Number.MAX_VALUE) {
       if (!this.stageDisplayedData) {
@@ -382,16 +386,16 @@ export default {
             } ${this.xScale(x2)},${
               this.yScale(d.y) + this.offset
             } ${this.xScale(x2)},${this.yScale(d.y) - this.offset}`;
-            let type = OuterLayer;
-            if (j === 2 || j === 4) {
-              type = MiddleLayer;
-            } else if (j === 3) {
-              type = InnerLayer;
-            }
+            // let type = OuterLayer;
+            // if (j === 2 || j === 4) {
+            //   type = MiddleLayer;
+            // } else if (j === 3) {
+            //   type = InnerLayer;
+            // }
             const areaObj = {
               op,
               data: area,
-              type,
+              // type,
               stage: d.y,
             };
             if (this.highLightOpSet && this.highLightOpSet.has(op)) {
@@ -687,16 +691,18 @@ export default {
           if (!op.startsWith("Stream") && !op.startsWith("AtomicAddrClean")) {
             if (!stageDisplayedData[op]) stageDisplayedData[op] = [];
             const curOp = curStageData[op];
-            minT = Math.min(curOp.st_min, minT);
-            maxT = Math.max(curOp.ed_max, maxT);
+            // minT = Math.min(curOp.st_min, minT);
+            // maxT = Math.max(curOp.ed_max, maxT);
+            minT = Math.min(curOp.st_avg, minT);
+            maxT = Math.max(curOp.ed_avg, maxT);
             stageDisplayedData[op].push({
               x: [
-                curOp.st_min,
+                // curOp.st_min,
                 curOp.st_avg,
-                curOp.st_max,
-                curOp.ed_min,
+                // curOp.st_max,
+                // curOp.ed_min,
                 curOp.ed_avg,
-                curOp.ed_max,
+                // curOp.ed_max,
               ],
               y: stageName,
             });
@@ -740,10 +746,11 @@ export default {
         arr.forEach((opInfo) => {
           const opName = opInfo["op_full_name"].split("/").pop();
           const opData = this.data[device][opName];
-          const x = opData ? (opData.st + opData.ed) / 2 : NaN; //取的结束点
-          const y = opInfo[" MFLOPs(10^6)"];
+          const x = opData ? (opData.st + opData.ed) / 2 : NaN;
+          const y = parseFloat(opInfo[" MFLOPs(10^6)"], 10);
           if (
             !isNaN(x) &&
+            !isNaN(y) &&
             !opName.startsWith("Stream") &&
             !opName.startsWith("AtomicAddrClean")
           ) {
@@ -752,10 +759,13 @@ export default {
             curDeviceMFIPsData.push({ x, y, device, opName });
           }
         });
-        curDeviceMFIPsData.sort((objA, objB) => objA.x - objB.x);
-        MFLOPsData.push(curDeviceMFIPsData);
+        if (curDeviceMFIPsData.length) {
+          curDeviceMFIPsData.sort((objA, objB) => objA.x - objB.x);
+          MFLOPsData.push(curDeviceMFIPsData);
+        }
       });
       this.MFLOPsData = MFLOPsData; //保存每个device的FLOPs折线图数据
+      // console.log("MFLOPsData", MFLOPsData);
       this.MFLOPs.min = min;
       this.MFLOPs.max = max;
     },
@@ -773,12 +783,12 @@ export default {
         for (let i = 0; i < nodes.length; i++) {
           const opName = nodes[i].name;
           const opData = this.data[device][opName];
-          const x = opData ? opData.st : NaN; //取的开始点
-          const y = lines[i];
+          const x = opData ? (opData.st + opData.ed) / 2 : NaN;
+          const y = parseFloat(lines[i], 10);
 
           if (
             !isNaN(x) &&
-            y &&
+            !isNaN(y) &&
             !opName.startsWith("Stream") &&
             !opName.startsWith("AtomicAddrClean")
           ) {
@@ -787,9 +797,12 @@ export default {
             curDeviceMemoryData.push({ x, y, device, opName });
           }
         }
-        curDeviceMemoryData.sort((objA, objB) => objA.x - objB.x);
-        MemoryData.push(curDeviceMemoryData);
+        if (curDeviceMemoryData.length) {
+          curDeviceMemoryData.sort((objA, objB) => objA.x - objB.x);
+          MemoryData.push(curDeviceMemoryData);
+        }
       });
+      // console.log("MemoryData", MemoryData);
       this.MemoryData = MemoryData;
       this.Memory.min = min;
       this.Memory.max = max;
@@ -855,7 +868,7 @@ export default {
       this.stageMareyGraphRender(preMinT, preMaxT);
       this.mareyGraphReRender(preMinT, preMaxT);
     },
-    onNodeMouseover(e, data, type = "") {
+    onNodeMouseover(e, data, type) {
       const { layerX, layerY } = e || {};
       if (type === "stage") {
         const { op: opName, stage } = data || {};
@@ -865,6 +878,7 @@ export default {
           x: layerX + 15,
           y: layerY - 55,
           opName,
+          type: data.type,
           class: stage,
           xValue: null,
           yValue: null,
@@ -893,6 +907,7 @@ export default {
           y: layerY - 55,
           opName,
           class: device,
+          type,
           xValue,
           yValue,
         };
@@ -908,6 +923,19 @@ export default {
       this.$nextTick(() => {
         this.g.select(".brush").call(this.brush); //重新启用；
       });
+    },
+    handleClickReset() {
+      console.log("重置");
+      this.highLightOpSet = null;
+      if (!this.timeStack.length) {
+        return;
+      }
+      const [preMinT, preMaxT] = this.timeStack.shift();
+      this.timeStack = [];
+      this.minT = preMinT;
+      this.maxT = preMaxT;
+      this.stageMareyGraphRender(preMinT, preMaxT);
+      this.mareyGraphReRender(preMinT, preMaxT);
     },
   },
 };
@@ -973,6 +1001,7 @@ export default {
   align-items: center;
 }
 .brush-switch div {
+  margin-left: 10px;
   margin-right: 4px;
 }
 </style>

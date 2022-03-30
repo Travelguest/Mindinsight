@@ -18,6 +18,13 @@
       "font_class": "arrow_right_fat",
       "unicode": "e62c",
       "unicode_decimal": 58924
+    },
+    {
+      "icon_id": "12323765",
+      "name": "还原",
+      "font_class": "huanyuan",
+      "unicode": "e654",
+      "unicode_decimal": 58964
     }
   ]
 }
