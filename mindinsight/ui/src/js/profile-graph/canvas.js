@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { Minimap } from "@/js/profile-graph/minimap.js";
 import { Store } from "@/js/profile-graph/store.js";
-export function Canvas() {
+export function Canvas(father) {
   this.width = 0;
   this.height = 0;
   this.wrapperBorder = 0;
@@ -13,7 +13,8 @@ export function Canvas() {
   this.zoom = null;
   this.viewBox = [0, 0, 0, 0];
   this.lastTransform = { k: 1, x: 0, y: 0 };
-  this.store = new Store(this);
+  this.store = new Store(this, father);
+  this.father = father;
 }
 
 Canvas.prototype.create = function () {
@@ -68,7 +69,7 @@ Canvas.prototype.create = function () {
   innerWrapper
     .select("#graph-container")
     .attr("transform", "translate(" + -box.x + "," + -box.y + ")");
-
+  this.father.setBoxTransform([box.x, box.y]);
   innerWrapper
     .select("#profile-graph")
     .attr("viewBox", "0 0 " + this.width + " " + this.height)
@@ -80,6 +81,7 @@ Canvas.prototype.create = function () {
     .attr("viewBox")
     .split(" ")
     .map((d) => Number(d));
+  this.father.viewboxChanged(this.viewBox);
   this.store.setViewBox(this.viewBox);
 
   var minimap = new Minimap(this.store);
@@ -100,6 +102,7 @@ Canvas.prototype.create = function () {
     innerWrapper
       .select("#profile-graph")
       .attr("viewBox", this.viewBox.join(" "));
+    this.father.viewboxChanged(this.viewBox);
     this.store.changeViewBox(this.viewBox);
     // minimap.update();
   };
@@ -117,6 +120,7 @@ Canvas.prototype.create = function () {
       this.viewBox[1] = this.viewBox[1] - e.offsetY + offsetY;
       offsetX = e.offsetX;
       offsetY = e.offsetY;
+      this.father.viewboxChanged(this.viewBox);
       this.changeViewBox(this.viewBox, true);
       dragging = false;
 
@@ -137,6 +141,7 @@ Canvas.prototype.changeViewBox = function (newViewBox, changeMinimap) {
     .select("#profile-graph")
     .attr("viewBox", this.viewBox.join(" "));
   if (changeMinimap == true) {
+    this.father.viewboxChanged(viewBox);
     this.store.changeViewBox(this.viewBox);
   }
 };
