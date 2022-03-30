@@ -2,7 +2,7 @@
   <div class="performance-view-container">
     <div class="top">
       <div class="left">
-        <div class="title">Performance View</div>
+        <div class="title">Profiling View</div>
         <communication-view-graph />
       </div>
       <div class="right">
