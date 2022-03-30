@@ -474,8 +474,12 @@ function initLinks(linksData, network) {
       var newNodes = {};
       newNodes[id1] = true;
       newNodes[id2] = true;
-      window.communicategraph.setMatrixSize(2 * 60);
-      var m = new Matrix();
+      if (id1 == id2) {
+        window.communicategraph.setMatrixSize(60);
+      } else {
+        window.communicategraph.setMatrixSize(2 * 60);
+      }
+
       var nodeList = Object.keys(newNodes).sort(
         (a, b) =>
           Number(a.replace("device", "")) - Number(b.replace("device", ""))
@@ -484,9 +488,10 @@ function initLinks(linksData, network) {
       nodeList.forEach((n) => {
         newNodes[n] = true;
       });
+      var m = new Matrix();
       window.communicategraph.renderMatrix(newNodes);
       // console.log(newNodes);
-      m.create(Object.keys(newNodes), true);
+      m.create(Object.keys(newNodes), [id1, id2]);
     });
 
   return link;

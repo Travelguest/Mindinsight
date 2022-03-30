@@ -847,19 +847,19 @@ export default {
     },
 
     onNodeMouseover(e, node) {
-      const { right, bottom } = e.target.getBoundingClientRect();
-      this.hoveredNodeInfo = {
-        node: node,
-        x: right,
-        y: bottom,
-      };
-      this.hoveredNodeInfo.nodeGroupIndex = Math.floor((node.y + 200) / 500);
+      // const { right, bottom } = e.target.getBoundingClientRect();
+      // this.hoveredNodeInfo = {
+      //   node: node,
+      //   x: right,
+      //   y: bottom,
+      // };
+      // this.hoveredNodeInfo.nodeGroupIndex = Math.floor((node.y + 200) / 500);
 
       this.hoverNodeEdges = this.nodeEdgesMap[node.id];
     },
 
     onNodeMouseout() {
-      this.hoveredNodeInfo = null;
+      // this.hoveredNodeInfo = null;
       this.hoverNodeEdges = [];
     },
 
