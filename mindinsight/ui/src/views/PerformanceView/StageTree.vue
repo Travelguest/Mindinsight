@@ -8,8 +8,24 @@
       }"
     >
       <div>{{ hoveredNodeInfo.name }}</div>
-      <div v-for="(text, index) in hoveredNodeInfo.info" :key="text">
-        {{ index + 1 }}:{{ text }}
+      <div v-if="hoveredNodeInfo.type === 'Abnormal'">
+        <div
+          v-for="(text, index) in hoveredNodeInfo.abnomalContent"
+          :key="`${text}-${index}`"
+        >
+          {{ index + 1 }}:{{ text }}
+        </div>
+      </div>
+      <div v-else-if="hoveredNodeInfo.type === 'FLOP'">
+        <div>
+          {{ hoveredNodeInfo.valueName }} : {{ hoveredNodeInfo.initValue }}
+        </div>
+        <div>radio: {{ hoveredNodeInfo.radio }}</div>
+      </div>
+      <div v-else-if="hoveredNodeInfo.type === 'Memory'">
+        <div>peakMem: {{ hoveredNodeInfo.peakMem }}</div>
+        <div>capacity: {{ hoveredNodeInfo.capacity }}</div>
+        <div>radio: {{ hoveredNodeInfo.radio }}</div>
       </div>
     </div>
     <svg
@@ -44,7 +60,7 @@
             v-for="data in closeCircleData"
             :key="`${data.y}-close-circle`"
             class="close-circle"
-            @mousemove="onNodeMouseover($event, data)"
+            @mousemove="onNodeMouseover($event, data, 'Abnormal')"
             @mouseout="onNodeMouseout"
           >
             <circle
@@ -115,6 +131,8 @@
             :width="offset * 2"
             :height="offset * 2"
             :fill="colorScale(data.value + 0.2)"
+            @mousemove="onNodeMouseover($event, data, 'FLOP')"
+            @mouseout="onNodeMouseout"
           ></rect>
           <rect
             v-for="data in MemoryMapData"
@@ -124,6 +142,8 @@
             :width="offset * 2"
             :height="offset * 2"
             :fill="colorScale(data.value + 0.2)"
+            @mousemove="onNodeMouseover($event, data, 'Memory')"
+            @mouseout="onNodeMouseout"
           ></rect>
         </g>
       </g>
@@ -142,6 +162,7 @@ export default {
     FLOPsData: Object,
     deviceToStage: Map,
     MemoryData: Object,
+    closeCircleProps: Array,
   },
   watch: {
     stageDeviceArr: function (newVal, oldVal) {
@@ -154,15 +175,10 @@ export default {
       this.FLOPMapData = null;
       this.closeCircleData = null;
       this.MemoryMapData = null;
+      this.closeCirclePropsProcessing();
       requestIdleCallback(this.FLOPMapDataProcessing);
       requestIdleCallback(this.MemoryDataProcessing);
     },
-    // deviceToStage: function () {
-    //   console.log("deviceToStage变了", this.deviceToStage);
-    // },
-    // MemoryData: function () {
-    //   this.MemoryDataProcessing();
-    // },
   },
   data() {
     return {
@@ -178,8 +194,7 @@ export default {
       MemoryMapData: null,
       stageName: null,
       closeCircleData: null,
-      // valueFLOPS: { max: 0, min: 0 },
-      // valueFLOPs: { max: 0, min: 0 },
+      nameToCloseCirclePropsMap: null, // name - props
       xAxisArr: ["FLOPs", "FLOPS", "PeakMem"],
 
       hoveredNodeInfo: {
@@ -187,7 +202,8 @@ export default {
         x: 0,
         y: 0,
         name: "",
-        info: null,
+        type: "",
+        abnomalContent: null,
       },
     };
   },
@@ -243,6 +259,8 @@ export default {
 
       stageName.forEach((stage) => {
         stageData[stage] = {
+          sumPeakMem: 0,
+          sumCapacity: 0,
           averageValue: 0,
           cnt: 0,
         };
@@ -253,21 +271,28 @@ export default {
         //1.先统计stage
         const stage = this.deviceToStage.get(device);
         stageData[stage].averageValue += peak_mem / capacity;
+        stageData[stage].sumPeakMem += peak_mem;
+        stageData[stage].sumCapacity += capacity;
         stageData[stage].cnt++;
         if (this.stageDeviceRelationship[stage].length > 0) {
           MemoryMapData.push({
             x: "PeakMem",
             y: device,
+            peakMem: peak_mem,
+            capacity,
             value: peak_mem / capacity,
           });
         }
       });
       //2.加入stage
       stageName.forEach((stage) => {
-        const { averageValue, cnt } = stageData[stage] || {};
+        const { averageValue, cnt, sumPeakMem, sumCapacity } =
+          stageData[stage] || {};
         MemoryMapData.push({
           x: "PeakMem",
           y: stage,
+          peakMem: sumPeakMem / cnt,
+          capacity: sumCapacity / cnt,
           value: averageValue / cnt,
         });
       });
@@ -284,7 +309,6 @@ export default {
       const stageData = {};
       const stageName = Object.keys(this.stageDeviceRelationship);
       const closeCircleData = [];
-
       stageName.forEach((stage) => {
         stageData[stage] = {
           sumFLOPS: 0,
@@ -306,7 +330,7 @@ export default {
         stageData[stage].sumFLOPs += FLOPs;
         stageData[stage].cnt++;
         stageData[stage].isAnomaly = isAnomaly || false;
-        stageData[stage].abnomalContent.concat(abnomalContent);
+        stageData[stage]["abnomalContent"].push(...abnomalContent);
 
         maxFLOPS = Math.max(maxFLOPS, FLOPS);
         maxFLOPs = Math.max(maxFLOPs, FLOPs);
@@ -321,6 +345,7 @@ export default {
             x: "FLOPS",
             y: device,
             value: FLOPS / maxFLOPS,
+            initValue: FLOPs,
             isAnomaly,
             abnomalContent,
           });
@@ -328,15 +353,24 @@ export default {
             x: "FLOPs",
             y: device,
             value: FLOPs / maxFLOPs,
+            initValue: FLOPs,
             isAnomaly,
             abnomalContent,
           });
           if (isAnomaly) {
-            closeCircleData.push({
+            let arr;
+            if (
+              this.nameToCloseCirclePropsMap &&
+              this.nameToCloseCirclePropsMap.has(device)
+            ) {
+              arr = this.nameToCloseCirclePropsMap.get(device);
+            }
+            const closeCircle = {
               y: device,
               isAnomaly,
-              abnomalContent,
-            });
+              abnomalContent: arr ? abnomalContent.concat(arr) : abnomalContent,
+            };
+            closeCircleData.push(closeCircle);
           }
         }
       });
@@ -348,6 +382,7 @@ export default {
           x: "FLOPS",
           y: stage,
           value: sumFLOPS / cnt / maxFLOPS,
+          initValue: sumFLOPS / cnt,
           isAnomaly,
           abnomalContent,
         });
@@ -355,25 +390,28 @@ export default {
           x: "FLOPs",
           y: stage,
           value: sumFLOPs / cnt / maxFLOPs,
+          initValue: sumFLOPs / cnt,
           isAnomaly,
           abnomalContent,
         });
         if (isAnomaly) {
-          closeCircleData.push({
+          let arr;
+          if (
+            this.nameToCloseCirclePropsMap &&
+            this.nameToCloseCirclePropsMap.has(stage)
+          ) {
+            arr = this.nameToCloseCirclePropsMap.get(stage);
+          }
+          const closeCircle = {
             y: stage,
             isAnomaly,
-            abnomalContent,
-          });
+            abnomalContent: arr ? abnomalContent.concat(arr) : abnomalContent,
+          };
+          closeCircleData.push(closeCircle);
         }
       });
-
-      // console.log("closeCircleData", closeCircleData);
-      // console.log("FLOPMapData", FLOPMapData);
       this.FLOPMapData = FLOPMapData;
       this.closeCircleData = closeCircleData;
-
-      // this.valueFLOPS = valueFLOPS;
-      // this.valueFLOPS = valueFLOPS;
     },
     treeLineProcessing() {
       if (!this.stageDeviceRelationship) return;
@@ -399,19 +437,58 @@ export default {
       });
       this.treeLineData = treeLineData;
     },
-    onNodeMouseover(e, data) {
+    closeCirclePropsProcessing() {
+      if (!this.deviceToStage || !this.closeCircleProps) return;
+      const nameToCloseCirclePropsMap = new Map();
+      this.closeCircleProps.forEach((item) => {
+        const { device, abnormalContent } = item;
+        const stage = this.deviceToStage.get(device);
+        if (!nameToCloseCirclePropsMap.has(stage)) {
+          nameToCloseCirclePropsMap.set(stage, []);
+        }
+        nameToCloseCirclePropsMap.get(stage).push(...abnormalContent);
+        nameToCloseCirclePropsMap.set(device, abnormalContent);
+      });
+      this.nameToCloseCirclePropsMap = nameToCloseCirclePropsMap;
+    },
+    onNodeMouseover(e, data, type) {
       const { layerX, layerY } = e || {};
-      const { y: name, abnomalContent } = data;
-      this.hoveredNodeInfo = {
-        show: true,
-        x: layerX + 15,
-        y: layerY - 55,
-        name,
-        // name: name.startsWith("stage")
-        //   ? "stage" + (parseInt(name.replace("stage", ""), 10) + 1)
-        //   : "device" + (parseInt(name.replace("device", ""), 10) + 1),
-        info: abnomalContent,
-      };
+      if (type === "Abnormal") {
+        const { y: name, abnomalContent } = data;
+        this.hoveredNodeInfo = {
+          show: true,
+          x: layerX + 15,
+          y: layerY - 55,
+          type,
+          name,
+          abnomalContent,
+        };
+      } else if (type === "FLOP") {
+        const { initValue, value, y: name, x: valueName } = data;
+        this.hoveredNodeInfo = {
+          show: true,
+          x: layerX + 15,
+          y: layerY - 55,
+          type,
+          name,
+          radio: value,
+          valueName,
+          initValue,
+        };
+      } else if (type === "Memory") {
+        const { peakMem, capacity, value, y: name, x: valueName } = data;
+        this.hoveredNodeInfo = {
+          show: true,
+          x: layerX + 15,
+          y: layerY - 55,
+          name,
+          type,
+          peakMem,
+          capacity,
+          radio: value,
+          valueName,
+        };
+      }
     },
     onNodeMouseout() {
       this.hoveredNodeInfo.show = false;
