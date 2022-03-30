@@ -37,8 +37,9 @@ Matrix.prototype.barHight = 6; //6*5+(6/2)*6=48
 //   // })
 // };
 
-Matrix.prototype.create = function (node, linkSelect = false, nodeValue = []) {
+Matrix.prototype.create = function (node, linkSelect = null, nodeValue = []) {
   this.linkSelect = linkSelect;
+  console.log(linkSelect);
   this.locallayer.on("contextmenu", function (d) {
     d3.event.preventDefault();
     window.communicategraph.renderNet();
@@ -254,11 +255,15 @@ Matrix.prototype.render = function (nodeValue = []) {
       }
     }
   }
-
+  // console.log(this.linkSelect, this.nodes);
   for (var i in this.nodes) {
     for (var j in this.nodes) {
+      console.log(this.nodes[j], this.nodes[i], this.linkSelect);
       if (
-        (j == 0 && i == 1 && this.linkSelect) ||
+        (this.linkSelect != null &&
+          this.nodes[j] == this.linkSelect[0] &&
+          this.nodes[i] == this.linkSelect[1]) ||
+        // (j == 0 && i == 1 && this.linkSelect) ||
         nodeValue.filter((n) => n.source == j && n.target == i).length != 0
       ) {
         // this.locallayer.select("#block_1_0").attr("stroke", "#cb6056");
