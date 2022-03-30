@@ -56,6 +56,9 @@ export default {
   mounted() {
     this.renderInit();
   },
+  beforeDestroy() {
+    this.stackedColumnChart.clear();
+  },
   computed: {
     communicationData() {
       return this.$store.state.communicationData;
