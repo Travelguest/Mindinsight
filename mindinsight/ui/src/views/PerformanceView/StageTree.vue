@@ -447,7 +447,11 @@ export default {
           nameToCloseCirclePropsMap.set(stage, []);
         }
         nameToCloseCirclePropsMap.get(stage).push(...abnormalContent);
-        nameToCloseCirclePropsMap.set(device, abnormalContent);
+        const arr = abnormalContent.filter(
+          (str) =>
+            !(str.startsWith("Intra-stage") || str.startsWith("Inter-stage"))
+        );
+        nameToCloseCirclePropsMap.set(device, arr);
       });
       this.nameToCloseCirclePropsMap = nameToCloseCirclePropsMap;
     },
