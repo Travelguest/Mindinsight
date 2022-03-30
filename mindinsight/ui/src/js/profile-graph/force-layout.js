@@ -4,7 +4,6 @@ import forceLink from "@/js/profile-graph/link-force.js";
 
 export function layout(opNodes, normalEdges, nodeMap, tick = 200) {
   const vxs = [];
-
   // init node position
   opNodes.forEach((v, i) => {
     v.x = i * 15;
@@ -67,6 +66,7 @@ export function layout(opNodes, normalEdges, nodeMap, tick = 200) {
     })
     .stop();
   sim.tick(tick);
+
   // 将聚合节点保留一个单独显示的区域
   const subGraphs = new Set();
   for (const opNode of opNodes) {
@@ -101,6 +101,16 @@ export function layout(opNodes, normalEdges, nodeMap, tick = 200) {
         opNode.x += toRight1;
       } else if (Number(opNode.id) > n) {
         opNode.x += toRight2;
+      }
+    }
+  }
+  // delete big space
+  opNodes.sort((a, b) => a.x - b.x);
+  for (let i = 1; i < opNodes.length; ++i) {
+    if (opNodes[i].x - opNodes[i-1].x > 50) {
+      const diff = opNodes[i].x - opNodes[i-1].x;
+      for (let j = i; j < opNodes.length; ++j) {
+        opNodes[j].x -= diff - 15;
       }
     }
   }

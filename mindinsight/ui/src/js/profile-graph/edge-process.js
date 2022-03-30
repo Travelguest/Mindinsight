@@ -30,7 +30,7 @@ export const specialEdgesDef = [
     class: 'get-next-edge',
     condition: isGetNextEdge,
     path: (sNode, tNode) => `M${sNode.x} ${sNode.y} Q${tNode.x} ${sNode.y} ${tNode.x} ${tNode.y}`,
-    defaultDisplay: true,
+    defaultDisplay: false,
   }, {
     class: 'big-from-syncbatchnorm-edge',
     condition: isBigFromSyncBatchNormGradEdge,
@@ -41,9 +41,18 @@ export const specialEdgesDef = [
     condition: isBigHubNodeEdge,
     path: (sNode, tNode) => null,
     defaultDisplay: false,
+  }, {
+    class: 'other-big-edge',
+    condition: isBigEdge,
+    path: (sNode, tNode) => null,
+    defaultDisplay: false,
   },
 
 ];
+
+function isBigEdge(source, target) {
+  return _isBigEdge(source, target);
+}
 
 export function isUpdateStateBigEdge(source, target) {
   if (source.type === 'UpdateState' && target.type === 'UpdateState') {
@@ -135,7 +144,7 @@ export function isBigDependEdge(source, target) {
 }
 
 function _isBigEdge(source, target) {
-  if (Math.abs(Number(source.id) - Number(target.id)) > 10) {
+  if (Math.abs(Number(source.id) - Number(target.id)) > 7) {
     return true;
   }
 }
