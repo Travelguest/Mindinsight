@@ -206,25 +206,40 @@ Graph.prototype.renderMatrix = function (matrixNodes) {
         })
     )
     .force("charge", d3.forceManyBody())
-    .force("center", d3.forceCenter(this.w * 0.5, this.h / 2));
+    .force("center", d3.forceCenter(this.w * 0.75, this.h / 2));
 
   simulation.nodes(newNodes).on("tick", (d) => {
     newNodes.forEach((n) => {
       if (n.x < 50) {
         n.x = 50;
-      }
-      if (n.x > this.w - 50) {
+      } else if (n.x > this.w - 50) {
         n.x = this.w - 50;
       }
       if (n.y < 50) {
         n.y = 50;
-      }
-      if (n.y > this.h - 20) {
+      } else if (n.y > this.h - 20) {
         n.y = this.h - 20;
+      }
+      if (
+        n.showable &&
+        n.x <= this.matrix_size + 10 &&
+        n.y <= this.matrix_size + 10
+      ) {
+        n.x = this.matrix_size + 10;
+        n.fx = this.matrix_size + 10;
       }
     });
     handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
   });
+  // .on("end", (d) => {
+  //   newNodes.forEach((n) => {
+  //     if (n.x <= this.matrix_size && n.y < this.matrix_size) {
+  //       n.x = Math.min(this.matrix_size + n.x, this.w - 50);
+  //     }
+  //   });
+
+  //   handleTick(node, link, label, this.w * 0.9, this.h * 0.9);
+  // });
   // .on("end", (d) => {
   //   console.log("forceend");
   //   newNodes.forEach((n) => {
@@ -474,8 +489,12 @@ function initLinks(linksData, network) {
       var newNodes = {};
       newNodes[id1] = true;
       newNodes[id2] = true;
-      window.communicategraph.setMatrixSize(2 * 60);
-      var m = new Matrix();
+      if (id1 == id2) {
+        window.communicategraph.setMatrixSize(60);
+      } else {
+        window.communicategraph.setMatrixSize(2 * 60);
+      }
+
       var nodeList = Object.keys(newNodes).sort(
         (a, b) =>
           Number(a.replace("device", "")) - Number(b.replace("device", ""))
@@ -484,9 +503,10 @@ function initLinks(linksData, network) {
       nodeList.forEach((n) => {
         newNodes[n] = true;
       });
+      var m = new Matrix();
       window.communicategraph.renderMatrix(newNodes);
       // console.log(newNodes);
-      m.create(Object.keys(newNodes), true);
+      m.create(Object.keys(newNodes), [id1, id2]);
     });
 
   return link;

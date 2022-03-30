@@ -646,7 +646,11 @@ export default {
 
     "$store.state.selectErrorOp": function (val) {
       // console.log("profile收到异常节点", val);
-      this.onRecieveErrorOp(val);
+      if (val != "") {
+        this.onRecieveErrorOp(val);
+        this.$store.commit("setSelectErrorOp", "");
+        // console.log("profile收到异常节点", val);
+      }
     },
     "$store.state.pipelineOpnodeId": function (val) {
       this.onRevievePiplineId(val);
@@ -847,19 +851,19 @@ export default {
     },
 
     onNodeMouseover(e, node) {
-      const { right, bottom } = e.target.getBoundingClientRect();
-      this.hoveredNodeInfo = {
-        node: node,
-        x: right,
-        y: bottom,
-      };
-      this.hoveredNodeInfo.nodeGroupIndex = Math.floor((node.y + 200) / 500);
+      // const { right, bottom } = e.target.getBoundingClientRect();
+      // this.hoveredNodeInfo = {
+      //   node: node,
+      //   x: right,
+      //   y: bottom,
+      // };
+      // this.hoveredNodeInfo.nodeGroupIndex = Math.floor((node.y + 200) / 500);
 
       this.hoverNodeEdges = this.nodeEdgesMap[node.id];
     },
 
     onNodeMouseout() {
-      this.hoveredNodeInfo = null;
+      // this.hoveredNodeInfo = null;
       this.hoverNodeEdges = [];
     },
 

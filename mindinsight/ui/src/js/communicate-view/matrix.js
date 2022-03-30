@@ -37,8 +37,9 @@ Matrix.prototype.barHight = 6; //6*5+(6/2)*6=48
 //   // })
 // };
 
-Matrix.prototype.create = function (node, linkSelect = false, nodeValue = []) {
+Matrix.prototype.create = function (node, linkSelect = null, nodeValue = []) {
   this.linkSelect = linkSelect;
+  console.log(linkSelect);
   this.locallayer.on("contextmenu", function (d) {
     d3.event.preventDefault();
     window.communicategraph.renderNet();
@@ -254,11 +255,15 @@ Matrix.prototype.render = function (nodeValue = []) {
       }
     }
   }
-
+  // console.log(this.linkSelect, this.nodes);
   for (var i in this.nodes) {
     for (var j in this.nodes) {
+      // console.log(this.nodes[j], this.nodes[i], this.linkSelect);
       if (
-        (j == 0 && i == 1 && this.linkSelect) ||
+        (this.linkSelect != null &&
+          this.nodes[j] == this.linkSelect[0] &&
+          this.nodes[i] == this.linkSelect[1]) ||
+        // (j == 0 && i == 1 && this.linkSelect) ||
         nodeValue.filter((n) => n.source == j && n.target == i).length != 0
       ) {
         // this.locallayer.select("#block_1_0").attr("stroke", "#cb6056");
@@ -275,13 +280,13 @@ Matrix.prototype.render = function (nodeValue = []) {
     }
   }
 
-  var xtrans = -this.locallayer.node().getBBox().x + 15;
-  var ytrans = -this.locallayer.node().getBBox().y + 15;
-  var scale = (this.matrix_size - 10) / this.locallayer.node().getBBox().height;
-
+  var xtrans = -this.locallayer.node().getBBox().x + 20;
+  var ytrans = -this.locallayer.node().getBBox().y + 20;
+  // var scale = (this.matrix_size - 10) / this.locallayer.node().getBBox().height;
+  var scale = (this.matrix_size - 20) / (this.unitsize * this.nodes.length);
   this.locallayer.attr(
     "transform",
-    "scale(" + scale + ")" + "translate(" + xtrans + "," + ytrans + ")"
+    "translate(" + xtrans + "," + ytrans + ")" + "scale(" + scale + ")"
   );
 
   d3.select("#mainsvg > g.matrix-lable").remove();
@@ -292,7 +297,7 @@ Matrix.prototype.render = function (nodeValue = []) {
     .attr("class", "matrix-lable");
   // console.log(this.matrix_size / this.nodes.length);
   this.nodes.forEach((nodename, index) => {
-    var y = 10 + (index + 0.5) * (this.matrix_size / this.nodes.length);
+    var y = 20 + (index + 0.5) * ((this.matrix_size - 20) / this.nodes.length);
     labelWrapper
       .append("text")
       .text(nodename.replace("device", ""))

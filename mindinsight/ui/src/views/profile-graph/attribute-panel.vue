@@ -41,6 +41,13 @@
               <div class="right" v-html="selectedNode.type"></div>
             </div>
             <div class="col">
+              <div class="left second-title">name:</div>
+              <div
+                class="right"
+                v-html="selectedNode.name.split('/').slice(-1)[0]"
+              ></div>
+            </div>
+            <div class="col">
               <div class="left second-title">scope:</div>
               <div class="right">
                 <div

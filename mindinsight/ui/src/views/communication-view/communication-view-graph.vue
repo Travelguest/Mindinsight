@@ -117,6 +117,7 @@ export default {
       this.recieveOpnode(val);
     },
     "$store.state.opNameMap": function (val) {
+      console.log("收到opNameMap", val);
       this.opNameMap = val;
     },
   },
@@ -380,21 +381,40 @@ export default {
       var opType = opname.split("_")[0];
       var opId = Number(opname.split("_")[1]);
       var resName = undefined;
-      if (opType == "allReduce") opType = "AllReduce";
-      else if (opType == "send") opType = "Send";
-      else if (opType == "receive") opType = "Receive";
-      else {
-        console.log("不能在opNameMap中找到类型", opType);
-        return resName;
+      // if (opType == "allReduce") opType = "AllReduce";
+      // else if (opType == "send") opType = "Send";
+      // else if (opType == "receive") opType = "Receive";
+      // else {
+      //   console.log("不能在opNameMap中找到类型", opType);
+      //   return resName;
+      // }
+      var newOpType = undefined;
+      for (var i = 0; i < Object.keys(this.opNameMap[opDevice]).length; i++) {
+        if (
+          opType.toLowerCase() ==
+          Object.keys(this.opNameMap[opDevice])[i].toLowerCase()
+        ) {
+          newOpType = Object.keys(this.opNameMap[opDevice])[i];
+        }
       }
-      var deviceOpMap = this.opNameMap[opDevice][opType];
-      console.log("对应算子名", deviceOpMap[opId - 1]);
-      if (deviceOpMap[opId - 1]) resName = deviceOpMap[opId - 1];
-      else console.log("不能在opNameMap中找到该算子", opDevice, opname);
+      if (newOpType) {
+        var deviceOpMap = this.opNameMap[opDevice][newOpType];
+
+        if (deviceOpMap[opId - 1]) {
+          resName = deviceOpMap[opId - 1];
+          console.log("在opNameMap中对应算子名", deviceOpMap[opId - 1]);
+        } else console.log("不能在opNameMap中找到该算子", opDevice, opname);
+      } else {
+        console.log("不能在opNameMap中找到类型", opType);
+      }
+
       return resName;
     },
 
     recieveOpnode(opName) {
+      if (this.opNameMap == null) {
+        console.log("未收到opNameMap，请刷新页面重试");
+      }
       if (opName != null) {
         console.log(
           this.opNameMap,
@@ -426,7 +446,7 @@ export default {
           this.communicateNodes[this.stepNum]
             .filter((d) => d.name == opInfo.device)
             .forEach((nodeData) => {
-              console.log(nodeData.opNodes);
+              // console.log(nodeData.opNodes);
               for (var i = 0; i < Object.keys(nodeData.opNodes).length; i++) {
                 if (
                   Object.keys(nodeData.opNodes)
@@ -437,7 +457,7 @@ export default {
                     nodeData.opNodes[Object.keys(nodeData.opNodes)[i]];
 
                   if (findData[3] != {}) {
-                    console.log(findData[3]);
+                    // console.log(findData[3]);
                     Object.keys(findData[3]).forEach((link) => {
                       // console.log(link);
                       var linkList = link.split("-");
