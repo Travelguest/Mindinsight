@@ -252,7 +252,12 @@ export default {
       // console.log(this.showStageId);
     },
 
-    getPipelineNodePosition(firstIndex, secondIndex, thirdIndex, isLink) {
+    getPipelineNodePosition(
+      firstIndex,
+      secondIndex,
+      thirdIndex,
+      isLink = false
+    ) {
       if (this.pipelineNodeInfo === null) return;
       const rectWidth = this.pipelineRectWidth;
       const rectMargin = 2 * this.pipelineRectMargin;
@@ -304,6 +309,7 @@ export default {
           rectWidth -
           rectMargin -
           nodeBetween;
+        y = y - 5;
       }
       return [x, y];
     },

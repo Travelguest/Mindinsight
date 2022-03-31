@@ -61,7 +61,7 @@
             <div class="col">
               <div class="left second-title">inputs:</div>
               <div class="right">
-                <div
+                <!-- <div
                   v-for="input in selectedNode.input"
                   :key="input"
                   v-html="
@@ -69,7 +69,42 @@
                       !isNaN(input) ? nodeMaps[nodeGroupIndex][input].type : ''
                     }`
                   "
-                ></div>
+                ></div> -->
+                <div
+                  id="write"
+                  v-for="(input, index) in selectedNode.input"
+                  :key="'attr_' + input"
+                >
+                  <blockquote>
+                    <div class="third-title">
+                      name:<span
+                        style="font-weight: normal"
+                        v-html="`${selectedNode.input_name[index]}`"
+                      ></span>
+                    </div>
+                    <div class="third-title">
+                      shape:<span
+                        style="font-weight: normal"
+                        v-html="`${selectedNode.input_shape[index]}`"
+                      ></span>
+                    </div>
+                    <div class="third-title">
+                      strategy:<span
+                        style="font-weight: normal"
+                        v-html="`${selectedNode.input_strategy[index]}`"
+                      ></span>
+                    </div>
+                  </blockquote>
+                  <!-- <div
+                    v-html="
+                      `${input} - ${
+                        !isNaN(input)
+                          ? nodeMaps[nodeGroupIndex][input].type
+                          : ''
+                      }`
+                    "
+                  ></div> -->
+                </div>
               </div>
             </div>
             <div class="col">
@@ -135,8 +170,31 @@
   -ms-flex-negative: 0;
   flex-shrink: 0;
 }
+.third-title {
+  height: 24px;
+  line-height: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
 .graph-strategy-info {
   padding-top: 5px;
+}
+
+#write blockquote {
+  margin-bottom: 4px;
+  margin-top: 4px;
+  padding: 4px 8px 4px 8px;
+  font-size: 0.9em;
+  background: none;
+  border-left: 3px solid #aaa;
+  /* color: #6a737d; */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#write blockquote p {
+  line-height: 26px;
 }
 </style>
 
@@ -160,14 +218,64 @@ export default {
   },
   watch: {
     "$store.state.selectedGraphNode": function (val) {
+      // console.log(this.nodeMaps);
+      // console.log(val[0], val[1]);
       this.selectedNode = val;
+      // this.selectedNode.input_shape = val[1];
+      var strategyStr = this.selectedNode.parallel_shard;
+      strategyStr = strategyStr.slice(1, strategyStr.length - 1);
+      var pos = strategyStr.indexOf("[");
+      var p1 = [],
+        p2 = [];
+      while (pos > -1) {
+        p1.push(pos);
+        pos = strategyStr.indexOf("[", pos + 1);
+      }
+      pos = strategyStr.indexOf("]");
+      while (pos > -1) {
+        p2.push(pos);
+        pos = strategyStr.indexOf("]", pos + 1);
+      }
+      // console.log(strategyStr.slice(p1[0], p2[0] + 1));
+      this.selectedNode.input_strategy = [];
+      for (var i = 0; i < p1.length; i++) {
+        this.selectedNode.input_strategy.push(
+          strategyStr.slice(p1[i], p2[i] + 1)
+        );
+      }
+
+      // var leftCIndex=strategyStr.
+      // this.selectedNode.input_strategy = this.selectedNode.parallel_shard.split;
       this.nodeGroupIndex = Math.floor((this.selectedNode.y + 200) / 500);
       this.expname = ["1", "2"];
-      // console.log(this.selectedNode)
+      // console.log(this.selectedNode);
+      this.selectedNode.input_shape = [];
+      this.selectedNode.input_name = [];
+      this.selectedNode.input.forEach((input) => {
+        if (Object.keys(this.nodeMaps[this.nodeGroupIndex]).includes(input)) {
+          console.log(this.nodeMaps[this.nodeGroupIndex][input]);
+          this.selectedNode.input_shape.push(
+            '[ "' +
+              this.nodeMaps[this.nodeGroupIndex][input].output_shape.join(
+                '", "'
+              ) +
+              '" ]'
+          );
+          var input_name =
+            this.nodeMaps[this.nodeGroupIndex][input].name.split("/");
+          input_name = input_name[input_name.length - 1];
+          this.selectedNode.input_name.push(input_name);
+        } else {
+          this.selectedNode.input_name.push(input + "(Const)");
+          this.selectedNode.input_shape.push(undefined);
+        }
+      });
+      console.log(this.selectedNode);
       // console.log(getSpecialNodesMap())
     },
     "$store.state.nodeMaps": function (val) {
       this.nodeMaps = val;
+      // console.log(this.nodeMaps);
       this.specialNodesMap = getSpecialNodesMap();
     },
   },
