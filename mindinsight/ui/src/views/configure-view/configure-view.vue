@@ -56,14 +56,14 @@
             :show-checked-strategy="SHOW_PARENT"
             search-placeholder="Please select"
             :dropdownStyle="{
-              height: scrollHeight,
+              height: scrollHeight + 'px',
               top: '170px!important',
             }"
             :treeDefaultExpandedKeys="expandedKeys"
             dropdownMatchSelectWidth
             :getPopupContainer="
               (triggerNode) => {
-                return triggerNode || document.body;
+                return triggerNode.parentNode || document.body;
               }
             "
             open
@@ -147,7 +147,7 @@ export default {
   data() {
     return {
       scopeHeight: "100px",
-      scrollHeight: "80px",
+      scrollHeight: 143,
       selectNamespaces: [],
       treeData: [],
       showTreeData: [],
@@ -158,15 +158,16 @@ export default {
       expandedKeys: [],
       dataSource: "",
       nameScopeFromMarey: [],
-      activeKey: ["1", "2", "3"],
+      activeKey: ["2", "3"],
       height2: 0,
       height3: 0,
       height0: 0,
       titleHeight: 0,
-      lastKey: ["1", "2", "3"],
+      lastKey: ["2", "3"],
       customeStyle: "background:#ffffff;border-radius:0px;border:none",
       customeStyle1:
         "background:#ffffff;border-radius:0px;border-top: 1px solid #ccc",
+      lastSearchHeight: 0,
     };
   },
 
@@ -181,22 +182,24 @@ export default {
       // this.height2 =
       //   document.getElementsByClassName("edge-config")[0].clientHeight;
       // console.log(document.getElementsByClassName("ant-collapse-item").length);
-      this.height0 =
-        document.getElementsByClassName("configuration-view-box")[0]
-          .clientHeight -
-        document.getElementsByClassName("data-selection-border")[0]
-          .clientHeight;
-      this.titleHeight = document.getElementsByClassName(
-        "ant-collapse-header"
-      )[0].clientHeight;
-      this.height2 = document.getElementsByClassName(
-        "ant-collapse-content-box"
-      )[1].clientHeight;
-      this.height3 = document.getElementsByClassName(
-        "ant-collapse-content-box"
-      )[2].clientHeight;
+      // this.height0 =
+      //   document.getElementsByClassName("configuration-view-box")[0]
+      //     .clientHeight -
+      //   document.getElementsByClassName("data-selection-border")[0]
+      //     .clientHeight;
+      // this.titleHeight = document.getElementsByClassName(
+      //   "ant-collapse-header"
+      // )[0].clientHeight;
+      // this.height2 = document.getElementsByClassName(
+      //   "ant-collapse-content-box"
+      // )[1].clientHeight;
+      // this.height3 = document.getElementsByClassName(
+      //   "ant-collapse-content-box"
+      // )[2].clientHeight;
       // console.log(this.height0, this.titleHeight, this.height2, this.height3);
       this.activeKey = ["1", "3"];
+      // this.lastSearchHeight = 24.02;
+      // console.log(this.lastSearchHeight);
     });
   },
 
@@ -247,11 +250,16 @@ export default {
     changeActiveKey(key) {
       if (key.includes("1") && key.includes("2")) {
         this.scopeHeight = "173px";
-        this.scrollHeight = "153px";
+        if (this.lastKey.includes("1") && this.lastKey.includes("3")) {
+          this.scrollHeight = this.scrollHeight + 10;
+        }
       } else if (key.includes("1") && key.includes("3")) {
         this.scopeHeight = "163px";
-        this.scrollHeight = "143px";
+        if (this.lastKey.includes("1") && this.lastKey.includes("2")) {
+          this.scrollHeight = this.scrollHeight - 10;
+        }
       }
+      this.lastKey = key;
     },
     modifyTreeData(node) {
       if (!node) return;
@@ -367,6 +375,21 @@ export default {
 
     handleTreeChange(value, label) {
       this.$store.commit("setProfileNamespaces", this.selectNamespaces);
+      this.$nextTick(() => {
+        var newHeight = document
+          .getElementsByClassName("scope-search-wrap")[0]
+          .getElementsByClassName("ant-select-selection")[0].clientHeight;
+        // console.log(newHeight, this.lastSearchHeight);
+        if (this.lastSearchHeight == 0) {
+          this.lastSearchHeight = newHeight;
+        }
+
+        // console.log(this.scrollHeight);
+        this.scrollHeight =
+          this.scrollHeight - (newHeight - this.lastSearchHeight);
+        // console.log(this.scrollHeight);
+        this.lastSearchHeight = newHeight;
+      });
     },
     handleDataSwitch(value) {
       RequestService.switchDataset(value)
