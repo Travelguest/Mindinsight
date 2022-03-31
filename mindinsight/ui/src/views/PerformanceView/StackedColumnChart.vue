@@ -91,7 +91,9 @@ export default {
         legend: {
           top: "2%",
           itemStyle: {
-            opacity: 0.5,
+            color: "inherit",
+            opacity: "inherit",
+            // opacity: 1,
           },
         },
         grid: {
@@ -224,7 +226,7 @@ export default {
             name: "communication cost",
             yAxisIndex: 1,
             type: "line",
-            color: "#CEAB93",
+            color: "#C69B7B",
             // itemStyle: {
             //   opacity: 0.5,
             // },
@@ -235,7 +237,7 @@ export default {
             name: "waiting cost",
             yAxisIndex: 1,
             type: "line",
-            color: "#AD8B73",
+            color: "#826F66",
             // itemStyle: {
             //   opacity: 0.5,
             // },
