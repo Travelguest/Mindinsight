@@ -365,10 +365,12 @@ export default {
             ) {
               arr = this.nameToCloseCirclePropsMap.get(device);
             }
+            let content = arr ? abnomalContent.concat(arr) : abnomalContent;
+            content = content.filter((str) => !/in stage/.test(str));
             const closeCircle = {
               y: device,
               isAnomaly,
-              abnomalContent: arr ? abnomalContent.concat(arr) : abnomalContent,
+              abnomalContent: [...new Set(content)],
             };
             closeCircleData.push(closeCircle);
           }
@@ -402,12 +404,13 @@ export default {
           ) {
             arr = this.nameToCloseCirclePropsMap.get(stage);
           }
+          const content = arr
+            ? abnomalContent.filter((str) => !/device/.test(str)).concat(arr)
+            : abnomalContent;
           const closeCircle = {
             y: stage,
             isAnomaly,
-            abnomalContent: arr
-              ? abnomalContent.filter((str) => !/device/.test(str)).concat(arr)
-              : abnomalContent,
+            abnomalContent: [...new Set(content)],
           };
           closeCircleData.push(closeCircle);
         }
