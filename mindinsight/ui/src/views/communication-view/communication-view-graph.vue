@@ -1,7 +1,7 @@
 <template>
   <div class="communication-container">
     <div class="communication-sub-title">
-      <svg class="subtitle-svg" width="100%" height="100%">
+      <svg class="subtitle-svg" width="90%" height="100%">
         <defs>
           <linearGradient
             id="myLinearGradient1"
@@ -15,7 +15,41 @@
             <stop offset="100%" stop-color="#e6882e" stop-opacity="1" />
           </linearGradient>
         </defs>
-        <g class="subtitle-container"></g>
+        <g class="subtitle-container">
+          <g id="subtitle-line1">
+            <text x="0" y="15">Node-link graph:</text>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-2.75 0 28 13">
+              <g transform="scale(0.25)">
+                <circle class="cls-1" cx="3.5" cy="6.5" r="3" />
+                <circle class="cls-1" cx="21.5" cy="6.5" r="6" />
+                <line class="cls-2" x1="3.5" y1="3.5" x2="21.5" y2="0.5" />
+                <line class="cls-2" x1="3.5" y1="9.5" x2="21.5" y2="12.5" />
+              </g>
+            </svg>
+            <text x="155" y="15">The total communication cost</text>
+          </g>
+          <g id="subtitle-line2">
+            <text x="0" y="40">0</text>
+            <rect
+              x="15"
+              y="30"
+              width="65"
+              height="10"
+              fill="url(#myLinearGradient1)"
+            ></rect>
+            <text x="85" y="40">1</text>
+            <text x="100" y="40">The Proportion of communication time</text>
+          </g>
+          <g id="subtitle-line3">
+            <text x="0" y="65">Matrix:</text>
+            <rect x="50" y="55" width="10" height="10" fill="#f6b59a"></rect>
+            <text x="63" y="65">Communication time</text>
+            <rect x="200" y="55" width="10" height="10" fill="#a8d2e5"></rect>
+            <text x="213" y="65">Traffic</text>
+            <rect x="260" y="55" width="10" height="10" fill="#378dc0"></rect>
+            <text x="273" y="65">BandWidth</text>
+          </g>
+        </g>
       </svg>
     </div>
     <div class="communication-graph-box">
@@ -32,9 +66,9 @@
 }
 .communication-sub-title {
   width: 100%;
-  height: 46.5px;
+  height: 75px;
   padding-top: 5px;
-  margin-left: 32px;
+  margin-left: 16px;
 }
 .communication-view {
   height: 100%;
@@ -76,6 +110,15 @@
   fill: #3399ff;
   fill-opacity: 0.5;
 }
+.cls-1,
+.cls-2 {
+  fill: none;
+  stroke: #cbcbcb;
+  stroke-miterlimit: 10;
+}
+.cls-2 {
+  stroke-dasharray: 2;
+}
 </style>
 <script>
 import {
@@ -105,7 +148,7 @@ export default {
     };
   },
   mounted() {
-    this.initSubtitle();
+    // this.initSubtitle();
     this.initGraph();
   },
   watch: {
@@ -123,78 +166,6 @@ export default {
   },
 
   methods: {
-    initSubtitle() {
-      var layer = d3.select(".subtitle-container");
-      var lineTop = layer
-        .append("text")
-        .attr("id", "title-line1")
-        .attr("x", 0)
-        .attr("y", 0)
-        .text("The Proportion of communication time:");
-      layer.append("text").attr("x", 250).attr("y", 0).text("0");
-      layer.append("text").attr("x", 350).attr("y", 0).text("1");
-      layer
-        .append("rect")
-        .attr("x", 260)
-        .attr("y", -10)
-        .attr("width", 80)
-        .attr("height", 10)
-        .style("fill", "url(#myLinearGradient1)");
-
-      layer.append("text").attr("x", 0).attr("y", 30).text("Matrix:");
-      layer
-        .append("rect")
-        .attr("x", 50)
-        .attr("y", 20)
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("fill", "#f6b59a");
-      layer
-        .append("text")
-        .attr("x", 70)
-        .attr("y", 30)
-        .text("communication time");
-
-      layer
-        .append("rect")
-        .attr("x", 200)
-        .attr("y", 20)
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("fill", "#a8d2e5");
-      layer.append("text").attr("x", 220).attr("y", 30).text("Traffic");
-
-      layer
-        .append("rect")
-        .attr("x", 270)
-        .attr("y", 20)
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("fill", "#378dc0");
-      layer.append("text").attr("x", 290).attr("y", 30).text("Bandwidth");
-
-      var transY = -lineTop.node().getBBox().y;
-      var wrapperHeight =
-        document.getElementsByClassName("subtitle-svg")[0].clientHeight;
-      var wrapperWidth =
-        document.getElementsByClassName("subtitle-svg")[0].clientWidth;
-      var scale = Math.min(
-        wrapperWidth / layer.node().getBBox().width,
-        wrapperHeight / layer.node().getBBox().height
-      );
-      scale = Math.min(scale, 1);
-      // console.log(
-      //   lineTop.node().getBBox().width,
-      //   lineTop.node().getBBox().height
-      // );
-      // console.log(wrapperWidth, wrapperHeight);
-      layer.attr(
-        "transform",
-        "translate(0," + transY + ")scale(" + scale + ")"
-      );
-      // console.log(lineTop.node().getBBox());
-    },
-
     async initGraph() {
       await this.fetchData();
       //发送communicateNodes 给LineChart
