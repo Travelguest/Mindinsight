@@ -20,12 +20,12 @@
         <div>
           {{ hoveredNodeInfo.valueName }} : {{ hoveredNodeInfo.initValue }}
         </div>
-        <div>radio: {{ hoveredNodeInfo.radio }}</div>
+        <div>ratio: {{ hoveredNodeInfo.ratio }}</div>
       </div>
       <div v-else-if="hoveredNodeInfo.type === 'Memory'">
         <div>peakMem: {{ hoveredNodeInfo.peakMem }}</div>
         <div>capacity: {{ hoveredNodeInfo.capacity }}</div>
-        <div>radio: {{ hoveredNodeInfo.radio }}</div>
+        <div>ratio: {{ hoveredNodeInfo.ratio }}</div>
       </div>
     </div>
     <svg
@@ -167,7 +167,7 @@ export default {
   watch: {
     stageDeviceArr: function (newVal, oldVal) {
       if (oldVal.length) {
-        this.height += (newVal.length - oldVal.length) * 20;
+        this.height += (newVal.length - oldVal.length) * 10;
       }
     },
     stageDeviceRelationship: function () {
@@ -475,7 +475,7 @@ export default {
           y: layerY - 55,
           type,
           name,
-          radio: value,
+          ratio: value,
           valueName,
           initValue,
         };
@@ -489,7 +489,7 @@ export default {
           type,
           peakMem,
           capacity,
-          radio: value,
+          ratio: value,
           valueName,
         };
       }

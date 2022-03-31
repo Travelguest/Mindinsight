@@ -12,53 +12,49 @@
             ></stop>
           </linearGradient>
         </defs>
-        <text x="75" y="22">0</text>
+        <text x="75" y="17.5" font-size="12" alignment-baseline="middle">0</text>
         <rect
           x="92"
-          y="13"
+          y="12"
           height="9"
           width="72"
           style="fill: url(#gradient)"
         ></rect>
-        <text x="170" y="22">1</text>
+        <text x="170" y="17.5" font-size="12" alignment-baseline="middle">1</text>
+        <text x="190" y="17.5" font-size="12" alignment-baseline="middle">
+          Ratio
+        </text>
       </svg>
     </div>
     <div class="legend-linechart">
       <svg width="100%" height="100%">
         <g>
-          <text x="34" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="12" y="17.5" font-size="12" alignment-baseline="middle">
             {{ performance_legend[0]["name"] }}
           </text>
           <path />
-          <g transform="translate(80,10)">
-            <polyline
-              class="performance-cls-1"
-              points="6.62 0 6.62 15.29 43.68 15.29 43.68 0"
-            />
-            <polyline
-              class="performance-cls-2"
-              points="12.06 6.47 21.19 6.47 25.78 4.02 30.68 6.47 39.9 6.47"
-            />
-            <polyline
-              class="performance-cls-3"
-              points="12.06 9.47 19.01 9.47 23.65 9.47 29.98 11.47 33.97 10.47 39.19 9.47"
-            />
-            <line
-              class="performance-cls-1"
-              x1="0.01"
-              y1="6.64"
-              x2="10.64"
-              y2="6.47"
-            />
-            <line
-              class="performance-cls-1"
-              x1="40.72"
-              y1="9.47"
-              x2="51.02"
-              y2="9.47"
-            />
-          </g>
-          <text x="138" y="17.5" font-size="12" alignment-baseline="middle">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -8 102.06 32.56">
+            <g>
+              <rect
+                class="cls-1"
+                x="6.62"
+                y="0.5"
+                width="37.06"
+                height="15.28"
+              />
+              <polyline
+                class="cls-2"
+                points="12.06 6.97 21.2 6.97 25.78 4.52 30.68 6.97 39.9 6.97"
+              />
+              <polyline
+                class="cls-3"
+                points="12.06 9.97 19.01 9.97 23.65 9.97 29.98 11.97 33.97 10.97 39.19 9.97"
+              />
+              <line class="cls-1" x1="0.01" y1="7.14" x2="10.64" y2="6.97" />
+              <line class="cls-1" x1="40.72" y1="9.97" x2="51.03" y2="9.97" />
+            </g>
+          </svg>
+          <text x="120" y="17.5" font-size="12" alignment-baseline="middle">
             {{ performance_legend[1]["name"] }}
           </text>
         </g>
@@ -69,22 +65,22 @@
       <svg width="100%" height="100%">
         <g>
           <polygon
-            transform="translate(35,10)"
+            transform="translate(15,10)"
             :fill="performance_legend[2]['color']"
             opacity="0.5"
             points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
           />
-          <text x="55" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="35" y="17.5" font-size="12" alignment-baseline="middle">
             {{ performance_legend[2]["name"] }}
           </text>
 
           <polygon
-            transform="translate(283,10)"
+            transform="translate(248,10)"
             :fill="performance_legend[3]['color']"
             opacity="0.5"
             points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
           />
-          <text x="303" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="268" y="17.5" font-size="12" alignment-baseline="middle">
             {{ performance_legend[3]["name"] }}
           </text>
         </g>
@@ -94,29 +90,45 @@
     <div class="legend-communication">
       <svg width="100%" height="100%">
         <g>
-          <text x="35" y="17.5" font-size="12" alignment-baseline="middle">
-            point-to-point communication:
+          <text x="15" y="17.5" font-size="12" alignment-baseline="middle">
+            Point-to-point communication:
           </text>
-
           <polygon
-            transform="translate(220,10)"
+            transform="translate(205,10)"
             :fill="performance_legend[4]['color']"
             opacity="0.5"
             points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
           />
-          <text x="240" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="225" y="17.5" font-size="12" alignment-baseline="middle">
             {{ performance_legend[4]["name"] }}
           </text>
 
           <polygon
-            transform="translate(350,10)"
+            transform="translate(325,10)"
             :fill="performance_legend[5]['color']"
             opacity="0.5"
             points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
           />
-          <text x="370" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="345" y="17.5" font-size="12" alignment-baseline="middle">
             {{ performance_legend[5]["name"] }}
           </text>
+        </g>
+      </svg>
+    </div>
+    <div class="vertical-dashed-line operator-legend"></div>
+    <div class="stage-legend">
+      <svg width="100%" height="100%">
+        <g>
+          <text x="35" y="17.5" font-size="12" alignment-baseline="middle">
+            Average condition in a stage
+          </text>
+
+          <polygon
+            transform="translate(15,10)"
+            fill="#789395"
+            opacity="0.8"
+            points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
+          />
         </g>
       </svg>
     </div>
@@ -137,16 +149,16 @@
   height: 100%;
 }
 .legend-linechart {
-  width: 250px;
+  width: 180px;
   height: 100%;
 }
 .legend-operators {
   height: 100%;
-  width: 480px;
+  width: 420px;
 }
 .legend-communication {
   height: 100%;
-  width: 40%;
+  width: 450px;
 }
 .operator-legend {
   position: relative;
@@ -157,6 +169,11 @@
   width: 1px;
   top: 20%;
   border-right: 1px dashed #aaaaaa;
+}
+.stage-legend {
+  height: 100%;
+  width: 180px;
+  flex-grow: 1;
 }
 .performance-cls-1,
 .performance-cls-2,
@@ -173,6 +190,21 @@
 .performance-cls-3 {
   stroke: var(--performance-memory);
 }
+.cls-1,
+.cls-2,
+.cls-3 {
+  fill: none;
+  stroke-miterlimit: 10;
+}
+.cls-1 {
+  stroke: #aaa;
+}
+.cls-2 {
+  stroke: #585393;
+}
+.cls-3 {
+  stroke: #7e93bf;
+}
 </style>
 
 <script>
@@ -187,23 +219,23 @@ export default {
           color: "var(--performance-flops)",
         },
         {
-          name: "memory",
+          name: "Memory",
           color: "var(--performance-memory)",
         },
         {
-          name: "forward and backward propagation",
+          name: "Forward and backward propagation",
           color: "var(--performance-fb)",
         },
         {
-          name: "collective communication",
+          name: "Collective communication",
           color: "var(--performance-collective)",
         },
         {
-          name: "send operator",
+          name: "Send operator",
           color: "var(--performance-send)",
         },
         {
-          name: "receive operator",
+          name: "Receive operator",
           color: "var(--performance-receive)",
         },
       ],
