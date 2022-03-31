@@ -1073,7 +1073,7 @@ export default {
 .brush-switch {
   position: fixed;
   top: 52%;
-  right: 34.5%;
+  right: 27.3%;
   display: flex;
   justify-content: center;
   align-items: center;
