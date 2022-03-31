@@ -22,7 +22,7 @@
             stroke="white"
             stroke-width="1px"
           ></circle>
-          <text x="122" y="17.5" class="text"  alignment-baseline="middle">
+          <text x="122" y="17.5" class="text" alignment-baseline="middle">
             {{ normal_strategy_legend[1]["name"] }}
           </text>
         </g>
@@ -32,28 +32,65 @@
     <div class="special-operator operator-legend">
       <svg width="100%" height="100%">
         <g>
-          <text x="24" y="17.5" class="text" alignment-baseline="middle">
+          <text x="15" y="17.5" class="text" alignment-baseline="middle">
             Special operator type:
           </text>
           <circle
-            v-for="(operator, index) in special_strategy_legend"
-            :key="`${index}_operator_legend`"
             r="6"
             cy="17.5"
-            :cx="`${166 + index * 150}`"
-            :fill="special_strategy_legend[`${index}`]['color']"
+            cx="170"
+            :fill="special_strategy_legend[0]['color']"
             stroke="white"
             stroke-width="1px"
           ></circle>
-          <text
-            v-for="(operator, index) in special_strategy_legend"
-            :key="`${index}_operator`"
-            :x="`${182 + index * 150}`"
-            y="17.5"
-            class="text"
-            alignment-baseline="middle"
-          >
-            {{ special_strategy_legend[`${index}`]["name"] }}
+          <text x="182" y="17.5" class="text" alignment-baseline="middle">
+            {{ special_strategy_legend[0]["name"] }}
+          </text>
+          <circle
+            r="6"
+            cy="17.5"
+            cx="290"
+            :fill="special_strategy_legend[1]['color']"
+            stroke="white"
+            stroke-width="1px"
+          ></circle>
+          <text x="302" y="17.5" class="text" alignment-baseline="middle">
+            {{ special_strategy_legend[1]["name"] }}
+          </text>
+          <circle
+            r="6"
+            cy="17.5"
+            cx="425"
+            :fill="special_strategy_legend[2]['color']"
+            stroke="white"
+            stroke-width="1px"
+          ></circle>
+          <text x="437" y="17.5" class="text" alignment-baseline="middle">
+            {{ special_strategy_legend[2]["name"] }}
+          </text>
+
+          <circle
+            r="6"
+            cy="17.5"
+            cx="600"
+            :fill="special_strategy_legend[3]['color']"
+            stroke="white"
+            stroke-width="1px"
+          ></circle>
+          <text x="612" y="17.5" class="text" alignment-baseline="middle">
+            {{ special_strategy_legend[3]["name"] }}
+          </text>
+
+          <circle
+            r="6"
+            cy="17.5"
+            cx="780"
+            :fill="special_strategy_legend[4]['color']"
+            stroke="white"
+            stroke-width="1px"
+          ></circle>
+          <text x="792" y="17.5" class="text" alignment-baseline="middle">
+            {{ special_strategy_legend[4]["name"] }}
           </text>
         </g>
       </svg>
@@ -99,33 +136,33 @@ export default {
     return {
       normal_strategy_legend: [
         {
-          name: "operator",
+          name: "Operator",
           color: "var(--normal-operator-color)",
         },
         {
-          name: "parameter",
+          name: "Parameter",
           color: "var(--parameter-operator-color)",
         },
       ],
       special_strategy_legend: [
         {
-          name: "send operator",
+          name: "Send operator",
           color: "var(--send-operator-color)",
         },
         {
-          name: "receive operator",
+          name: "Receive operator",
           color: "var(--receive-operator-color)",
         },
         {
-          name: "parallel shard operator",
+          name: "Parallel shard operator",
           color: "var(--slice-operator-color)",
         },
         {
-          name: "redistribution operator",
+          name: "Redistribution operator",
           color: "var(--redistribution-operator-color)",
         },
         {
-          name: "gradient aggregation operator",
+          name: "Gradient aggregation operator",
           color: "var(--allreduce-operator-color)",
         },
       ],
