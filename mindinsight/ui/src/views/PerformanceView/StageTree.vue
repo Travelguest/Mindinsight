@@ -444,7 +444,7 @@ export default {
       const nameToCloseCirclePropsMap = new Map();
       this.closeCircleProps.forEach((item) => {
         const { device, abnormalContent } = item;
-        console.log("abnormalContent", abnormalContent);
+        // console.log("abnormalContent", abnormalContent);
         const stage = this.deviceToStage.get(device);
         if (!nameToCloseCirclePropsMap.has(stage)) {
           nameToCloseCirclePropsMap.set(stage, []);
