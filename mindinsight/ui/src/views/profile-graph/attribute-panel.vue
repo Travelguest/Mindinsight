@@ -97,7 +97,7 @@
 
 <style>
 .attribute-panel-container {
-  position: fixed;
+  position: absolute;
   top: 50px;
   right: 10px;
   width: 300px;
