@@ -163,7 +163,7 @@ export default {
   watch: {
     stageDeviceArr: function (newVal, oldVal) {
       if (oldVal.length) {
-        this.height += (newVal.length - oldVal.length) * 20;
+        this.height += (newVal.length - oldVal.length) * 10;
       }
       this.stageMareyGraphRender();
       this.mareyGraphReRender();
@@ -1055,8 +1055,8 @@ export default {
 }
 .brush-switch {
   position: fixed;
-  top: 53%;
-  right: 50px;
+  top: 52%;
+  right: 34.5%;
   display: flex;
   justify-content: center;
   align-items: center;

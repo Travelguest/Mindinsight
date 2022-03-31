@@ -159,7 +159,7 @@ export default {
             type: "value",
             name: "Communication cost(ms)",
             nameLocation: "middle",
-            nameGap: 55,
+            nameGap: 65,
             axisLine: {
               symbol: ["none", "triangle"],
               show: true,
