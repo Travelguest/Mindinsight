@@ -12,24 +12,29 @@
             ></stop>
           </linearGradient>
         </defs>
-        <text x="75" y="17.5" font-size="12" alignment-baseline="middle">0</text>
+        <text x="25" y="17.5" font-size="14" alignment-baseline="middle">
+          0
+        </text>
         <rect
-          x="92"
+          x="42"
           y="12"
           height="9"
           width="72"
           style="fill: url(#gradient)"
         ></rect>
-        <text x="170" y="17.5" font-size="12" alignment-baseline="middle">1</text>
-        <text x="190" y="17.5" font-size="12" alignment-baseline="middle">
+        <text x="120" y="17.5" font-size="14" alignment-baseline="middle">
+          1
+        </text>
+        <text x="140" y="17.5" font-size="14" alignment-baseline="middle">
           Ratio
         </text>
       </svg>
     </div>
+    <div class="vertical-dashed-line operator-legend"></div>
     <div class="legend-linechart">
       <svg width="100%" height="100%">
         <g>
-          <text x="12" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="12" y="17.5" font-size="14" alignment-baseline="middle">
             {{ performance_legend[0]["name"] }}
           </text>
           <path />
@@ -54,7 +59,7 @@
               <line class="cls-1" x1="40.72" y1="9.97" x2="51.03" y2="9.97" />
             </g>
           </svg>
-          <text x="120" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="120" y="17.5" font-size="14" alignment-baseline="middle">
             {{ performance_legend[1]["name"] }}
           </text>
         </g>
@@ -70,17 +75,17 @@
             opacity="0.5"
             points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
           />
-          <text x="35" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="35" y="17.5" font-size="14" alignment-baseline="middle">
             {{ performance_legend[2]["name"] }}
           </text>
 
           <polygon
-            transform="translate(248,10)"
+            transform="translate(268,10)"
             :fill="performance_legend[3]['color']"
             opacity="0.5"
             points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
           />
-          <text x="268" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="288" y="17.5" font-size="14" alignment-baseline="middle">
             {{ performance_legend[3]["name"] }}
           </text>
         </g>
@@ -90,26 +95,26 @@
     <div class="legend-communication">
       <svg width="100%" height="100%">
         <g>
-          <text x="15" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="15" y="17.5" font-size="14" alignment-baseline="middle">
             Point-to-point communication:
           </text>
           <polygon
-            transform="translate(205,10)"
+            transform="translate(215,10)"
             :fill="performance_legend[4]['color']"
             opacity="0.5"
             points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
           />
-          <text x="225" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="235" y="17.5" font-size="14" alignment-baseline="middle">
             {{ performance_legend[4]["name"] }}
           </text>
 
           <polygon
-            transform="translate(325,10)"
+            transform="translate(335,10)"
             :fill="performance_legend[5]['color']"
             opacity="0.5"
             points="0 0 0 8.55 3.23 15.77 11 15.77 9.16 7.91 11.61 0 0 0"
           />
-          <text x="345" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="355" y="17.5" font-size="14" alignment-baseline="middle">
             {{ performance_legend[5]["name"] }}
           </text>
         </g>
@@ -119,7 +124,7 @@
     <div class="stage-legend">
       <svg width="100%" height="100%">
         <g>
-          <text x="35" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="35" y="17.5" font-size="14" alignment-baseline="middle">
             Average condition in a stage
           </text>
 
@@ -145,20 +150,20 @@
   width: 100%;
 }
 .legend-linear-gradient {
-  width: 250px;
+  width: 180px;
   height: 100%;
 }
 .legend-linechart {
-  width: 180px;
+  width: 185px;
   height: 100%;
 }
 .legend-operators {
   height: 100%;
-  width: 420px;
+  width: 465px;
 }
 .legend-communication {
   height: 100%;
-  width: 450px;
+  width: 475px;
 }
 .operator-legend {
   position: relative;

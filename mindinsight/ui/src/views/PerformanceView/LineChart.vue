@@ -17,7 +17,7 @@
         y="1"
         width="25px"
         height="14px"
-        style="rx: 4px; fill: #C69B7B"
+        style="rx: 4px; fill: #c69b7b"
       ></rect>
       <text x="37%" y="13" style="font-size: 13px; opacity: 0.7">
         Average communication time of devices
@@ -27,7 +27,7 @@
         y="1"
         width="25px"
         height="14px"
-        style="rx: 4px; fill: #826F66"
+        style="rx: 4px; fill: #826f66"
       ></rect>
       <text x="67%" y="13" style="font-size: 13px; opacity: 0.7">
         Average waiting time of devices
@@ -244,6 +244,9 @@ export default {
           // itemStyle: {
           //   opacity: 0.5,
           // },
+          lineStyle: {
+            width: 1.5,
+          },
           showSymbol: false,
           data: communicationList,
         },
@@ -256,6 +259,9 @@ export default {
           // itemStyle: {
           //   opacity: 0.5,
           // },
+          lineStyle: {
+            width: 1.5,
+          },
           showSymbol: false,
           data: waitingList,
         },
@@ -274,6 +280,9 @@ export default {
           color: "#A1A1A1",
           itemStyle: {
             opacity: 0.5,
+          },
+          lineStyle: {
+            width: 1.5,
           },
           data: [],
         };

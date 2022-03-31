@@ -230,6 +230,9 @@ export default {
             // itemStyle: {
             //   opacity: 0.5,
             // },
+            lineStyle: {
+              width: 1.5,
+            },
             showSymbol: false,
             data: [],
           },
@@ -241,6 +244,9 @@ export default {
             // itemStyle: {
             //   opacity: 0.5,
             // },
+            lineStyle: {
+              width: 1.5,
+            },
             showSymbol: false,
             data: [],
           },

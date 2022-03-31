@@ -8,7 +8,7 @@
     >
       <polyline
         stroke="#ccc"
-        stroke-width="1px"
+        stroke-width="2px"
         fill="none"
         points="0,35 384,35 414,0"
       ></polyline>

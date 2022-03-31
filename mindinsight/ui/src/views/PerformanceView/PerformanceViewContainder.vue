@@ -313,7 +313,7 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid #ccc;
+  border-top: 2px solid #ccc;
 }
 .performance-view-container .top {
   flex-grow: 1;
