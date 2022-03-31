@@ -653,7 +653,7 @@ export default {
       // console.log("profile收到异常节点", val);
       if (val != "") {
         this.onRecieveErrorOp(val);
-        this.$store.commit("setSelectErrorOp", "");
+        // this.$store.commit("setSelectErrorOp", "");
         // console.log("profile收到异常节点", val);
       }
     },
