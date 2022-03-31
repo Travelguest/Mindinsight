@@ -143,7 +143,7 @@
                 <g id="graph-edge-container">
                   <g id="normal-edge-container">
                     <g
-                      v-for="(normalEdgesGroup, groupIndex) in normalEdges"
+                      v-for="(normalEdgesGroup, groupIndex) in normalEdgesShow"
                       :key="'host_normalEdge_group' + groupIndex"
                     >
                       <line
@@ -156,7 +156,7 @@
                       ></line>
                     </g>
                   </g>
-                  <g
+                  <!-- <g
                     v-for="(specialEdgesGroup, groupIndex) in specialEdges"
                     :key="'host_specialEdge_group' + groupIndex"
                   >
@@ -174,10 +174,10 @@
                         "
                       ></path>
                     </g>
-                  </g>
+                  </g> -->
                 </g>
 
-                <g id="graph-extra-edge-container">
+                <!-- <g id="graph-extra-edge-container">
                   <g
                     v-for="(value, key) in extraEdges"
                     :key="'host_extra_edge' + key"
@@ -191,7 +191,7 @@
                       :y2="edge[3]"
                     ></line>
                   </g>
-                </g>
+                </g> -->
 
                 <g id="graph-hovernode-edge-container">
                   <line
@@ -360,7 +360,7 @@
               </g>
               <!-- </g> -->
 
-              <g id="graph-halo-container">
+              <!-- <g id="graph-halo-container">
                 <g
                   v-for="([namespace, nodeGroup], index) in haloInfo"
                   :key="'mini_haloInfo_group' + namespace + index"
@@ -374,9 +374,9 @@
                     :fill="`url(#${namespace}_halo)`"
                   ></circle>
                 </g>
-              </g>
+              </g> -->
 
-              <g id="graph-edge-container">
+              <!-- <g id="graph-edge-container">
                 <g id="normal-edge-container">
                   <g
                     v-for="(normalEdgesGroup, groupIndex) in normalEdges"
@@ -409,9 +409,9 @@
                     ></path>
                   </g>
                 </g>
-              </g>
+              </g> -->
 
-              <g id="graph-extra-edge-container">
+              <!-- <g id="graph-extra-edge-container">
                 <g
                   v-for="(value, key) in extraEdges"
                   :key="'mini_extra_group' + key"
@@ -425,7 +425,7 @@
                     :y2="edge[3]"
                   ></line>
                 </g>
-              </g>
+              </g> -->
 
               <g id="graph-node-container">
                 <g
@@ -453,7 +453,7 @@
                   :key="'mini_opNode_group' + groupIndex"
                 >
                   <g
-                    v-for="node in opNodesGroup.filter(
+                    v-for="node in opNodesGroup.slice(20).filter(
                       (v) => v.x !== undefined
                     )"
                     :key="'mini_opNode_group_g' + node.id"
@@ -494,7 +494,7 @@
                 </g>
               </g>
 
-              <g id="parallel-strategy-container">
+              <!-- <g id="parallel-strategy-container">
                 <g
                   v-for="(value, key) in parallelStrategyParas"
                   :key="'mini_' + `${key}_strategy_group`"
@@ -527,7 +527,7 @@
                     </g>
                   </g>
                 </g>
-              </g>
+              </g> -->
             </g>
           </svg>
         </g>
@@ -705,7 +705,7 @@ export default {
     },
 
     viewboxChanged(viewbox) {
-      console.log("viewbox改变了", viewbox);
+      // console.log("viewbox改变了", viewbox);
       var nodesShow = [];
 
       var xLeft = viewbox[0] + this.boxTransform[0],
@@ -721,7 +721,24 @@ export default {
       // console.log(this.opNodesShow);
 
       // console.log(this.normalEdges);
-      // this.normalEdgesShow = this.normalEdges;
+      const currenNodes = new Set();
+      const edgesShow = [];
+      for (const nodes of nodesShow) {
+        for (const node of nodes) {
+          currenNodes.add(node);
+        }
+      }
+
+      for (const edges of this.normalEdges) {
+        const es = [];
+        for (const normalEdge of edges) {
+          if (currenNodes.has(normalEdge.target) || currenNodes.has(normalEdge.source)) {
+            es.push(normalEdge);
+          }
+        }
+        edgesShow.push(es);
+      }
+      this.normalEdgesShow = edgesShow;
     },
     lower_bound(nums, target) {
       var low = 0,
@@ -1106,7 +1123,7 @@ export default {
         ];
         this.normalEdges.push(normalEdges);
         this.opNodes.push(opNodes);
-        layout(opNodes, normalEdges, nodeMap, 200);
+        layout(opNodes, normalEdges, nodeMap, 50);
         // move downwards
         opNodes.forEach((opNode) => {
           opNode.y += 500 * i;

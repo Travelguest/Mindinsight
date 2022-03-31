@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import forceLink from "@/js/profile-graph/link-force.js";
 
 export function layout(opNodes, normalEdges, nodeMap, tick = 200) {
+  console.log('layout')
   const vxs = [];
   // init node position
   opNodes.forEach((v, i) => {
@@ -114,4 +115,5 @@ export function layout(opNodes, normalEdges, nodeMap, tick = 200) {
       }
     }
   }
+  console.log('layout end')
 }

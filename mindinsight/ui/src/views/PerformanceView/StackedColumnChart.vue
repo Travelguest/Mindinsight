@@ -56,6 +56,9 @@ export default {
   mounted() {
     this.renderInit();
   },
+  beforeDestroy() {
+    this.stackedColumnChart.clear();
+  },
   computed: {
     communicationData() {
       return this.$store.state.communicationData;
@@ -88,7 +91,9 @@ export default {
         legend: {
           top: "2%",
           itemStyle: {
-            opacity: 0.5,
+            color: "inherit",
+            opacity: "inherit",
+            // opacity: 1,
           },
         },
         grid: {
@@ -221,7 +226,7 @@ export default {
             name: "communication cost",
             yAxisIndex: 1,
             type: "line",
-            color: "#CEAB93",
+            color: "#C69B7B",
             // itemStyle: {
             //   opacity: 0.5,
             // },
@@ -232,7 +237,7 @@ export default {
             name: "waiting cost",
             yAxisIndex: 1,
             type: "line",
-            color: "#AD8B73",
+            color: "#826F66",
             // itemStyle: {
             //   opacity: 0.5,
             // },
@@ -248,7 +253,13 @@ export default {
       const [intervalObj, propagationObj, tailObj] = this.option.series;
       const curStep = this.stepNumber - 1; //下标从0开始
       this.option.title.text = `Current Step: ${this.stepNumber}`;
-      Object.keys(this.overViewData).forEach((device) => {
+      const devices = Object.keys(this.overViewData);
+      devices.sort((a, b) => {
+        const numA = parseInt(a.match(/\d+/g)[0], 10);
+        const numB = parseInt(b.match(/\d+/g)[0], 10);
+        return numA - numB;
+      });
+      devices.forEach((device) => {
         if (!this.isxAisData) {
           this.option?.xAxis?.data.push(
             parseInt(device.replace("device", ""), 10)
