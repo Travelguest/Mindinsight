@@ -223,6 +223,10 @@ export default {
       this.highLightOpSet = new Set([opName]);
       this.reRenderChart(minT, maxT);
     },
+    dataSource: function (newVal) {
+      // console.log("dataSource变了", newVal, newVal === "pangu_16p_0115");
+      this.isOpenFilter = newVal === "pangu_16p_0115";
+    },
   },
   data() {
     return {
@@ -269,6 +273,7 @@ export default {
       OperatorColor: new Map(),
       OperatorColorOpacity: new Map(),
       isOpenSwitch: true,
+      isOpenFilter: false, //pangu数据太大，过滤一下
     };
   },
   computed: {
@@ -331,6 +336,9 @@ export default {
     },
     errorOp() {
       return this.$store.state.selectErrorOp;
+    },
+    dataSource() {
+      return this.$store.state.dataSource;
     },
   },
   mounted() {
@@ -415,7 +423,7 @@ export default {
           return yA - yB;
         });
 
-        const filterRes = [stagePolygonData[0]]; //保存筛选结果
+        let filterRes = [stagePolygonData[0]]; //保存筛选结果
         for (let i = 1; i < stagePolygonData.length; i++) {
           const preRect = filterRes[filterRes.length - 1];
           const curRect = stagePolygonData[i];
@@ -471,7 +479,13 @@ export default {
             }
           }
         }
+
         // console.log("stage合并后", filterRes.length);
+        //数据是pangu,开启过滤
+        if (this.isOpenFilter) {
+          filterRes = filterRes.filter((item, index) => index % 2);
+        }
+        // console.log("stage过滤后", filterRes.length);
         filterRes.push(...priorityQueue);
         this.stagePolygonData = filterRes;
       } else {
@@ -621,7 +635,7 @@ export default {
           return yA - yB;
         });
 
-        const filterRes = [polygonData[0]]; //保存筛选结果
+        let filterRes = [polygonData[0]]; //保存筛选结果
         for (let i = 1; i < polygonData.length; i++) {
           const preRect = filterRes[filterRes.length - 1];
           const curRect = polygonData[i];
@@ -683,6 +697,11 @@ export default {
         }
         // console.log("marey合并后", filterRes.length);
         // console.log("filterRes1", filterRes);
+        //数据是pangu,开启过滤
+        if (this.isOpenFilter) {
+          filterRes = filterRes.filter((item, index) => index % 2);
+        }
+        // console.log("marey过滤后", filterRes.length);
         filterRes.push(...priorityQueue);
         this.polygonData = filterRes;
       } else {
@@ -705,7 +724,6 @@ export default {
       this.nameScopeToOp = map;
       // console.log("nameScopeToOp", map);
     },
-
     timeLineDataProcessing() {
       const { maps } = this.timeLineData || {};
       this.data = maps;
@@ -788,7 +806,6 @@ export default {
       this.stageDisplayedData = stageDisplayedData;
       // console.log("stageDisplayedData", stageDisplayedData);
     },
-
     getOperatorType(op) {
       if (op.startsWith("All")) {
         //集合算子-collective communication

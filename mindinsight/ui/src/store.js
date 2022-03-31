@@ -72,6 +72,8 @@ export default new Vuex.Store({
     opNameMap: null, //opName对照表
 
     pipelineOpnodeId: -1,
+
+    dataSource: "", //当前所选的数据源
   },
   mutations: {
     // set cancelTokenArr
@@ -178,6 +180,9 @@ export default new Vuex.Store({
     },
     setPipelineOpnodeId(state, val) {
       state.pipelineOpnodeId = val;
+    },
+    setDataSource(state, val) {
+      state.dataSource = val;
     },
   },
   actions: {

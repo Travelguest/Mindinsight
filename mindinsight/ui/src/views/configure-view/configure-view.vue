@@ -175,6 +175,7 @@ export default {
     if (/\?/.test(location.href)) {
       const value = location.href.split("?").pop().split("=").pop();
       this.dataSource = value;
+      this.$store.commit("setDataSource", value);
       console.log("切换数据到", value);
     }
     this.$nextTick(() => {
@@ -369,6 +370,7 @@ export default {
       this.$store.commit("setProfileNamespaces", this.selectNamespaces);
     },
     handleDataSwitch(value) {
+      this.$store.commit("setDataSource", value);
       RequestService.switchDataset(value)
         .then((data) => {
           location.href =
