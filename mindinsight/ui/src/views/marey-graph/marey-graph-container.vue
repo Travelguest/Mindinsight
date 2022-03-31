@@ -105,8 +105,8 @@ export default {
 }
 .view-header .title {
   width: 300px;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   margin-left: 32px;
 }
 </style>

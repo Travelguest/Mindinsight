@@ -125,8 +125,8 @@ export default {
           nameGap: 18,
           nameTextStyle: {
             fontStyle: "normal",
-            fontWeight: "bold",
-            fontSize: 14,
+            fontWeight: "normal",
+            fontSize: 12,
             align: "center",
           },
           data: [],

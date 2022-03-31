@@ -379,8 +379,8 @@ export default {
   overflow: hidden;
 }
 .title {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   margin-left: 16px;
 }
 </style>

@@ -11,7 +11,7 @@
             stroke="white"
             stroke-width="1px"
           ></circle>
-          <text x="32" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="32" y="17.5" class="text" alignment-baseline="middle">
             {{ normal_strategy_legend[0]["name"] }}
           </text>
           <circle
@@ -22,7 +22,7 @@
             stroke="white"
             stroke-width="1px"
           ></circle>
-          <text x="122" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="122" y="17.5" class="text"  alignment-baseline="middle">
             {{ normal_strategy_legend[1]["name"] }}
           </text>
         </g>
@@ -32,7 +32,7 @@
     <div class="special-operator operator-legend">
       <svg width="100%" height="100%">
         <g>
-          <text x="24" y="17.5" font-size="12" alignment-baseline="middle">
+          <text x="24" y="17.5" class="text" alignment-baseline="middle">
             Special operator type:
           </text>
           <circle
@@ -50,7 +50,7 @@
             :key="`${index}_operator`"
             :x="`${182 + index * 150}`"
             y="17.5"
-            font-size="12"
+            class="text"
             alignment-baseline="middle"
           >
             {{ special_strategy_legend[`${index}`]["name"] }}
@@ -87,6 +87,9 @@
 .operator-legend {
   position: relative;
   float: left;
+}
+.text {
+  font-size: 14px;
 }
 </style>
 
