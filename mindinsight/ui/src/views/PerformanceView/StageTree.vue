@@ -405,7 +405,9 @@ export default {
           const closeCircle = {
             y: stage,
             isAnomaly,
-            abnomalContent: arr ? abnomalContent.concat(arr) : abnomalContent,
+            abnomalContent: arr
+              ? abnomalContent.filter((str) => !/device/.test(str)).concat(arr)
+              : abnomalContent,
           };
           closeCircleData.push(closeCircle);
         }
@@ -442,16 +444,17 @@ export default {
       const nameToCloseCirclePropsMap = new Map();
       this.closeCircleProps.forEach((item) => {
         const { device, abnormalContent } = item;
+        console.log("abnormalContent", abnormalContent);
         const stage = this.deviceToStage.get(device);
         if (!nameToCloseCirclePropsMap.has(stage)) {
           nameToCloseCirclePropsMap.set(stage, []);
         }
-        nameToCloseCirclePropsMap.get(stage).push(...abnormalContent);
         const arr = abnormalContent.filter(
           (str) =>
             !(str.startsWith("Intra-stage") || str.startsWith("Inter-stage"))
         );
-        nameToCloseCirclePropsMap.set(device, arr);
+        nameToCloseCirclePropsMap.get(stage).push(...arr);
+        nameToCloseCirclePropsMap.set(device, abnormalContent);
       });
       this.nameToCloseCirclePropsMap = nameToCloseCirclePropsMap;
     },
